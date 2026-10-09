@@ -1,0 +1,101 @@
+# Taxcy
+
+Fleet audit and intercity cab operations for small fleet owners (2–15 cars) and owner-drivers (DCOs) in India.
+
+Taxcy gives a fleet owner a trustworthy picture of what their cars and drivers actually did: trips with photo-verified odometer readings, fuel fills audited against each vehicle's own history, GPS-vs-odometer distance checks, and a daily cash settlement per driver.
+
+> **Status: design stage.** No code has been written yet. This README and everything under [`docs/`](docs/) describe the agreed design and the developer workflow that the Phase 0 milestones will deliver. Sections that describe behaviour not yet built are marked **(planned)**. Open design questions are tracked in [`docs/decisions.md`](docs/decisions.md).
+
+---
+
+## What it does
+
+| For the fleet owner (admin web) | For the driver (mobile app) |
+| --- | --- |
+| Manage vehicles, drivers and their documents (RC, insurance, permit, PUC, DL) | Log in with phone + OTP |
+| Get alerts 30 / 7 / 1 days before a document expires | See assigned trips |
+| Create, assign and track trips; see photos and the GPS route | Start/end a trip with an odometer photo + typed reading |
+| See fuel efficiency (or cost per km for petrol + CNG cars) per vehicle, cycle by cycle, against its own baseline | Log fuel fills with a receipt photo and a full-tank toggle |
+| Get plain-language alerts for suspicious fuel use or inflated odometer readings | Log cash / UPI / card collections |
+| Review OCR mismatches in a review queue | Request cancellation of a running trip |
+| Approve or reject trip cancellations | Add tolls, parking and other charges |
+| Configure driver pay rules | Keep working offline; sync when back online |
+| Settle each driver's day: fare, cash, online, expenses, net payable | |
+
+Out of scope for now: the passenger app, return-leg matching and the OTA partner API. The schema leaves room for them (see [`docs/database.md`](docs/database.md#future-proofing)).
+
+## Repository layout (planned)
+
+```
+apps/
+  api/          NestJS modular monolith (HTTP API)
+  workers/      BullMQ workers: OCR, fuel cycles, GPS distance, document expiry, outbox relay
+  admin-web/    React + Vite admin console for owners and managers
+  driver-app/   React Native (Expo) offline-first driver app
+libs/
+  db/           Prisma schema, migrations, TypedSQL queries and client (shared by api + workers)
+  contracts/    Zod schemas + inferred types shared by API and clients
+  domain/       Pure business logic (fuel audit, trip state machine, settlement math)
+  api-client/   Typed client generated from the API's OpenAPI document
+  ui/           Shared React UI components (shadcn/ui based)
+docs/           Architecture, domain rules, database, usage guides
+```
+
+## Tech stack
+
+| Concern | Choice |
+| --- | --- |
+| Monorepo | pnpm workspaces + Nx |
+| API | NestJS, Prisma ORM, Zod |
+| Database | PostgreSQL 16 + PostGIS + btree_gist |
+| Jobs / cache | Redis + BullMQ (separate `workers` app, same codebase) |
+| Object storage | S3-compatible, signed upload URLs (MinIO locally) |
+| Admin web | React, Vite, TanStack Query, React Router, Tailwind, shadcn/ui, MapLibre |
+| Driver app | Expo (dev builds), expo-camera, expo-location, expo-sqlite |
+| Observability | pino structured logs, request IDs, health checks, Sentry |
+| Testing | Vitest, Testcontainers, Maestro |
+
+## Running it locally
+
+**Step-by-step guide: [`docs/getting-started.md`](docs/getting-started.md).** It covers installing the tools, starting the infrastructure, seeding, logging in, driving a trip in the driver app, offline mode, tests and troubleshooting.
+
+The short version (planned; available after M0.2):
+
+```bash
+pnpm install
+cp .env.example .env
+docker compose up -d          # Postgres+PostGIS, Redis, MinIO
+pnpm db:migrate
+pnpm db:seed                  # prints the seeded logins
+pnpm dev                      # api :3000, workers, admin web :5173
+```
+
+Log in at <http://localhost:5173> with a seeded phone number. In development, OTPs are printed in the `pnpm dev` log.
+
+## Documentation
+
+| Doc | What's in it |
+| --- | --- |
+| [Getting started](docs/getting-started.md) | Step-by-step: run the backend, admin web and driver app locally |
+| [Development guide](docs/development.md) | Local setup, env vars, scripts, testing, conventions |
+| [Architecture](docs/architecture.md) | Modules, layering, tenancy, jobs, idempotency, offline sync |
+| [Database](docs/database.md) | ERD, table reference, constraints, partitioning |
+| [Domain: trips](docs/domain/trips.md) | State machine, events, odometer evidence, conflicts |
+| [Domain: fuel audit](docs/domain/fuel-audit.md) | Full-tank cycles, baselines, flagging, worked examples |
+| [Domain: GPS telemetry](docs/domain/telemetry.md) | Ingest, filtering, odometer-vs-GPS check |
+| [Domain: collections and settlement](docs/domain/settlement.md) | Collections, daily settlement math |
+| [Evidence and anti-tampering](docs/domain/evidence.md) | Photo capture, signed uploads, OCR, review queue |
+| [Owner guide](docs/usage/owner-guide.md) | How a fleet owner uses the admin web |
+| [Driver guide](docs/usage/driver-guide.md) | How a driver uses the mobile app |
+| [API usage](docs/usage/api.md) | Auth flow, headers, idempotency, errors, generated client |
+| [Decisions](docs/decisions.md) | Open questions, accepted defaults, known risks |
+| [Roadmap](docs/roadmap.md) | Milestone checklist |
+
+## Conventions at a glance
+
+- Money is integer **paise**. Times are `timestamptz` in UTC, shown in **IST**.
+- Every org-scoped query is tenant-scoped centrally (guard + repository + Postgres RLS), never per endpoint.
+- Domain logic is pure and lives in `libs/domain`. Controllers stay thin; services orchestrate; repositories do data access.
+- No `any`. All external input is validated with Zod at the boundary.
+- External providers (SMS, OCR, maps, payments) sit behind interfaces with stub implementations.
+- Conventional commits (`feat(fuel): …`, `fix(trips): …`).

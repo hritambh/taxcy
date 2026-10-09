@@ -1,0 +1,45 @@
+# Decisions
+
+## Resolved (product owner, 2026-10-09)
+
+| # | Question | Decision | Consequences |
+| --- | --- | --- | --- |
+| D1 | ORM | **Prisma** | See [Prisma notes](database.md#prisma-notes): PostGIS columns are `Unsupported(...)` and accessed via TypedSQL; exclusion constraints, partitions and RLS live in hand-edited migrations (`--create-only`) guarded by a CI drift check; RLS uses a client extension that sets `app.org_id` per transaction; `BigInt` paise are converted to `number` in repositories. Prisma schema and client live in `libs/db`, shared by api and workers. |
+| D2 | Trip charges / expected fare | Charges are entered by **the driver or the owner/manager** | `trip_charges` records who entered each charge (`entered_by`, `entered_role`) and whether the driver paid it (`paid_by_driver`). Expected fare = quoted fare + non-voided charges. |
+| D3 | Driver pay / net payable | **Configurable** | Org-level `driver_pay_rule` with a per-driver override (`drivers.pay_rule`). Rules: `none`, `percent_of_fare`, `per_trip`, `per_km`, `fixed_daily`, plus `allowanceToDriver` (whether driver-allowance charges are paid out to the driver). See [settlement](domain/settlement.md). |
+| D4 | Fuel audit for `petrol_cng` | **Audit on cost per km** | Bi-fuel vehicles use the `bifuel_cost` track: cycles anchored on consecutive full CNG fills, metric = paise/km over all fills (both fuels) in the cycle; flags when cost/km is *above* baseline. Single-fuel vehicles still use km/L or km/kg. The planned `bifuel_petrol_share` alert is dropped. |
+| D5 | Trip state edges | **Yes to all; cancelling a started trip needs a reason and approval** | Cancel from `started` goes through `trip_cancellation_requests`: the driver requests it with a reason and end odometer, and an owner/manager approves (optionally setting a cancellation fare) or rejects. Reassign/unassign allowed while `assigned`. Trips move to `settled` when the driver's day is settled. Trips belong to the IST date they ended or were cancelled. *Interpretation; confirm before M1.3.* |
+| D6 | GitHub remote | **Local git only for now** | The CI workflow is committed but won't run until a remote is added. |
+
+## Accepted defaults (change by editing this file and the code together)
+
+| Area | Default |
+| --- | --- |
+| Tenancy | JWT `org_id` claim + guard + tenant-scoped base repository + **Postgres RLS** as a backstop |
+| Roles | Set per membership (`roles[]`); a DCO is `{owner, driver}` |
+| OTP | Redis; 6 digits; 5-min TTL; 5 attempts; 3 per 10 min and 10 per day per phone; per-IP limit |
+| Tokens | 15-min access; 30-day refresh, rotated, stored hashed, family revoked on reuse |
+| Units | Fuel in ml/g integers; odometer in integer km; efficiency as a float |
+| Fuel baseline | EWMA α = 0.3; flagged and invalid cycles excluded; percent fallback 20% (same rules for cost/km, with the direction inverted) |
+| Late data | Fuel cycles recomputed forward and versioned; settled days immutable, with late items carried forward |
+| Double-booking | `btree_gist` exclusion constraints on `busy_window` |
+| Jobs | Transactional outbox → BullMQ |
+| ORM | Prisma (`libs/db`), TypedSQL for PostGIS queries |
+| API contracts | Zod 4 + `nestjs-zod` → OpenAPI → `openapi-typescript` + `openapi-fetch` |
+| Maps | MapLibre GL + OSM tiles; `MapsProvider` stub for geocoding |
+| Driver app | Expo dev build (not Expo Go); `node-linker=hoisted` where Metro needs it |
+| IDs | UUIDv7 on the server, client UUIDs for offline-created records |
+
+## Known risks
+
+| Risk | Mitigation |
+| --- | --- |
+| Android OEM battery optimisation kills background GPS, leading to false odometer-vs-GPS flags | Coverage metric; `inconclusive` verdict; gap bridging; in-app guidance on battery settings |
+| Client metadata (time, GPS, "in-app camera") can be forged on rooted devices | Server-side plausibility checks + review items; Play Integrity / App Attest later |
+| A single missed fill log distorts a fuel cycle | `implausible_efficiency` review item instead of an alert; baseline excludes it |
+| GPS and phone numbers are personal data (DPDP Act 2023) | Consent screen, partition-based retention, PII redaction in logs |
+| Maestro in CI needs an emulator runner | Runs locally for now; CI integration is a TODO |
+| Cost/km for bi-fuel vehicles moves with fuel prices | The EWMA adapts within about 3 cycles; a fuel-price table to normalise cost is a possible later improvement |
+| Prisma `migrate dev` can drop objects it doesn't model (partitions, exclusion constraints, RLS policies) | Every migration is reviewed; CI runs `prisma migrate diff` against a migrated DB and fails on unexpected drops |
+| The seed needs Phase 1 tables in Phase 0 | The full schema migration ships in M0.2 |
+| The official `postgis/postgis:16-3.4` image is amd64-only, so it runs emulated (slowly) on Apple Silicon | docker-compose and Testcontainers will use a multi-arch PostGIS image (e.g. `imresamu/postgis:16-3.4`) |
