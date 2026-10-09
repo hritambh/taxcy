@@ -1,6 +1,6 @@
 # Getting started: run Taxcy locally, step by step
 
-> **What works today (M0.1):** steps 1–6 and 13. The admin web and driver app are still placeholders, and there's no database schema or login yet. Steps marked **(planned, Mx.y)** describe how they'll work once that milestone lands; each milestone re-runs this guide on a clean machine and updates it. See [roadmap.md](roadmap.md).
+> Everything in this guide works as of M1.8. The one exception is the Maestro end-to-end flow (M1.9), marked below. The driver app has been built and unit-tested but not yet run on a real phone; see [roadmap.md](roadmap.md).
 
 This takes about 20 minutes the first time, mostly downloads.
 
@@ -96,8 +96,8 @@ Leave this running and use a second terminal for the next steps.
 ## Step 6: Check that it works
 
 ```bash
-curl localhost:3000/health/live
-# {"status":"ok"}
+curl localhost:3000/v1/health/ready
+# {"status":"ok","checks":{"postgres":"ok","redis":"ok","s3":"ok"}}
 ```
 
 Open <http://localhost:5173>. The placeholder admin page should show **API: up**. That confirms the browser reaches the API through Vite's `/api` proxy.
@@ -106,7 +106,7 @@ Edit any file under `apps/api/src` and the API restarts by itself. Edit `apps/ad
 
 ---
 
-## Step 7: Create the database and load sample data (planned, M0.2 and M0.5)
+## Step 7: Create the database and load sample data
 
 ```bash
 bun run db:migrate
@@ -126,7 +126,7 @@ Seeded org "Sharma Travels"
 
 Re-running the seed is safe. `bun run db:reset` wipes the database and seeds it again.
 
-## Step 8: Log in to the admin web (planned, M0.3 and M1.7)
+## Step 8: Log in to the admin web
 
 1. Open <http://localhost:5173> and enter the owner's number (`9000000001`).
 2. Find the OTP in the `bun run dev` terminal:
@@ -135,7 +135,7 @@ Re-running the seed is safe. `bun run db:reset` wipes the database and seeds it 
    ```
 3. Enter the code.
 
-## Step 9: Explore the seeded data (planned, M1.7)
+## Step 9: Explore the seeded data
 
 1. **Alerts:** a critical fuel alert on the Dzire, an odometer-vs-GPS alert on an Innova trip, and an insurance-expiry warning.
 2. **Fuel → Dzire:** one red cycle well below the shaded normal band. Click it to see the fills and the explanation.
@@ -146,8 +146,6 @@ Re-running the seed is safe. `bun run db:reset` wipes the database and seeds it 
 
 ## Step 10: Run the driver app
 
-The placeholder app runs today. From M1.8 it talks to the API.
-
 ```bash
 cd apps/driver-app
 flutter pub get
@@ -155,7 +153,7 @@ flutter devices          # list emulators, simulators and phones
 flutter run              # pick one
 ```
 
-From M1.8, tell the app where the API is:
+Tell the app where the API is:
 
 | Target                      | Command                                                       |
 | --------------------------- | ------------------------------------------------------------- |
@@ -165,16 +163,16 @@ From M1.8, tell the app where the API is:
 
 On a physical phone, photo uploads also need `S3_PUBLIC_ENDPOINT=http://<your-LAN-IP>:9000` in the root `.env`. Restart `bun run dev` after changing it. On macOS, `ipconfig getifaddr en0` prints your LAN IP.
 
-## Step 11: Drive a trip (planned, M1.8)
+## Step 11: Drive a trip
 
 1. Log in as **Ramesh** (`9000000011`) with the OTP from the API log, and allow camera and location access.
 2. Open the Pune → Mumbai trip and tap **Start trip**. Photograph the odometer (an emulator camera shows a test scene, which is fine because OCR is stubbed), type `48210`, and tap **Start**.
-3. **Simulate driving.** On the Android emulator, open **Extended controls → Location → Routes**, load `apps/driver-app/test/fixtures/pune-mumbai.gpx`, and press play. On the iOS simulator, use **Features → Location → Freeway Drive**.
+3. **Simulate driving.** On the Android emulator, open **Extended controls → Location → Routes**, pick or import any route, and press play. On the iOS simulator, use **Features → Location → Freeway Drive**.
 4. Add a ₹250 toll, marked **I paid this**.
 5. **End trip:** photograph the odometer, type `48365`, and enter ₹3,500 cash.
 6. In the admin web, the trip shows _Ended_, the GPS route, the toll, and an odometer-vs-GPS result within a few seconds.
 
-## Step 12: Try offline mode (planned, M1.8)
+## Step 12: Try offline mode
 
 1. Turn on airplane mode; the status bar shows 🔴 **Offline**.
 2. Log a fuel fill: receipt photo, odometer, 40 L, ₹3,800, **Full tank** on. The bar shows 🟡 **1 pending**.
@@ -190,7 +188,7 @@ To see a sync conflict: put the phone offline, start an assigned trip in the app
 bun run verify     # format check, lint, typecheck, unit tests, build: what CI runs
 ```
 
-Planned additions: `bun run test:integration` (M0.2, API tests against throwaway containers) and `bun run test:e2e:driver` (M1.9, Maestro flow on a running emulator).
+`bun run test:integration` runs the API integration tests against throwaway containers (about 5 minutes; needs Docker). The Maestro end-to-end flow (`bun run test:e2e:driver`) is planned for M1.9.
 
 ## Stopping and resetting
 

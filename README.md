@@ -4,7 +4,7 @@ Fleet audit and intercity cab operations for small fleet owners (2–15 cars) an
 
 Taxcy gives a fleet owner a trustworthy picture of what their cars and drivers actually did: trips with photo-verified odometer readings, fuel fills audited against each vehicle's own history, GPS-vs-odometer distance checks, and a daily cash settlement per driver.
 
-> **Status: M0.1 (scaffold) done.** The monorepo, tooling, CI and local infrastructure are in place; the API, workers, admin web and driver app are placeholders. Sections that describe behaviour not yet built are marked **(planned)**. See [`docs/roadmap.md`](docs/roadmap.md) for progress and [`docs/decisions.md`](docs/decisions.md) for design decisions.
+> **Status: M0.1–M1.8 done.** The API, workers, admin console and offline-first Flutter driver app are built, and a demo fleet can be seeded. Next up is M1.9 (end-to-end tests). See [`docs/roadmap.md`](docs/roadmap.md) for progress and [`docs/decisions.md`](docs/decisions.md) for design decisions.
 
 ---
 
@@ -24,7 +24,7 @@ Taxcy gives a fleet owner a trustworthy picture of what their cars and drivers a
 
 Out of scope for now: the passenger app, return-leg matching and the OTA partner API. The schema leaves room for them (see [`docs/database.md`](docs/database.md#future-proofing)).
 
-## Repository layout (planned)
+## Repository layout
 
 ```
 apps/
@@ -68,7 +68,7 @@ bun run infra:up              # Postgres+PostGIS :5433, Redis :6380, RustFS :900
 bun run dev                   # api :3000, workers, admin web :5173
 ```
 
-From M0.2/M0.5, `bun run db:migrate` and `bun run db:seed` create the schema and sample data; from M0.3, you log in with a seeded phone number and the OTP printed in the `bun run dev` log.
+Before the first `dev`, run `bun run db:migrate && bun run db:seed` to create the schema and the demo fleet. Then sign in at <http://localhost:5173> with a seeded phone number (e.g. `9000000001`, the owner); the OTP is printed in the `bun run dev` log.
 
 ## Documentation
 

@@ -18,9 +18,31 @@ Each milestone ends with lint, typecheck and tests passing, a summary of what ch
 - [x] **M1.4 Fuel:** fills, cycle recomputation for out-of-order fills, baselines, alerts and review items
 - [x] **M1.5 Telemetry:** batched GPS ingest, partition maintenance, PostGIS distance check
 - [x] **M1.6 Money + inbox:** collections, daily settlement (draft → settled, carry-forward), alerts and review queue APIs
-- [ ] **M1.7 Admin web:** login; fleet CRUD; trips (create/assign/list/detail with photos and map); fuel cycles chart; alerts; review queue; settlements
-- [ ] **M1.8 Driver app (Flutter):** login; my trips; start (odometer camera); live trip; end (odometer + collections); fuel fill (receipt camera, full-tank toggle); offline indicator + sync engine
+- [x] **M1.7 Admin web:** login; fleet CRUD; trips (create/assign/list/detail with photos and map); fuel cycles chart; alerts; review queue; settlements
+- [x] **M1.8 Driver app (Flutter):** login; my trips; start (odometer camera); live trip; end (odometer + collections); fuel fill (receipt camera, full-tank toggle); offline indicator + sync engine
 - [ ] **M1.9 End-to-end tests:** integration tests for trip lifecycle, idempotent and conflicting sync, tenant isolation; Maestro start → end flow; docs pass
+
+## Known gaps (found while building M1.7–M1.8)
+
+- **Not exercised on hardware:** the driver app hasn't run on a real phone or emulator yet (camera, background GPS, the foreground service, connectivity changes). There's no iOS build either; this machine has no Xcode or CocoaPods.
+- **API:**
+  - no endpoint to invite or manage managers
+  - staff can't cancel a started trip without an end-odometer photo
+  - lists have `limit` but no cursor pagination
+  - no customer list/create endpoints
+  - fuel fills can only be voided, not edited
+  - no driver-facing "my fuel fills" list
+  - `GET /vehicles` has no per-driver filter
+- **Driver app:**
+  - photos aren't compressed, and local copies aren't deleted after upload
+  - conflict notices aren't kept as a history
+  - fills and collections recorded offline don't show in a list
+  - no org switching
+  - the first sync after a fresh sign-in can mislabel an older cancelled trip as reassigned (the server's "recent" window is 2 days)
+- **Admin web:**
+  - no browser-level end-to-end tests
+  - light mode only
+  - no address search (map pins are manual)
 
 ## Later (out of scope for now)
 
