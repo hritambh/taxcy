@@ -49,7 +49,7 @@ else:                                          result = ok
 
 A `flagged` result raises an `odo_gps_mismatch` alert:
 
-> **Trip on 9 Oct (Pune → Mumbai, MH12 AB 1234) shows more km on the odometer than the GPS route.** The odometer readings say 182 km, but the phone's GPS recorded 151 km, which is 21% less. Allowed difference: 10%. Check the start and end odometer photos.
+> **Trip on 9 Oct (Pune → Mumbai, MH12 AB 1234) shows more km on the odometer than the GPS route.** The odometer readings say 182 km, but the phone's GPS recorded 151 km. The odometer distance is 21% higher; the allowed difference is 10%. Check the start and end odometer photos.
 
 Severity is `warning` up to twice the tolerance and `critical` beyond that.
 

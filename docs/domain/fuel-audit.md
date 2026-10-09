@@ -85,12 +85,14 @@ var'  = (1 − α)·(var + α·δ²)
 
 Let `n` be the number of accepted cycles before this one, `k` = `fuel_k_sigma` (default 2), `N` = `fuel_min_cycles` (default 3) and `p` = `fuel_pct_threshold` (default 20%).
 
-| Phase   | Rule                                  | `method`  |
-| ------- | ------------------------------------- | --------- |
-| `n ≥ N` | flag if `x < mean − k·σ`              | `sigma`   |
-| `n < N` | flag if `x < seed_mean × (1 − p/100)` | `percent` |
+| Phase   | Rule                                                                                           | `method`  |
+| ------- | ---------------------------------------------------------------------------------------------- | --------- |
+| `n ≥ N` | flag if `x < mean − k·σ`                                                                       | `sigma`   |
+| `n < N` | flag if `x < mean × (1 − p/100)`, where `mean` is the current baseline (it starts at the seed) | `percent` |
 
-`deviation` stores `(mean − x)/σ` for the sigma method, or the percentage shortfall for the percent method.
+`deviation` stores `(mean − x)/σ` for the sigma method, or the percentage shortfall for the percent method. A value exactly at the threshold is not flagged.
+
+σ is floored at 3% of the mean, so a run of near-identical cycles can't shrink it to almost zero and turn ordinary noise into alerts.
 
 **Severity (proposed):**
 
@@ -122,10 +124,10 @@ Decision D4. There's no way to know how many km a bi-fuel car drove on petrol an
 
 Baseline and flagging use the same EWMA and the same sigma/percent rules as other vehicles, with the direction inverted:
 
-| Phase   | Rule                                  |
-| ------- | ------------------------------------- |
-| `n ≥ N` | flag if `x > mean + k·σ`              |
-| `n < N` | flag if `x > seed_mean × (1 + p/100)` |
+| Phase   | Rule                             |
+| ------- | -------------------------------- |
+| `n ≥ N` | flag if `x > mean + k·σ`         |
+| `n < N` | flag if `x > mean × (1 + p/100)` |
 
 Running on petrol costs more per km than CNG, so heavy petrol use shows up as a cost/km spike. No separate petrol-share alert is needed.
 
