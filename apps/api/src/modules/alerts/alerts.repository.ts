@@ -1,0 +1,64 @@
+import { Injectable } from '@nestjs/common';
+import type { Prisma, TenantTx } from '@taxcy/db';
+import { newId } from '../../platform/ids.js';
+
+export type AlertKind =
+  | 'fuel_efficiency_low'
+  | 'fuel_cost_high'
+  | 'odo_gps_mismatch'
+  | 'document_expiring'
+  | 'document_expired'
+  | 'cancellation_requested'
+  | 'gps_coverage_low';
+
+export interface RaiseAlert {
+  kind: AlertKind;
+  severity: 'info' | 'warning' | 'critical';
+  title: string;
+  explanation: string;
+  subjectType: string;
+  subjectId: string;
+  vehicleId?: string | null;
+  driverId?: string | null;
+  tripId?: string | null;
+  data?: Prisma.InputJsonValue;
+  /** One alert per dedupe key per org; raising again updates an open alert. */
+  dedupeKey: string;
+}
+
+@Injectable()
+export class AlertsRepository {
+  async raise(tx: TenantTx, alert: RaiseAlert): Promise<void> {
+    const values = {
+      kind: alert.kind,
+      severity: alert.severity,
+      title: alert.title,
+      explanation: alert.explanation,
+      subjectType: alert.subjectType,
+      subjectId: alert.subjectId,
+      vehicleId: alert.vehicleId ?? null,
+      driverId: alert.driverId ?? null,
+      tripId: alert.tripId ?? null,
+      data: alert.data ?? {},
+    };
+    const existing = await tx.alert.findUnique({
+      where: { orgId_dedupeKey: { orgId: tx.orgId, dedupeKey: alert.dedupeKey } },
+      select: { id: true, status: true },
+    });
+    if (!existing) {
+      await tx.alert.create({
+        data: { id: newId(), orgId: tx.orgId, dedupeKey: alert.dedupeKey, ...values },
+      });
+    } else if (existing.status === 'open' || existing.status === 'acknowledged') {
+      await tx.alert.update({ where: { id: existing.id }, data: values });
+    }
+  }
+
+  /** Resolves an open alert whose condition no longer holds (e.g. a recomputed cycle is now fine). */
+  async autoResolve(tx: TenantTx, dedupeKey: string): Promise<void> {
+    await tx.alert.updateMany({
+      where: { orgId: tx.orgId, dedupeKey, status: { in: ['open', 'acknowledged'] } },
+      data: { status: 'resolved', resolvedAt: new Date() },
+    });
+  }
+}

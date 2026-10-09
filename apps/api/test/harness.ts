@@ -1,3 +1,6 @@
+import { JobDispatcher } from '../src/platform/jobs/job-dispatcher.js';
+import type { JobEvent } from '../src/platform/jobs/on-job.js';
+import { OutboxRelay } from '../src/platform/jobs/outbox-relay.js';
 import type { Session } from '@taxcy/contracts';
 import request from 'supertest';
 import { randomInt, randomUUID } from 'node:crypto';
@@ -75,3 +78,25 @@ export const bearer = (session: Session): [string, string] => [
   'Authorization',
   `Bearer ${session.accessToken}`,
 ];
+
+/**
+ * Drains the outbox and runs each job's handler in-process, repeating until no new
+ * events appear (handlers may publish follow-up events). Mirrors what the workers
+ * app does through BullMQ, minus the queue, so tests are deterministic.
+ */
+export async function runJobs(h: Harness): Promise<number> {
+  const relay = h.app.get(OutboxRelay);
+  const dispatcher = h.app.get(JobDispatcher);
+  let total = 0;
+  for (let round = 0; round < 20; round++) {
+    const events: JobEvent[] = [];
+    await relay.drainOnce((event) => {
+      events.push(event);
+      return Promise.resolve();
+    });
+    if (!events.length) return total;
+    for (const event of events) await dispatcher.dispatch(event);
+    total += events.length;
+  }
+  throw new Error('runJobs: jobs keep producing events after 20 rounds');
+}

@@ -1,6 +1,7 @@
 import { DiscoveryService } from '@nestjs/core';
 import type { INestApplication } from '@nestjs/common';
 import type { RouteDef } from '@taxcy/contracts';
+import { prototypeMethods } from '../methods.js';
 import { ROUTE_CONTRACT } from './route.js';
 
 const key = (r: RouteDef) => `${r.method} ${r.path}`;
@@ -11,10 +12,7 @@ export function assertRoutesBound(app: INestApplication, contracts: readonly Rou
   for (const wrapper of app.get(DiscoveryService).getControllers()) {
     const instance: unknown = wrapper.instance;
     if (typeof instance !== 'object' || instance === null) continue;
-    const proto = Object.getPrototypeOf(instance) as Record<string, unknown>;
-    for (const name of Object.getOwnPropertyNames(proto)) {
-      const handler = proto[name];
-      if (typeof handler !== 'function' || name === 'constructor') continue;
+    for (const [name, handler] of prototypeMethods(instance)) {
       const contract = Reflect.getMetadata(ROUTE_CONTRACT, handler) as RouteDef | undefined;
       if (!contract) continue;
       const k = key(contract);
