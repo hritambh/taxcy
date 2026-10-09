@@ -10,7 +10,7 @@ export function App() {
 
   useEffect(() => {
     const controller = new AbortController();
-    fetch('/api/health/live', { signal: controller.signal })
+    fetch('/api/v1/health/live', { signal: controller.signal })
       .then((res) => {
         setStatus(res.ok ? 'up' : 'down');
       })

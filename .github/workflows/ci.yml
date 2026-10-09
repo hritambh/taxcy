@@ -25,6 +25,43 @@ jobs:
       - run: bun run format:check
       - run: bunx nx run-many -t lint typecheck test build --exclude @taxcy/driver-app
 
+  database-and-integration:
+    name: Migrations drift + API integration tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: imresamu/postgis:16-3.5
+        env:
+          POSTGRES_USER: taxcy
+          POSTGRES_PASSWORD: taxcy
+          POSTGRES_DB: taxcy
+        ports: ['5433:5432']
+        options: >-
+          --health-cmd "pg_isready -U taxcy" --health-interval 2s --health-timeout 3s --health-retries 30
+    env:
+      DATABASE_MIGRATION_URL: postgres://taxcy:taxcy@localhost:5433/taxcy
+      SHADOW_DATABASE_URL: postgres://taxcy:taxcy@localhost:5433/taxcy_shadow
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.2
+      - run: bun install --frozen-lockfile
+      - name: Create roles and shadow database
+        run: |
+          psql "$DATABASE_MIGRATION_URL" -v ON_ERROR_STOP=1 -f infra/postgres/init-roles.sql
+          psql "$DATABASE_MIGRATION_URL" -c 'CREATE DATABASE taxcy_shadow'
+      - run: bunx nx run @taxcy/db:build
+      - name: Migrations match schema.prisma
+        run: bun run --cwd libs/db drift
+      - name: Generated API client is up to date
+        run: bun run api:client && git diff --exit-code libs/api-client
+      - name: API integration tests (Testcontainers)
+        run: bun run test:integration
+
   driver-app:
     name: Flutter driver app (format, analyze, test)
     runs-on: ubuntu-latest

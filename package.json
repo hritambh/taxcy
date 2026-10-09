@@ -24,7 +24,14 @@
     "verify": "bun run format:check && nx run-many -t lint typecheck test build",
     "infra:up": "docker compose up -d --wait",
     "infra:down": "docker compose down",
-    "infra:reset": "docker compose down -v && docker compose up -d --wait"
+    "infra:reset": "docker compose down -v && docker compose up -d --wait",
+    "db:generate": "bun run --cwd libs/db generate",
+    "db:migrate": "bun run --cwd libs/db migrate",
+    "db:migration": "bun run --cwd libs/db migration",
+    "db:drift": "bun run --cwd libs/db drift",
+    "db:studio": "bun run --cwd libs/db studio",
+    "test:integration": "nx run-many -t test:integration",
+    "api:client": "nx run @taxcy/api-client:generate"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
