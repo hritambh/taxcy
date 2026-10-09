@@ -100,3 +100,24 @@ export async function runJobs(h: Harness): Promise<number> {
   }
   throw new Error('runJobs: jobs keep producing events after 20 rounds');
 }
+
+/** Owner invites a driver; the driver signs in through OTP and gets a session for the org. */
+export async function driverSession(
+  h: Harness,
+  owner: Session,
+  name = 'Ramesh Kumar',
+): Promise<{ session: Session; driverId: string }> {
+  const phone = randomPhone();
+  const invite = await request(h.http)
+    .post('/v1/drivers')
+    .set(...bearer(owner))
+    .send({ name, phone })
+    .expect(201);
+  const session = await login(h, phone);
+  return { session, driverId: (invite.body as { id: string }).id };
+}
+
+/** Runs a scheduled job's handler directly. */
+export async function runSchedule(h: Harness, topic: string): Promise<void> {
+  await h.app.get(JobDispatcher).dispatch({ topic, orgId: null, payload: {} });
+}

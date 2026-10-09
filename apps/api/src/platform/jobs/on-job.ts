@@ -18,5 +18,11 @@ export interface JobEvent {
 /** Queue a topic is routed to: its prefix, e.g. media.uploaded → media. */
 export const queueFor = (topic: string): string => topic.split('.')[0] ?? 'default';
 
-/** Recurring system jobs (handlers receive orgId null). Times are UTC cron. */
-export const SCHEDULES: readonly { topic: string; pattern: string; description: string }[] = [];
+/** Recurring system jobs (handlers receive orgId null). Patterns are UTC cron. */
+export const SCHEDULES: readonly { topic: string; pattern: string; description: string }[] = [
+  {
+    topic: 'fleet.document_expiry_scan',
+    pattern: '30 0 * * *',
+    description: 'Document expiry alerts, 06:00 IST',
+  },
+];

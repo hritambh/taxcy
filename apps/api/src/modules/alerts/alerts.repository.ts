@@ -61,4 +61,16 @@ export class AlertsRepository {
       data: { status: 'resolved', resolvedAt: new Date() },
     });
   }
+
+  /** Resolves every open alert whose dedupe key starts with `prefix` (e.g. all alerts for a renewed document). */
+  async autoResolvePrefix(tx: TenantTx, prefix: string, exceptKey?: string): Promise<void> {
+    await tx.alert.updateMany({
+      where: {
+        orgId: tx.orgId,
+        dedupeKey: { startsWith: prefix, ...(exceptKey ? { not: exceptKey } : {}) },
+        status: { in: ['open', 'acknowledged'] },
+      },
+      data: { status: 'resolved', resolvedAt: new Date() },
+    });
+  }
 }

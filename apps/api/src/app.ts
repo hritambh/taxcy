@@ -40,6 +40,10 @@ export async function createApp(options: { logs?: boolean } = {}): Promise<INest
   const document = openApiDocument();
   express.get('/v1/openapi.json', (_req, res) => res.json(document));
   express.get('/docs', (_req, res) => res.type('html').send(DOCS_HTML));
+  // The API has no home page; send people who open it in a browser to the docs.
+  express.get('/', (_req, res) => {
+    res.redirect('/docs');
+  });
 
   await app.init();
   assertRoutesBound(app, allRoutes);
