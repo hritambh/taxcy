@@ -63,7 +63,7 @@ jobs:
         run: bun run test:integration
 
   driver-app:
-    name: Flutter driver app (format, analyze, test)
+    name: Flutter driver app (format, analyze, test, web build)
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -79,3 +79,5 @@ jobs:
       - run: dart format --output=none --set-exit-if-changed lib test
       - run: flutter analyze --fatal-infos
       - run: flutter test
+      - name: Web build compiles (catches native-only imports)
+        run: flutter build web
