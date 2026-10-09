@@ -58,11 +58,11 @@ Everything works offline. Trips, photos, fuel fills and payments are saved on th
 
 The bar at the top shows:
 
-| Indicator | Meaning |
-| --- | --- |
-| 🟢 Synced | Everything has been sent |
-| 🟡 3 pending | 3 items waiting to be sent |
-| 🔴 Offline | No network; items are saved on your phone |
+| Indicator    | Meaning                                   |
+| ------------ | ----------------------------------------- |
+| 🟢 Synced    | Everything has been sent                  |
+| 🟡 3 pending | 3 items waiting to be sent                |
+| 🔴 Offline   | No network; items are saved on your phone |
 
 Don't uninstall the app or clear its data while items are pending.
 

@@ -6,7 +6,7 @@
 flowchart LR
   subgraph Clients
     AW[Admin web<br/>React + Vite]
-    DA[Driver app<br/>Expo + SQLite outbox]
+    DA[Driver app<br/>Flutter + SQLite outbox]
   end
   subgraph Backend
     API[apps/api<br/>NestJS modular monolith]
@@ -14,7 +14,7 @@ flowchart LR
   end
   PG[(PostgreSQL 16<br/>PostGIS, btree_gist, RLS)]
   RD[(Redis)]
-  S3[(S3 / MinIO)]
+  S3[(S3 / RustFS locally)]
 
   AW -- HTTPS + JWT --> API
   DA -- HTTPS + JWT, batched sync --> API
@@ -31,17 +31,17 @@ flowchart LR
 
 ## API modules
 
-| Module | Owns |
-| --- | --- |
-| `identity` | Users, OTP login, JWT access/refresh, organizations, memberships, roles, devices |
-| `media` | Signed upload URLs, media metadata, upload confirmation, OCR results |
-| `fleet` | Vehicles, vehicle models, drivers, documents, expiry alerts |
-| `trips` | Trips, state machine transitions, `trip_events`, odometer readings, trip charges |
-| `fuel` | Fuel fills, fuel cycles, per-vehicle baselines |
-| `telemetry` | GPS ingest, partition maintenance, trip distance checks |
-| `money` | Collections, daily settlements |
-| `alerts` | Alerts inbox and review queue |
-| `platform` | Config, logging, health, Sentry, Prisma (via `libs/db`), tenancy, idempotency, outbox |
+| Module      | Owns                                                                                  |
+| ----------- | ------------------------------------------------------------------------------------- |
+| `identity`  | Users, OTP login, JWT access/refresh, organizations, memberships, roles, devices      |
+| `media`     | Signed upload URLs, media metadata, upload confirmation, OCR results                  |
+| `fleet`     | Vehicles, vehicle models, drivers, documents, expiry alerts                           |
+| `trips`     | Trips, state machine transitions, `trip_events`, odometer readings, trip charges      |
+| `fuel`      | Fuel fills, fuel cycles, per-vehicle baselines                                        |
+| `telemetry` | GPS ingest, partition maintenance, trip distance checks                               |
+| `money`     | Collections, daily settlements                                                        |
+| `alerts`    | Alerts inbox and review queue                                                         |
+| `platform`  | Config, logging, health, Sentry, Prisma (via `libs/db`), tenancy, idempotency, outbox |
 
 Modules talk to each other through exported services, never through each other's repositories. Cross-module side effects (for example "a fill was recorded, so recompute cycles") go through the outbox, so they're asynchronous and retryable.
 
@@ -49,14 +49,14 @@ Modules talk to each other through exported services, never through each other's
 
 ```
 HTTP ─▶ Controller ─▶ Service ─▶ Repository ─▶ Postgres
-         (Zod parse)   │  (tx, orchestration)  (Prisma, tenant-scoped) 
+         (Zod parse)   │  (tx, orchestration)  (Prisma, tenant-scoped)
                        └─▶ libs/domain (pure functions, no I/O)
 ```
 
 - **Controllers** parse input with `libs/contracts` schemas, call one service method and map the result to a response. No business logic.
 - **Services** open transactions, load data through repositories, call domain functions, persist results and write outbox events.
 - **Repositories** are the only code that touches Prisma (`libs/db`), including TypedSQL for PostGIS. They get the tenant from the request context, so callers can't forget it, and convert `bigint` paise to `number`.
-- **`libs/domain`** takes plain data and returns plain data: easy to unit-test, reusable on the client (for example, the driver app runs the trip state machine offline).
+- **`libs/domain`** takes plain data and returns plain data: easy to unit-test, and reusable by the admin web. The Flutter driver app can't import it; it gets the trip transition table as a JSON export, kept in sync by a shared fixture test.
 
 ## Multi-tenancy
 
@@ -96,15 +96,15 @@ sequenceDiagram
 
 ## Background jobs
 
-| Queue / job | Trigger | Work |
-| --- | --- | --- |
-| `outbox-relay` | Polls `outbox` (every second) | Publishes committed events to BullMQ |
-| `ocr` | `media.uploaded` (odometer, receipt) | Runs `OcrProvider` and stores the result; a mismatch creates a review item |
-| `fuel-cycles` | `fuel.fill_recorded` / `fuel.fill_voided` | Recomputes the vehicle's cycles and baseline from the affected fill onward |
-| `trip-distance` | `trip.ended`, late GPS batch for an ended trip | PostGIS distance, coverage, odometer-vs-GPS verdict |
-| `document-expiry` | Cron, 06:00 IST daily | Raises 30/7/1-day and expired alerts (deduplicated) |
-| `gps-partitions` | Cron, daily | Creates the next 2 monthly partitions; drops partitions past retention |
-| `idempotency-gc` | Cron, daily | Deletes idempotency keys older than 30 days |
+| Queue / job       | Trigger                                        | Work                                                                       |
+| ----------------- | ---------------------------------------------- | -------------------------------------------------------------------------- |
+| `outbox-relay`    | Polls `outbox` (every second)                  | Publishes committed events to BullMQ                                       |
+| `ocr`             | `media.uploaded` (odometer, receipt)           | Runs `OcrProvider` and stores the result; a mismatch creates a review item |
+| `fuel-cycles`     | `fuel.fill_recorded` / `fuel.fill_voided`      | Recomputes the vehicle's cycles and baseline from the affected fill onward |
+| `trip-distance`   | `trip.ended`, late GPS batch for an ended trip | PostGIS distance, coverage, odometer-vs-GPS verdict                        |
+| `document-expiry` | Cron, 06:00 IST daily                          | Raises 30/7/1-day and expired alerts (deduplicated)                        |
+| `gps-partitions`  | Cron, daily                                    | Creates the next 2 monthly partitions; drops partitions past retention     |
+| `idempotency-gc`  | Cron, daily                                    | Deletes idempotency keys older than 30 days                                |
 
 All job payloads are Zod-validated. Every job is idempotent: retries and duplicate deliveries are safe.
 
@@ -114,7 +114,7 @@ Calling BullMQ directly from a service either enqueues jobs for transactions tha
 
 ## Idempotency and offline sync
 
-The driver app writes everything to local SQLite and an outbox table first. A sync engine replays the outbox in order when online.
+The Flutter driver app writes everything to local SQLite (drift) and an outbox table first. A sync engine replays the outbox in order when online.
 
 - **Records the app creates** (fuel fills, collections, media, GPS points, trip events) use the **client-generated UUID as their primary key**.
   - Re-sending the same id with the same payload returns the original result (`200`, plus the header `Idempotent-Replay: true`).
@@ -134,11 +134,11 @@ The driver app writes everything to local SQLite and an outbox table first. A sy
 
 ## Provider interfaces
 
-| Interface | Stub | Real (later) |
-| --- | --- | --- |
-| `SmsProvider` | `ConsoleSmsProvider` logs the OTP | MSG91 / Gupshup etc. (DLT-registered template) |
-| `OcrProvider` | `StubOcrProvider` returns configured values or "unreadable" | Cloud OCR or an on-device model |
-| `MapsProvider` | `StubMapsProvider` (geocode returns null; route distance uses haversine) | Google / Mapbox / Ola Maps |
-| `PaymentsProvider` | not needed in Phase 1 | UPI collect / payment links |
+| Interface          | Stub                                                                     | Real (later)                                   |
+| ------------------ | ------------------------------------------------------------------------ | ---------------------------------------------- |
+| `SmsProvider`      | `ConsoleSmsProvider` logs the OTP                                        | MSG91 / Gupshup etc. (DLT-registered template) |
+| `OcrProvider`      | `StubOcrProvider` returns configured values or "unreadable"              | Cloud OCR or an on-device model                |
+| `MapsProvider`     | `StubMapsProvider` (geocode returns null; route distance uses haversine) | Google / Mapbox / Ola Maps                     |
+| `PaymentsProvider` | not needed in Phase 1                                                    | UPI collect / payment links                    |
 
 Providers are chosen by env var and injected by Nest DI. Tests swap in fakes.

@@ -13,17 +13,20 @@ The admin web is for **owners** and **managers**. Drivers use the [mobile app](d
 ## 2. Set up your fleet
 
 ### Vehicles
+
 **Fleet → Vehicles → Add vehicle**
 
 - Registration number, make/model, year, and **fuel type** (petrol, diesel, CNG, or petrol + CNG). Fuel type is required and decides whether fuel is measured in litres or kg.
 - Current odometer reading (optional, used to catch odometer rollbacks).
 
 ### Drivers
+
 **Fleet → Drivers → Invite driver**
 
 - Name and mobile number. The driver signs in to the app with that number; no password is needed.
 
 ### Documents
+
 **Fleet → Documents**, or the Documents tab on a vehicle or driver.
 
 - Add RC, insurance, permit and PUC for each vehicle, and a driving licence for each driver, with expiry dates and an optional photo or scan.
@@ -33,6 +36,7 @@ The admin web is for **owners** and **managers**. Drivers use the [mobile app](d
 ## 3. Trips
 
 ### Create a trip
+
 **Trips → New trip**
 
 - Type: **One way**, **Round trip** or **Local rental**.
@@ -40,9 +44,11 @@ The admin web is for **owners** and **managers**. Drivers use the [mobile app](d
 - Scheduled start and end, customer name and phone, and the **quoted fare** in ₹.
 
 ### Assign
+
 Pick a vehicle and driver. If either is already booked for an overlapping time, you'll see which trip conflicts.
 
 ### Track
+
 The trip list shows each trip's status: Created → Assigned → Started → Ended → Settled (or Cancelled). The trip detail page shows:
 
 - a timeline of every status change: who did it and when (device time and server time)
@@ -51,9 +57,11 @@ The trip list shows each trip's status: Created → Assigned → Started → End
 - collections and charges (tolls, parking, etc.)
 
 ### Add or correct charges
+
 On the trip detail page, **Charges → Add** lets you add tolls, parking, state tax, driver allowance, night charge or extra km, and mark whether the driver paid it out of pocket. Charges the driver added in the app also appear here, labelled with who entered them. You can void a wrong charge any time before the day is settled.
 
 ### Cancel
+
 - **Not yet started:** **Cancel trip** asks for a reason and takes effect immediately. If the driver was offline, they'll see it as soon as their app syncs.
 - **Already started:** the trip can only be cancelled with a reason and an approval. When a driver requests a cancellation, you'll get an alert, and the trip shows **Cancellation requested** with the reason and end-odometer photo. Choose:
   - **Approve**: optionally enter a cancellation fare (for example, to charge for the distance already driven). The trip becomes Cancelled.
@@ -67,7 +75,7 @@ On the trip detail page, **Charges → Add** lets you add tolls, parking, state 
 
 - A list of fills: date, driver, quantity, cost, odometer, full-tank flag and receipt photo.
 - A **cycles chart**: efficiency (km/L or km/kg) for each full-tank-to-full-tank cycle, with the vehicle's normal range shaded. Flagged cycles are shown in red.
-- **Petrol + CNG cars** are charted as **cost per km (₹/km)** instead, because there's no way to tell how far they drove on each fuel. Here a *higher* value is worse, and running on petrol when CNG is available shows up as a spike.
+- **Petrol + CNG cars** are charted as **cost per km (₹/km)** instead, because there's no way to tell how far they drove on each fuel. Here a _higher_ value is worse, and running on petrol when CNG is available shows up as a spike.
 - Click a cycle to see the fills it includes and why it was or wasn't flagged.
 
 **Getting accurate numbers:** ask drivers to fill **to full tank** regularly and to turn on "Full tank" in the app when they do. Efficiency can only be measured between two full-tank fills.
@@ -78,13 +86,13 @@ New vehicles use a typical figure for their model for the first 3 cycles. After 
 
 **Alerts** is your inbox for anything that needs attention:
 
-| Alert | What it means |
-| --- | --- |
-| Fuel use higher than usual | A fuel cycle was much worse than the vehicle's normal efficiency |
-| Odometer higher than GPS | A trip's odometer distance is well above the GPS-recorded route |
-| Document expiring / expired | RC, insurance, permit, PUC or DL is due |
-| Running cost higher than usual (petrol + CNG cars) | Cost per km in a cycle was much higher than the car's normal |
-| Cancellation requested | A driver asked to cancel a running trip; approve or reject it on the trip page |
+| Alert                                              | What it means                                                                  |
+| -------------------------------------------------- | ------------------------------------------------------------------------------ |
+| Fuel use higher than usual                         | A fuel cycle was much worse than the vehicle's normal efficiency               |
+| Odometer higher than GPS                           | A trip's odometer distance is well above the GPS-recorded route                |
+| Document expiring / expired                        | RC, insurance, permit, PUC or DL is due                                        |
+| Running cost higher than usual (petrol + CNG cars) | Cost per km in a cycle was much higher than the car's normal                   |
+| Cancellation requested                             | A driver asked to cancel a running trip; approve or reject it on the trip page |
 
 Each alert explains in plain language what happened and what to check. Mark it **Acknowledged**, **Resolved** or **Dismissed**. Dismissing a fuel alert as a false alarm lets that cycle count toward the vehicle's normal range.
 
@@ -103,15 +111,15 @@ Fuel and distance checks are recalculated automatically after your decision.
 
 **Settlements → (pick a date)** shows one row per driver:
 
-| Column | Meaning |
-| --- | --- |
-| Expected fare | Quoted fares plus charges for trips that ended that day |
-| Cash | Cash the driver collected |
-| Online | UPI/card payments (already in your account) |
-| Driver expenses | Fuel and tolls the driver paid from their pocket |
-| Driver earnings | Per the driver's pay rule (see below) |
+| Column          | Meaning                                                               |
+| --------------- | --------------------------------------------------------------------- |
+| Expected fare   | Quoted fares plus charges for trips that ended that day               |
+| Cash            | Cash the driver collected                                             |
+| Online          | UPI/card payments (already in your account)                           |
+| Driver expenses | Fuel and tolls the driver paid from their pocket                      |
+| Driver earnings | Per the driver's pay rule (see below)                                 |
 | **Net payable** | What the driver hands over (or, if negative, what you owe the driver) |
-| Shortfall | Expected fare minus everything collected. It should be ₹0. |
+| Shortfall       | Expected fare minus everything collected. It should be ₹0.            |
 
 Open a row to see every item in it. Once you've received the cash, click **Mark settled**. A settled day is locked: anything the driver's phone syncs later appears in their next settlement as an adjustment.
 
@@ -121,12 +129,12 @@ Open a row to see every item in it. Once you've received the cash, click **Mark 
 
 **Settings → Driver pay**: the default way drivers are paid in settlements:
 
-| Option | Example |
-| --- | --- |
-| None | Salaried drivers paid outside Taxcy |
+| Option          | Example                                           |
+| --------------- | ------------------------------------------------- |
+| None            | Salaried drivers paid outside Taxcy               |
 | Percent of fare | 20% of quoted fare (or of fare including charges) |
-| Per trip | ₹300 per trip |
-| Per km | ₹2 per km driven |
-| Fixed daily | ₹800 for any day with at least one trip |
+| Per trip        | ₹300 per trip                                     |
+| Per km          | ₹2 per km driven                                  |
+| Fixed daily     | ₹800 for any day with at least one trip           |
 
 Turn **Driver allowance goes to driver** on if the bata customers pay belongs to the driver. To give one driver a different arrangement, open **Fleet → Drivers → (driver) → Pay**. Changing a rule only affects days that haven't been settled yet.

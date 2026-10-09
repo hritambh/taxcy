@@ -8,12 +8,12 @@ A `fuel_fill` records: vehicle, driver, fuel filled (`petrol` | `diesel` | `cng`
 
 Units depend on the fuel: petrol and diesel are measured in **litres**, CNG in **kg**.
 
-| Vehicle `fuel_type` | Audit track | Metric |
-| --- | --- | --- |
-| `petrol` | `petrol` | km/L (higher is better) |
-| `diesel` | `diesel` | km/L |
-| `cng` | `cng` | km/kg |
-| `petrol_cng` | `bifuel_cost` | paise/km (lower is better), see [Bi-fuel vehicles](#bi-fuel-vehicles-petrol_cng-cost-per-km) |
+| Vehicle `fuel_type` | Audit track   | Metric                                                                                       |
+| ------------------- | ------------- | -------------------------------------------------------------------------------------------- |
+| `petrol`            | `petrol`      | km/L (higher is better)                                                                      |
+| `diesel`            | `diesel`      | km/L                                                                                         |
+| `cng`               | `cng`         | km/kg                                                                                        |
+| `petrol_cng`        | `bifuel_cost` | paise/km (lower is better), see [Bi-fuel vehicles](#bi-fuel-vehicles-petrol_cng-cost-per-km) |
 
 The sections below describe single-fuel vehicles; bi-fuel vehicles follow the same structure with the differences noted in their own section.
 
@@ -29,29 +29,29 @@ Partial fills before a vehicle's first full fill are ignored, because there's no
 
 ### Worked example: a normal cycle
 
-| Fill | Odometer | Qty | Full? |
-| --- | --- | --- | --- |
-| F1 | 10,000 | 30 L | ✅ |
-| F2 | 10,250 | 20 L | ❌ |
-| F3 | 10,600 | 25 L | ✅ |
+| Fill | Odometer | Qty  | Full? |
+| ---- | -------- | ---- | ----- |
+| F1   | 10,000   | 30 L | ✅    |
+| F2   | 10,250   | 20 L | ❌    |
+| F3   | 10,600   | 25 L | ✅    |
 
-The cycle runs F1 → F3: distance = 600 km, fuel = 20 + 25 = 45 L, efficiency = **13.33 km/L**. F1's 30 L is not counted; it filled the tank *before* the cycle began.
+The cycle runs F1 → F3: distance = 600 km, fuel = 20 + 25 = 45 L, efficiency = **13.33 km/L**. F1's 30 L is not counted; it filled the tank _before_ the cycle began.
 
 ### Invalid cycles
 
 A cycle gets the verdict `invalid` and a review item, instead of an alert, when:
 
-| Condition | Review item kind | Likely cause |
-| --- | --- | --- |
-| distance ≤ 0 | `odometer_regression` | Typo, or odometer tampering |
-| efficiency > 1.5 × baseline mean | `implausible_efficiency` | A fill wasn't logged |
-| distance > 3,000 km | `implausible_efficiency` | Missed fills or a wrong reading |
+| Condition                        | Review item kind         | Likely cause                    |
+| -------------------------------- | ------------------------ | ------------------------------- |
+| distance ≤ 0                     | `odometer_regression`    | Typo, or odometer tampering     |
+| efficiency > 1.5 × baseline mean | `implausible_efficiency` | A fill wasn't logged            |
+| distance > 3,000 km              | `implausible_efficiency` | Missed fills or a wrong reading |
 
 Invalid cycles never update the baseline.
 
 ### Out-of-order and late fills
 
-Offline phones can sync a fill that belongs *between* existing fills. When a fill is recorded or voided, the `fuel-cycles` job:
+Offline phones can sync a fill that belongs _between_ existing fills. When a fill is recorded or voided, the `fuel-cycles` job:
 
 1. Finds the earliest cycle the fill could affect: the latest full fill at or before it.
 2. Marks that cycle and every later cycle `superseded_at = now()`.
@@ -71,13 +71,13 @@ var'  = (1 − α)·(var + α·δ²)
 
 **Seeding.** A new vehicle starts from `fuel_baseline_defaults`, using the most specific match: org + model, then global + model, then global fuel-only. Indicative seeds:
 
-| Vehicle | Fuel | Seed mean | Seed σ |
-| --- | --- | --- | --- |
-| Maruti Dzire | CNG | 24.0 km/kg | 2.5 |
-| Toyota Innova Crysta | diesel | 11.5 km/L | 1.2 |
-| Toyota Etios | petrol | 14.0 km/L | 1.5 |
-| any | diesel / petrol / cng (fallback) | 13 / 13 / 20 | 2 / 2 / 3 |
-| any petrol + CNG | `bifuel_cost` (fallback) | 420 paise/km | 40 |
+| Vehicle              | Fuel                             | Seed mean    | Seed σ    |
+| -------------------- | -------------------------------- | ------------ | --------- |
+| Maruti Dzire         | CNG                              | 24.0 km/kg   | 2.5       |
+| Toyota Innova Crysta | diesel                           | 11.5 km/L    | 1.2       |
+| Toyota Etios         | petrol                           | 14.0 km/L    | 1.5       |
+| any                  | diesel / petrol / cng (fallback) | 13 / 13 / 20 | 2 / 2 / 3 |
+| any petrol + CNG     | `bifuel_cost` (fallback)         | 420 paise/km | 40        |
 
 **Flagged cycles don't train the baseline.** Otherwise steady theft would slowly become "normal". If an owner dismisses the alert as a false positive, the cycle is marked `included_in_baseline = true` and the baseline is replayed.
 
@@ -85,19 +85,19 @@ var'  = (1 − α)·(var + α·δ²)
 
 Let `n` be the number of accepted cycles before this one, `k` = `fuel_k_sigma` (default 2), `N` = `fuel_min_cycles` (default 3) and `p` = `fuel_pct_threshold` (default 20%).
 
-| Phase | Rule | `method` |
-| --- | --- | --- |
-| `n ≥ N` | flag if `x < mean − k·σ` | `sigma` |
+| Phase   | Rule                                  | `method`  |
+| ------- | ------------------------------------- | --------- |
+| `n ≥ N` | flag if `x < mean − k·σ`              | `sigma`   |
 | `n < N` | flag if `x < seed_mean × (1 − p/100)` | `percent` |
 
 `deviation` stores `(mean − x)/σ` for the sigma method, or the percentage shortfall for the percent method.
 
 **Severity (proposed):**
 
-| Condition | Severity |
-| --- | --- |
-| sigma: `k < z ≤ 1.5k`; percent: shortfall between p and 1.5p | `warning` |
-| sigma: `z > 1.5k`; percent: shortfall > 1.5p | `critical` |
+| Condition                                                    | Severity   |
+| ------------------------------------------------------------ | ---------- |
+| sigma: `k < z ≤ 1.5k`; percent: shortfall between p and 1.5p | `warning`  |
+| sigma: `z > 1.5k`; percent: shortfall > 1.5p                 | `critical` |
 
 ### Worked example: flagged cycle
 
@@ -118,13 +118,13 @@ Decision D4. There's no way to know how many km a bi-fuel car drove on petrol an
 - **Cycle anchors:** consecutive **full CNG fills**. CNG is almost always filled to cylinder pressure, so these anchors are reliable.
 - **distance** = closing CNG fill odometer − opening CNG fill odometer
 - **cost** = sum of `cost_paise` of **every fill of either fuel** after the opening fill, up to and including the closing fill
-- **metric** = cost / distance, in **paise per km**. Here *higher is worse*.
+- **metric** = cost / distance, in **paise per km**. Here _higher is worse_.
 
 Baseline and flagging use the same EWMA and the same sigma/percent rules as other vehicles, with the direction inverted:
 
-| Phase | Rule |
-| --- | --- |
-| `n ≥ N` | flag if `x > mean + k·σ` |
+| Phase   | Rule                                  |
+| ------- | ------------------------------------- |
+| `n ≥ N` | flag if `x > mean + k·σ`              |
 | `n < N` | flag if `x > seed_mean × (1 + p/100)` |
 
 Running on petrol costs more per km than CNG, so heavy petrol use shows up as a cost/km spike. No separate petrol-share alert is needed.
@@ -138,11 +138,11 @@ Running on petrol costs more per km than CNG, so heavy petrol use shows up as a 
 
 The vehicle is a Maruti Ertiga (petrol + CNG) with a baseline of 420 paise/km, σ = 30 and 5 prior cycles.
 
-| Fill | Fuel | Odometer | Cost | Full? |
-| --- | --- | --- | --- | --- |
-| C1 | CNG | 50,000 | ₹800 | ✅ (opening) |
-| P1 | petrol | 50,180 | ₹1,000 | ❌ |
-| C2 | CNG | 50,400 | ₹850 | ✅ (closing) |
+| Fill | Fuel   | Odometer | Cost   | Full?        |
+| ---- | ------ | -------- | ------ | ------------ |
+| C1   | CNG    | 50,000   | ₹800   | ✅ (opening) |
+| P1   | petrol | 50,180   | ₹1,000 | ❌           |
+| C2   | CNG    | 50,400   | ₹850   | ✅ (closing) |
 
 Distance = 400 km, cost = ₹1,000 + ₹850 = ₹1,850, so x = **462.5 paise/km**. Then `z = (462.5 − 420)/30 = 1.42`, which is below k = 2, so the cycle is **ok**.
 

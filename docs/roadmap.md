@@ -4,7 +4,7 @@ Each milestone ends with lint, typecheck and tests passing, a summary of what ch
 
 ## Phase 0: Foundations
 
-- [ ] **M0.1 Scaffold:** pnpm + Nx workspace; all apps/libs stubbed; ESLint (no `any`), Prettier, strict TS, Vitest; GitHub Actions (lint, format, typecheck, test); docker-compose (PostGIS 16, Redis, MinIO + bucket init); `pnpm dev`
+- [x] **M0.1 Scaffold:** Bun workspaces + Nx; all apps/libs stubbed (Flutter driver app); ESLint (no `any`), Prettier, strict TS 6, Vitest, strict Dart analysis; GitHub Actions (TypeScript + Flutter jobs); docker-compose (PostGIS 16, Redis, RustFS + bucket init); `bun run dev`
 - [ ] **M0.2 API platform:** typed Zod config; pino + request IDs; health checks; Sentry hook; `libs/db` with Prisma + full schema migration (hand-edited SQL for PostGIS, exclusion constraints, partitions, RLS) + drift check; tenant context + base repository; outbox; OpenAPI → `libs/api-client`; Testcontainers harness
 - [ ] **M0.3 Identity:** OTP (`SmsProvider` + console stub), Redis rate limits, JWT access/refresh with rotation, orgs, memberships, role guard, org switch
 - [ ] **M0.4 Media + workers:** signed uploads, upload verification, workers app (BullMQ, outbox relay, cron), `OcrProvider` stub → review items, idempotency interceptor
@@ -19,7 +19,7 @@ Each milestone ends with lint, typecheck and tests passing, a summary of what ch
 - [ ] **M1.5 Telemetry:** batched GPS ingest, partition maintenance, PostGIS distance check
 - [ ] **M1.6 Money + inbox:** collections, daily settlement (draft → settled, carry-forward), alerts and review queue APIs
 - [ ] **M1.7 Admin web:** login; fleet CRUD; trips (create/assign/list/detail with photos and map); fuel cycles chart; alerts; review queue; settlements
-- [ ] **M1.8 Driver app:** login; my trips; start (odometer camera); live trip; end (odometer + collections); fuel fill (receipt camera, full-tank toggle); offline indicator + sync engine
+- [ ] **M1.8 Driver app (Flutter):** login; my trips; start (odometer camera); live trip; end (odometer + collections); fuel fill (receipt camera, full-tank toggle); offline indicator + sync engine
 - [ ] **M1.9 End-to-end tests:** integration tests for trip lifecycle, idempotent and conflicting sync, tenant isolation; Maestro start → end flow; docs pass
 
 ## Later (out of scope for now)

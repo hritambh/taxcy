@@ -2,11 +2,11 @@
 
 ## Trip types
 
-| Type | Meaning | `to` required |
-| --- | --- | --- |
-| `one_way` | A → B; the car returns empty (a future return-leg matching candidate) | yes |
-| `round_trip` | A → B → A, usually across several days | yes |
-| `local_rental` | Hourly package within a city (for example 8 hr / 80 km) | no |
+| Type           | Meaning                                                               | `to` required |
+| -------------- | --------------------------------------------------------------------- | ------------- |
+| `one_way`      | A → B; the car returns empty (a future return-leg matching candidate) | yes           |
+| `round_trip`   | A → B → A, usually across several days                                | yes           |
+| `local_rental` | Hourly package within a city (for example 8 hr / 80 km)               | no            |
 
 Each trip has `from` and `to` as text plus an optional PostGIS point, a scheduled window, a quoted fare, and once assigned, a vehicle and a driver.
 
@@ -29,21 +29,21 @@ stateDiagram-v2
   cancelled --> [*]
 ```
 
-The transition table lives in `libs/domain/trips/state-machine.ts` as pure data plus a `transition(trip, command, actor)` function. The API and the driver app share it, so the app can apply transitions offline.
+The transition table lives in `libs/domain/trips/state-machine.ts` as pure data plus a `transition(trip, command, actor)` function. The table is also exported as JSON for the Flutter driver app, which applies transitions offline. A shared fixture of (state, command) → result cases runs against both implementations, so they can't drift apart.
 
-| Command | From | To | Who | Requires |
-| --- | --- | --- | --- | --- |
-| `assign` | created | assigned | owner, manager | vehicle + driver free during the window |
-| `reassign` | assigned | assigned | owner, manager | as above |
-| `unassign` | assigned | created | owner, manager | — |
-| `start` | assigned | started | assigned driver, owner, manager | odometer reading (photo + typed km) |
-| `end` | started | ended | assigned driver, owner, manager | odometer reading; end km ≥ start km |
-| `settle` | ended | settled | system (on settlement) | — |
-| `cancel` | created, assigned | cancelled | owner, manager | reason |
-| `requestCancel` | started | started (request pending) | assigned driver, owner, manager | reason + end odometer reading |
-| `approveCancel` | started (request pending) | cancelled | owner, manager | optional cancellation fare |
-| `rejectCancel` | started (request pending) | started | owner, manager | note |
-| `withdrawCancel` | started (request pending) | started | requester | — |
+| Command          | From                      | To                        | Who                             | Requires                                |
+| ---------------- | ------------------------- | ------------------------- | ------------------------------- | --------------------------------------- |
+| `assign`         | created                   | assigned                  | owner, manager                  | vehicle + driver free during the window |
+| `reassign`       | assigned                  | assigned                  | owner, manager                  | as above                                |
+| `unassign`       | assigned                  | created                   | owner, manager                  | —                                       |
+| `start`          | assigned                  | started                   | assigned driver, owner, manager | odometer reading (photo + typed km)     |
+| `end`            | started                   | ended                     | assigned driver, owner, manager | odometer reading; end km ≥ start km     |
+| `settle`         | ended                     | settled                   | system (on settlement)          | —                                       |
+| `cancel`         | created, assigned         | cancelled                 | owner, manager                  | reason                                  |
+| `requestCancel`  | started                   | started (request pending) | assigned driver, owner, manager | reason + end odometer reading           |
+| `approveCancel`  | started (request pending) | cancelled                 | owner, manager                  | optional cancellation fare              |
+| `rejectCancel`   | started (request pending) | started                   | owner, manager                  | note                                    |
+| `withdrawCancel` | started (request pending) | started                   | requester                       | —                                       |
 
 Any other transition is rejected with `409 ILLEGAL_TRANSITION` and the body `{ from, command, allowed: [...] }`.
 
@@ -53,7 +53,7 @@ Every successful transition appends one row to `trip_events`, in the same transa
 
 ```json
 {
-  "id": "0b0f…",                  // command idempotency key
+  "id": "0b0f…", // command idempotency key
   "trip_id": "…",
   "seq": 3,
   "event_type": "trip.started",
@@ -61,8 +61,8 @@ Every successful transition appends one row to `trip_events`, in the same transa
   "to_status": "started",
   "actor_user_id": "…",
   "actor_role": "driver",
-  "occurred_at": "2026-10-09T03:12:44Z",   // device clock
-  "recorded_at": "2026-10-09T03:40:02Z",   // server clock (synced late)
+  "occurred_at": "2026-10-09T03:12:44Z", // device clock
+  "recorded_at": "2026-10-09T03:40:02Z", // server clock (synced late)
   "payload": { "odometer_reading_id": "…", "typed_km": 48210 }
 }
 ```
@@ -102,10 +102,10 @@ An owner or manager can void any charge before settlement; the void is recorded 
 
 ## Conflict rules (offline sync)
 
-| Situation | Outcome |
-| --- | --- |
-| The same `start` command is sent twice | The second call returns the original response |
-| The server cancelled the trip, then a `start` arrives from an offline device | `409 TRIP_CANCELLED`. The app marks the trip cancelled and shows "This trip was cancelled by <name> at <time>". The odometer photo is still uploaded and filed as `orphan_evidence`. |
-| The trip was reassigned to another driver, then an old driver's command arrives | `409 TRIP_REASSIGNED`; the app removes the trip from "My trips" |
-| A cancellation request was approved, then an offline `end` arrives | `409 TRIP_CANCELLED`; the end odometer and collections are kept as evidence on the cancelled trip |
-| `end` arrives before `start` (outbox out of order) | Can't happen, because the app's outbox is strictly FIFO per trip. The server still rejects it as an illegal transition. |
+| Situation                                                                       | Outcome                                                                                                                                                                              |
+| ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| The same `start` command is sent twice                                          | The second call returns the original response                                                                                                                                        |
+| The server cancelled the trip, then a `start` arrives from an offline device    | `409 TRIP_CANCELLED`. The app marks the trip cancelled and shows "This trip was cancelled by <name> at <time>". The odometer photo is still uploaded and filed as `orphan_evidence`. |
+| The trip was reassigned to another driver, then an old driver's command arrives | `409 TRIP_REASSIGNED`; the app removes the trip from "My trips"                                                                                                                      |
+| A cancellation request was approved, then an offline `end` arrives              | `409 TRIP_CANCELLED`; the end odometer and collections are kept as evidence on the cancelled trip                                                                                    |
+| `end` arrives before `start` (outbox out of order)                              | Can't happen, because the app's outbox is strictly FIFO per trip. The server still rejects it as an illegal transition.                                                              |

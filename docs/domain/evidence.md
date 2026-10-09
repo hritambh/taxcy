@@ -2,9 +2,9 @@
 
 ## Capture rules (driver app)
 
-- Odometer and receipt photos can **only** be taken with the in-app camera (`expo-camera`). There's no gallery picker.
-- At capture, the app records `capturedAt` (device clock), GPS (lat, lng, accuracy), expo-location's `mocked` flag, the device install id, and the SHA-256 of the JPEG bytes.
-- The photo and its metadata go to local SQLite and the outbox immediately. Uploading happens whenever the device is online.
+- Odometer and receipt photos can **only** be taken with the in-app camera (Flutter `camera` plugin). There's no gallery picker.
+- At capture, the app records `capturedAt` (device clock), GPS (lat, lng, accuracy), geolocator's `isMocked` flag, the device install id, and the SHA-256 of the JPEG bytes.
+- The photo and its metadata go to local SQLite (drift) and the outbox immediately. Uploading happens whenever the device is online.
 
 ## Upload flow
 
@@ -31,13 +31,13 @@ sequenceDiagram
 
 Client metadata can be forged on a rooted phone, so the server cross-checks it. Each failed check creates a **review item**; none of them blocks the driver.
 
-| Check | Review item |
-| --- | --- |
-| Capture GPS is flagged as mock | `mock_location` |
-| Device clock differs from server time by more than 10 minutes (when sent online) | `clock_skew` |
+| Check                                                                                       | Review item                                 |
+| ------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| Capture GPS is flagged as mock                                                              | `mock_location`                             |
+| Device clock differs from server time by more than 10 minutes (when sent online)            | `clock_skew`                                |
 | An odometer photo for a trip start was captured more than 2 km from the trip's `from_point` | `ocr_mismatch_odometer` (context: location) |
-| OCR km differs from typed km by more than 1 km, or the photo is unreadable | `ocr_mismatch_odometer` |
-| Receipt OCR amount differs from typed cost by more than ₹10 | `ocr_mismatch_receipt` |
+| OCR km differs from typed km by more than 1 km, or the photo is unreadable                  | `ocr_mismatch_odometer`                     |
+| Receipt OCR amount differs from typed cost by more than ₹10                                 | `ocr_mismatch_receipt`                      |
 
 Hardware-backed attestation (Play Integrity / App Attest) is the real fix and is out of scope for Phase 1.
 
@@ -48,7 +48,9 @@ Hardware-backed attestation (Play Integrity / App Attest) is the real fix and is
 ```ts
 interface OcrProvider {
   readOdometer(image: ImageRef): Promise<OcrResult<{ km: number }>>;
-  readFuelReceipt(image: ImageRef): Promise<OcrResult<{ amountPaise?: number; quantityMilli?: number }>>;
+  readFuelReceipt(
+    image: ImageRef,
+  ): Promise<OcrResult<{ amountPaise?: number; quantityMilli?: number }>>;
 }
 type OcrResult<T> =
   | { status: 'ok'; value: T; confidence: number; raw: unknown }
@@ -61,11 +63,11 @@ The stub provider returns deterministic values (configurable in tests) so the mi
 
 Owners and managers resolve each item with one of:
 
-| Resolution | Effect |
-| --- | --- |
-| `accepted_typed` | The typed value stands |
-| `accepted_ocr` | The OCR value replaces the typed value; dependent calculations (fuel cycles, distance check) are recomputed |
-| `corrected` | The reviewer enters the correct value; recomputed as above |
-| `dismissed` | No change |
+| Resolution       | Effect                                                                                                      |
+| ---------------- | ----------------------------------------------------------------------------------------------------------- |
+| `accepted_typed` | The typed value stands                                                                                      |
+| `accepted_ocr`   | The OCR value replaces the typed value; dependent calculations (fuel cycles, distance check) are recomputed |
+| `corrected`      | The reviewer enters the correct value; recomputed as above                                                  |
+| `dismissed`      | No change                                                                                                   |
 
 Every resolution records who resolved it and when.

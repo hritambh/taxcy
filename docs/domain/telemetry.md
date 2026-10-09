@@ -2,9 +2,9 @@
 
 ## Recording (driver app)
 
-- Recording runs only while a trip is `started`. It uses `expo-location` background updates through `expo-task-manager`, as an Android foreground service with a persistent notification. This is why the app needs a dev build rather than Expo Go.
+- Recording runs only while a trip is `started`. It uses `geolocator` position streams, running as an Android foreground service with a persistent notification (and background location mode on iOS), so the OS doesn't kill tracking mid-trip.
 - Sampling is every 15 s or every 50 m, whichever comes first, at balanced accuracy.
-- Each point is written to local SQLite with a client UUID: `{ id, tripId, recordedAt, lat, lng, accuracyM, speedMps, heading, isMock }`.
+- Each point is written to local SQLite (drift) with a client UUID: `{ id, tripId, recordedAt, lat, lng, accuracyM, speedMps, heading, isMock }`.
 - The sync engine uploads points in batches of up to 500 to `POST /trips/{id}/gps-batches`.
 - On first use, the driver sees a consent screen explaining why location is collected and for how long it's kept (DPDP Act 2023).
 
