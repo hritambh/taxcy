@@ -199,10 +199,14 @@ describe('documents and expiry alerts', () => {
       a.status,
       a.severity,
     ]);
-    expect(states).toEqual([
-      ['30', 'resolved', 'info'],
-      ['1', 'open', 'critical'],
-    ]);
+    // Order-independent: both alerts can carry the same createdAt millisecond.
+    expect(states).toHaveLength(2);
+    expect(states).toEqual(
+      expect.arrayContaining([
+        ['30', 'resolved', 'info'],
+        ['1', 'open', 'critical'],
+      ]),
+    );
 
     const renewed = await request(h.http)
       .post(`/v1/documents/${docId}/renew`)
