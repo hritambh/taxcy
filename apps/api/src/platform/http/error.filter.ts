@@ -13,6 +13,7 @@ import { AppError } from '../errors.js';
 interface PgLikeError {
   code?: string;
   constraint?: string;
+  message?: string;
 }
 
 /** Postgres errors that represent client-caused conflicts, surfaced through Prisma. */
@@ -20,7 +21,8 @@ function fromDatabase(error: unknown): AppError | undefined {
   const pg = findCause(error);
   if (!pg?.code) return undefined;
   if (pg.code === '23P01') {
-    const constraint = pg.constraint ?? '';
+    // Prisma's driver adapter keeps the constraint name only in the message text.
+    const constraint = pg.constraint ?? /constraint "([^"]+)"/.exec(pg.message ?? '')?.[1] ?? '';
     if (constraint.includes('vehicle'))
       return new AppError('VEHICLE_BUSY', 'Vehicle is already booked for an overlapping time');
     if (constraint.includes('driver'))
@@ -38,7 +40,9 @@ function findCause(error: unknown, depth = 0): PgLikeError | undefined {
     cause?: unknown;
     meta?: { driverAdapterError?: { cause?: unknown } };
   };
-  if (typeof candidate.code === 'string' && /^[0-9A-Z]{5}$/.test(candidate.code)) return candidate;
+  // A Postgres SQLSTATE (e.g. 23P01) starts with a digit; Prisma's own codes (P2039) don't.
+  if (typeof candidate.code === 'string' && /^[0-9][0-9A-Z]{4}$/.test(candidate.code))
+    return candidate;
   return (
     findCause(candidate.cause, depth + 1) ??
     findCause(candidate.meta?.driverAdapterError?.cause, depth + 1)

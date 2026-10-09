@@ -7,12 +7,14 @@ import { randomInt, randomUUID } from 'node:crypto';
 import { SMS_PROVIDER, type ConsoleSmsProvider } from '../src/modules/identity/sms.provider.js';
 import type { INestApplication } from '@nestjs/common';
 import { createPrismaClient, type PrismaClient } from '@taxcy/db';
-import type { App } from 'supertest/types.js';
+import type { Server } from 'node:http';
+import type { AddressInfo } from 'node:net';
 import { createApp } from '../src/app.js';
 
 export interface Harness {
   app: INestApplication;
-  http: App;
+  /** Base URL of the running app, for supertest. */
+  http: string;
   /** Owner connection: bypasses RLS. For arranging fixtures and asserting raw state only. */
   owner: PrismaClient;
   close(): Promise<void>;
@@ -20,10 +22,14 @@ export interface Harness {
 
 export async function startHarness(): Promise<Harness> {
   const app = await createApp({ logs: false });
+  // Listen once on a real port. Handing supertest an unstarted server makes it start
+  // and stop the server per request, which races when requests overlap.
+  await app.listen(0, '127.0.0.1');
+  const address = (app.getHttpServer() as Server).address() as AddressInfo;
   const owner = createPrismaClient(requireEnv('DATABASE_MIGRATION_URL'));
   return {
     app,
-    http: app.getHttpServer() as App,
+    http: `http://127.0.0.1:${address.port}`,
     owner,
     async close() {
       await owner.$disconnect();
@@ -121,3 +127,62 @@ export async function driverSession(
 export async function runSchedule(h: Harness, topic: string): Promise<void> {
   await h.app.get(JobDispatcher).dispatch({ topic, orgId: null, payload: {} });
 }
+
+/** Registers a photo (no upload needed for the API to accept it as evidence). */
+export async function registerPhoto(
+  h: Harness,
+  session: Session,
+  kind: 'odometer' | 'fuel_receipt' = 'odometer',
+): Promise<string> {
+  const id = randomUUID();
+  await request(h.http)
+    .post('/v1/media')
+    .set(...bearer(session))
+    .send({
+      id,
+      kind,
+      contentType: 'image/jpeg',
+      sha256: 'a'.repeat(64),
+      byteSize: 1000,
+      capturedAt: new Date().toISOString(),
+    })
+    .expect(201);
+  return id;
+}
+
+export async function odometer(h: Harness, session: Session, typedKm: number) {
+  return {
+    id: randomUUID(),
+    typedKm,
+    mediaId: await registerPhoto(h, session),
+    capturedAt: new Date().toISOString(),
+  };
+}
+
+export async function createVehicle(
+  h: Harness,
+  owner: Session,
+  registrationNo: string,
+  fuelType = 'diesel',
+  lastOdometerKm = 48_000,
+) {
+  const res = await request(h.http)
+    .post('/v1/vehicles')
+    .set(...bearer(owner))
+    .send({ registrationNo, make: 'Toyota', model: 'Innova Crysta', fuelType, lastOdometerKm })
+    .expect(201);
+  return res.body as { id: string; registrationNo: string };
+}
+
+let tripSlot = 0;
+/** A non-overlapping schedule window per call, so exclusion constraints never collide by accident. */
+export function schedule(hours = 4): { scheduledStartAt: string; scheduledEndAt: string } {
+  tripSlot += 1;
+  const start = Date.now() + tripSlot * 7 * 86_400_000;
+  return {
+    scheduledStartAt: new Date(start).toISOString(),
+    scheduledEndAt: new Date(start + hours * 3_600_000).toISOString(),
+  };
+}
+
+export const key = (): [string, string] => ['Idempotency-Key', randomUUID()];
