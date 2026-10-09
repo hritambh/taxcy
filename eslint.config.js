@@ -12,9 +12,11 @@ export default tseslint.config(
       '**/coverage/**',
       '**/node_modules/**',
       '**/.nx/**',
+      '**/generated/**',
       'apps/driver-app/**',
       '**/vite.config.ts',
-      '**/vitest.config.ts',
+      '**/vitest*.config.ts',
+      'libs/api-client/src/schema.ts',
     ],
   },
   js.configs.recommended,
@@ -56,7 +58,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ['**/*.js'],
+    files: ['**/*.{js,mjs}'],
     ...tseslint.configs.disableTypeChecked,
   },
 );

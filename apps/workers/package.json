@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
-    "dev": "tsc -p tsconfig.build.json && concurrently -k -n tsc,workers -c blue,magenta \"tsc -p tsconfig.build.json --watch --preserveWatchOutput\" \"node --enable-source-maps --watch dist/main.js\"",
-    "start": "node --enable-source-maps dist/main.js",
+    "dev": "tsc -p tsconfig.build.json && concurrently -k -n tsc,workers -c blue,magenta \"tsc -p tsconfig.build.json --watch --preserveWatchOutput\" \"node --env-file-if-exists=../../.env --enable-source-maps --watch dist/main.js\"",
+    "start": "node --env-file-if-exists=../../.env --enable-source-maps dist/main.js",
     "typecheck": "tsc -p tsconfig.json",
     "lint": "eslint ."
   },

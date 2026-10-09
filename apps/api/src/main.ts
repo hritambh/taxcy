@@ -1,8 +1,7 @@
+import './instrument.js';
 import 'reflect-metadata';
-import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module.js';
+import { createApp } from './app.js';
+import { APP_CONFIG, type AppConfig } from './platform/config.js';
 
-// Typed config, pino logging and Sentry replace the raw env read and default logger in M0.2.
-const app = await NestFactory.create(AppModule);
-app.enableShutdownHooks();
-await app.listen(Number(process.env['PORT'] ?? 3000));
+const app = await createApp();
+await app.listen(app.get<AppConfig>(APP_CONFIG).PORT);

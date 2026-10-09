@@ -5,23 +5,44 @@
   "type": "module",
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
-    "dev": "tsc -p tsconfig.build.json && concurrently -k -n tsc,api -c blue,green \"tsc -p tsconfig.build.json --watch --preserveWatchOutput\" \"node --enable-source-maps --watch dist/main.js\"",
-    "start": "node --enable-source-maps dist/main.js",
+    "dev": "tsc -p tsconfig.build.json && concurrently -k -n tsc,api -c blue,green \"tsc -p tsconfig.build.json --watch --preserveWatchOutput\" \"node --env-file-if-exists=../../.env --enable-source-maps --watch dist/main.js\"",
+    "start": "node --env-file-if-exists=../../.env --enable-source-maps dist/main.js",
     "typecheck": "tsc -p tsconfig.json",
     "lint": "eslint .",
-    "test": "vitest run"
+    "test": "vitest run --passWithNoTests",
+    "test:integration": "vitest run --config vitest.int.config.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1148.0",
+    "@aws-sdk/s3-request-presigner": "^3.1148.0",
     "@nestjs/common": "^12.1.2",
     "@nestjs/core": "^12.1.2",
     "@nestjs/platform-express": "^12.1.2",
+    "@sentry/nestjs": "^11.6.0",
     "@taxcy/contracts": "workspace:*",
+    "@taxcy/db": "workspace:*",
     "@taxcy/domain": "workspace:*",
+    "ioredis": "^6.0.0",
+    "jose": "^6.2.12",
+    "nestjs-pino": "^5.3.1",
+    "pino": "^10.4.0",
+    "pino-http": "^11.0.0",
     "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.2"
+    "rxjs": "^7.8.2",
+    "uuid": "^14.0.2",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
+    "@swc/core": "^1.16.13",
+    "@testcontainers/postgresql": "^12.2.0",
+    "@testcontainers/redis": "^12.2.0",
+    "@types/express": "^5",
     "@types/node": "~24.19.1",
-    "concurrently": "^10.0.6"
+    "@types/supertest": "^7.2.1",
+    "concurrently": "^10.0.6",
+    "pino-pretty": "^13.2.0",
+    "supertest": "^7.3.1",
+    "testcontainers": "^12.2.0",
+    "unplugin-swc": "^2.0.0"
   }
 }
