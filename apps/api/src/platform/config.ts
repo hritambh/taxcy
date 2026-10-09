@@ -10,7 +10,7 @@ const Env = z.object({
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
   CORS_ORIGINS: z
     .string()
-    .default('http://localhost:5173')
+    .default('http://localhost:5173,http://localhost:5174')
     .transform((v) =>
       v
         .split(',')
