@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 import 'dart:math';
 
 import 'package:drift/drift.dart';
@@ -71,7 +70,8 @@ Future<bool> ensureLocationPermission() async {
 
 /// Records the route while a trip is started. On Android it runs as a foreground
 /// service with a persistent notification, so the OS doesn't kill it mid-trip;
-/// on iOS it uses background location updates.
+/// on iOS it uses background location updates. In the browser it records only
+/// while the tab is open.
 class GpsRecorder {
   GpsRecorder(this.db);
 
@@ -116,7 +116,7 @@ class GpsRecorder {
       );
 
   LocationSettings _settings() {
-    if (!kIsWeb && Platform.isAndroid) {
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
       return AndroidSettings(
         accuracy: LocationAccuracy.high,
         distanceFilter: 50,
@@ -129,7 +129,7 @@ class GpsRecorder {
         ),
       );
     }
-    if (!kIsWeb && Platform.isIOS) {
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) {
       return AppleSettings(
         accuracy: LocationAccuracy.high,
         distanceFilter: 50,

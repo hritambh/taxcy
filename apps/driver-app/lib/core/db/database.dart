@@ -83,18 +83,50 @@ class GpsPoints extends Table {
   Set<Column<Object>> get primaryKey => {id};
 }
 
+/// Photo bytes for the browser build, which has no file system (see PhotoStore).
+class PhotoBlobs extends Table {
+  TextColumn get id => text()();
+  BlobColumn get bytes => blob()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
 @DriftDatabase(
-  tables: [CachedTrips, CachedVehicles, OutboxItems, Photos, GpsPoints],
+  tables: [
+    CachedTrips,
+    CachedVehicles,
+    OutboxItems,
+    Photos,
+    GpsPoints,
+    PhotoBlobs,
+  ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase(super.executor);
 
-  /// The on-device database (SQLite file in the app's documents directory).
-  factory AppDatabase.onDevice() =>
-      AppDatabase(driftDatabase(name: 'taxcy_driver'));
+  /// The on-device database: a SQLite file on phones; in the browser, SQLite
+  /// compiled to WebAssembly and stored in OPFS or IndexedDB (both files are
+  /// in web/, fetched by tool/fetch_web_assets.sh).
+  factory AppDatabase.onDevice() => AppDatabase(
+    driftDatabase(
+      name: 'taxcy_driver',
+      web: DriftWebOptions(
+        sqlite3Wasm: Uri.parse('sqlite3.wasm'),
+        driftWorker: Uri.parse('drift_worker.js'),
+      ),
+    ),
+  );
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+    onUpgrade: (m, from, to) async {
+      if (from < 2) await m.createTable(photoBlobs);
+    },
+  );
 
   /// Removes everything when the driver signs out.
   Future<void> clearAll() async {

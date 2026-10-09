@@ -7,6 +7,7 @@ import 'package:taxcy_driver/core/api/json.dart';
 import 'package:taxcy_driver/core/api/models.dart';
 import 'package:taxcy_driver/core/db/database.dart';
 import 'package:taxcy_driver/core/media/captured_photo.dart';
+import 'package:taxcy_driver/core/media/photo_store.dart';
 
 /// In-memory database for tests. Streams close synchronously so widget tests don't
 /// end with drift's stream-closing timer still pending.
@@ -126,6 +127,21 @@ CapturedPhoto fakePhoto(String id, {String kind = 'odometer'}) => CapturedPhoto(
   lng: 73.85,
   accuracyM: 8,
 );
+
+/// Photo bytes kept in memory, keyed by photo id.
+class MemoryPhotoStore implements PhotoStore {
+  final photos = <String, Uint8List>{};
+
+  @override
+  Future<String> save(String id, Uint8List bytes) async {
+    photos[id] = bytes;
+    return id;
+  }
+
+  @override
+  Future<Uint8List> read(String ref) async =>
+      photos[ref] ?? (throw StateError('No photo $ref'));
+}
 
 class ApiCall {
   ApiCall(this.name, [this.args = const {}]);

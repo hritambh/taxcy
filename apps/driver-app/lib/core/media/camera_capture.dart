@@ -1,13 +1,11 @@
-import 'dart:io';
-
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
-import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
 
 import '../location/gps.dart';
 import 'captured_photo.dart';
+import 'photo_store.dart';
+import 'photo_store_platform.dart';
 
 /// Opens the capture flow and returns the photo, or null if the driver backed out.
 /// Swappable (via a provider) so widget tests don't need a real camera.
@@ -16,19 +14,28 @@ typedef PhotoCapture =
 
 /// Production capture: the in-app camera only. There's deliberately no gallery
 /// option, so evidence is always a fresh photo with its own time and place.
-Future<CapturedPhoto?> captureWithCamera(BuildContext context, String kind) =>
-    Navigator.of(context).push<CapturedPhoto>(
-      MaterialPageRoute(
-        fullscreenDialog: true,
-        builder: (_) => CameraCaptureScreen(kind: kind),
-      ),
-    );
+/// The photo is kept in [store] until it's uploaded.
+Future<CapturedPhoto?> captureWithCamera(
+  BuildContext context,
+  String kind,
+  PhotoStore store,
+) => Navigator.of(context).push<CapturedPhoto>(
+  MaterialPageRoute(
+    fullscreenDialog: true,
+    builder: (_) => CameraCaptureScreen(kind: kind, store: store),
+  ),
+);
 
 class CameraCaptureScreen extends StatefulWidget {
-  const CameraCaptureScreen({required this.kind, super.key});
+  const CameraCaptureScreen({
+    required this.kind,
+    required this.store,
+    super.key,
+  });
 
   /// odometer or fuel_receipt.
   final String kind;
+  final PhotoStore store;
 
   @override
   State<CameraCaptureScreen> createState() => _CameraCaptureScreenState();
@@ -79,15 +86,10 @@ class _CameraCaptureScreenState extends State<CameraCaptureScreen> {
       final capturedAt = DateTime.now().toUtc();
       final file = await controller.takePicture();
       final position = await currentPosition();
-      final dir = Directory(
-        p.join((await getApplicationDocumentsDirectory()).path, 'photos'),
-      );
-      await dir.create(recursive: true);
       final id = const Uuid().v4();
-      final path = p.join(dir.path, '$id.jpg');
       final bytes = await file.readAsBytes();
-      await File(path).writeAsBytes(bytes, flush: true);
-      await File(file.path).delete().catchError((Object _) => File(file.path));
+      final path = await widget.store.save(id, bytes);
+      await discardCameraFile(file.path);
       if (!mounted) return;
       Navigator.of(context).pop(
         CapturedPhoto(

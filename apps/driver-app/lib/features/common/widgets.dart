@@ -1,6 +1,6 @@
 import 'dart:async';
-import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -189,7 +189,6 @@ class PhotoField extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final current = photo;
-    final file = current == null ? null : File(current.path);
     return InputDecorator(
       decoration: InputDecoration(
         labelText: label,
@@ -198,18 +197,10 @@ class PhotoField extends ConsumerWidget {
       ),
       child: Row(
         children: [
-          if (file != null && file.existsSync())
-            ClipRRect(
-              borderRadius: BorderRadius.circular(4),
-              child: Image.file(file, width: 64, height: 48, fit: BoxFit.cover),
-            )
+          if (current == null)
+            const Icon(Icons.photo_camera_outlined)
           else
-            Icon(
-              current == null
-                  ? Icons.photo_camera_outlined
-                  : Icons.check_circle,
-              color: current == null ? null : Colors.green,
-            ),
+            _Thumbnail(key: ValueKey(current.id), photoRef: current.path),
           const SizedBox(width: 12),
           Expanded(
             child: Text(current == null ? 'No photo yet' : 'Photo taken'),
@@ -226,6 +217,37 @@ class PhotoField extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// The stored photo, or a tick if it can't be read back.
+class _Thumbnail extends ConsumerStatefulWidget {
+  const _Thumbnail({required this.photoRef, super.key});
+
+  final String photoRef;
+
+  @override
+  ConsumerState<_Thumbnail> createState() => _ThumbnailState();
+}
+
+class _ThumbnailState extends ConsumerState<_Thumbnail> {
+  late final Future<Uint8List> _bytes = ref
+      .read(photoStoreProvider)
+      .read(widget.photoRef);
+
+  @override
+  Widget build(BuildContext context) => FutureBuilder<Uint8List>(
+    future: _bytes,
+    builder: (context, snapshot) {
+      final data = snapshot.data;
+      if (data == null || data.isEmpty) {
+        return const Icon(Icons.check_circle, color: Colors.green);
+      }
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(4),
+        child: Image.memory(data, width: 64, height: 48, fit: BoxFit.cover),
+      );
+    },
+  );
 }
 
 /// Validates whole kilometres.

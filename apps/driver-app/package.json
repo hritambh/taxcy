@@ -6,6 +6,8 @@
   "scripts": {
     "lint": "flutter pub get && dart format --output=none --set-exit-if-changed lib test && flutter analyze --fatal-infos",
     "test": "flutter pub get && flutter test",
-    "codegen": "dart run build_runner build --delete-conflicting-outputs --force-jit"
+    "codegen": "dart run build_runner build --delete-conflicting-outputs --force-jit",
+    "web": "flutter run -d chrome --web-port 5174",
+    "web-assets": "./tool/fetch_web_assets.sh"
   }
 }

@@ -1,5 +1,4 @@
-import 'dart:typed_data';
-
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -34,6 +33,7 @@ class Harness {
       sessionStoreProvider.overrideWithValue(sessions),
       syncEngineProvider.overrideWithValue(engine),
       backgroundWorkProvider.overrideWithValue(false),
+      photoStoreProvider.overrideWithValue(MemoryPhotoStore()),
       photoCaptureProvider.overrideWithValue(
         (context, kind) async => fakePhoto('captured-$kind', kind: kind),
       ),
@@ -57,6 +57,13 @@ Future<void> settle(WidgetTester tester, {int rounds = 5}) async {
 }
 
 void main() {
+  test('reports the platform it runs on at login', () {
+    expect(devicePlatform, 'android');
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    expect(devicePlatform, 'ios');
+  });
+
   testWidgets('login: phone → code → signed in as a driver', (tester) async {
     final h = Harness();
     addTearDown(h.dispose);
