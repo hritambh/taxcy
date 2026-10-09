@@ -1,0 +1,42 @@
+{
+  "name": "taxcy",
+  "private": true,
+  "type": "module",
+  "packageManager": "bun@1.4.2",
+  "engines": {
+    "node": ">=24.7 <25"
+  },
+  "workspaces": [
+    "apps/*",
+    "libs/*"
+  ],
+  "scripts": {
+    "dev": "nx run-many -t dev -p @taxcy/api @taxcy/workers @taxcy/admin-web --output-style=stream",
+    "dev:api": "nx run @taxcy/api:dev --output-style=stream",
+    "dev:workers": "nx run @taxcy/workers:dev --output-style=stream",
+    "dev:admin": "nx run @taxcy/admin-web:dev --output-style=stream",
+    "build": "nx run-many -t build",
+    "lint": "nx run-many -t lint",
+    "typecheck": "nx run-many -t typecheck",
+    "test": "nx run-many -t test",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "verify": "bun run format:check && nx run-many -t lint typecheck test build",
+    "infra:up": "docker compose up -d --wait",
+    "infra:down": "docker compose down",
+    "infra:reset": "docker compose down -v && docker compose up -d --wait"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "~24.19.1",
+    "eslint": "^10.12.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.7",
+    "globals": "^17.13.0",
+    "nx": "23.3.0",
+    "prettier": "^3.9.9",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.71.1",
+    "vitest": "^5.0.3"
+  }
+}
