@@ -43,6 +43,7 @@ Nx builds a project's libs first, so `dist/` is fresh whenever a Node app needs 
 | API docs                    | <http://localhost:3000/docs> (`/` redirects here)     | —                                                                         |
 | Bull Board (job queues)     | <http://localhost:3001/queues>                        | —                                                                         |
 | Admin web                   | <http://localhost:5173> (proxies `/api/*` to the API) | —                                                                         |
+| Driver app in Chrome        | <http://localhost:5174> (`bun run dev:driver-web`)    | —                                                                         |
 
 - **Ports:** the host ports avoid 5432 and 6379, so a natively installed Postgres or another project's Redis can't silently answer on `localhost`.
 - **Database roles:** the Postgres init script (`infra/postgres/init-roles.sql`) creates `taxcy_api`, the role the API and workers connect as. It is neither a superuser nor the table owner, so [row-level security](architecture.md#multi-tenancy) applies to it. Migrations and the seed's reference data run as the owner.
@@ -52,26 +53,26 @@ Nx builds a project's libs first, so `dist/` is fresh whenever a Node app needs 
 
 The API and workers validate their environment at startup with Zod (`apps/api/src/platform/config.ts`) and exit with a readable list of problems. `.env.example` has working local values; never commit real secrets.
 
-| Variable                                                                            | Default                 | Purpose                                                           |
-| ----------------------------------------------------------------------------------- | ----------------------- | ----------------------------------------------------------------- |
-| `NODE_ENV`                                                                          | `development`           | `development` \| `test` \| `production`                           |
-| `PORT`                                                                              | `3000`                  | API port                                                          |
-| `LOG_LEVEL`                                                                         | `info`                  | pino level; pretty-printed in development                         |
-| `CORS_ORIGINS`                                                                      | `http://localhost:5173` | Comma-separated allowed origins                                   |
-| `DATABASE_URL`                                                                      | —                       | App role connection (`taxcy_api`, RLS applies)                    |
-| `DATABASE_MIGRATION_URL`                                                            | —                       | Owner connection for migrations and the seed                      |
-| `SHADOW_DATABASE_URL`                                                               | —                       | Empty database used by `db:drift`                                 |
-| `POSTGRES_*`, `REDIS_PORT`, `S3_PORT`, `S3_CONSOLE_PORT`                            | see `.env.example`      | docker-compose settings                                           |
-| `REDIS_URL`                                                                         | —                       | OTPs, rate limits, BullMQ                                         |
-| `S3_ENDPOINT`, `S3_REGION`, `S3_BUCKET`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY` | —                       | Object storage                                                    |
-| `S3_PUBLIC_ENDPOINT`                                                                | `S3_ENDPOINT`           | Host used in signed URLs; set to your LAN IP for a physical phone |
-| `S3_UPLOAD_URL_TTL_SECONDS`                                                         | `600`                   | Signed upload URL lifetime                                        |
-| `JWT_ACCESS_SECRET`                                                                 | —                       | ≥ 32 characters                                                   |
-| `JWT_ACCESS_TTL_SECONDS` / `JWT_REFRESH_TTL_DAYS`                                   | `900` / `30`            | Token lifetimes                                                   |
-| `OTP_TTL_SECONDS` / `OTP_MAX_ATTEMPTS` / `OTP_IP_LIMIT_PER_HOUR`                    | `300` / `5` / `30`      | OTP login                                                         |
-| `SMS_PROVIDER` / `OCR_PROVIDER`                                                     | `console` / `stub`      | Provider selection (only stubs exist so far)                      |
-| `SENTRY_DSN`                                                                        | empty                   | Sentry is enabled when set                                        |
-| `WORKERS_DASHBOARD_PORT`                                                            | `3001`                  | Bull Board                                                        |
+| Variable                                                                            | Default                                       | Purpose                                                           |
+| ----------------------------------------------------------------------------------- | --------------------------------------------- | ----------------------------------------------------------------- |
+| `NODE_ENV`                                                                          | `development`                                 | `development` \| `test` \| `production`                           |
+| `PORT`                                                                              | `3000`                                        | API port                                                          |
+| `LOG_LEVEL`                                                                         | `info`                                        | pino level; pretty-printed in development                         |
+| `CORS_ORIGINS`                                                                      | `http://localhost:5173,http://localhost:5174` | Comma-separated allowed origins                                   |
+| `DATABASE_URL`                                                                      | —                                             | App role connection (`taxcy_api`, RLS applies)                    |
+| `DATABASE_MIGRATION_URL`                                                            | —                                             | Owner connection for migrations and the seed                      |
+| `SHADOW_DATABASE_URL`                                                               | —                                             | Empty database used by `db:drift`                                 |
+| `POSTGRES_*`, `REDIS_PORT`, `S3_PORT`, `S3_CONSOLE_PORT`                            | see `.env.example`                            | docker-compose settings                                           |
+| `REDIS_URL`                                                                         | —                                             | OTPs, rate limits, BullMQ                                         |
+| `S3_ENDPOINT`, `S3_REGION`, `S3_BUCKET`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY` | —                                             | Object storage                                                    |
+| `S3_PUBLIC_ENDPOINT`                                                                | `S3_ENDPOINT`                                 | Host used in signed URLs; set to your LAN IP for a physical phone |
+| `S3_UPLOAD_URL_TTL_SECONDS`                                                         | `600`                                         | Signed upload URL lifetime                                        |
+| `JWT_ACCESS_SECRET`                                                                 | —                                             | ≥ 32 characters                                                   |
+| `JWT_ACCESS_TTL_SECONDS` / `JWT_REFRESH_TTL_DAYS`                                   | `900` / `30`                                  | Token lifetimes                                                   |
+| `OTP_TTL_SECONDS` / `OTP_MAX_ATTEMPTS` / `OTP_IP_LIMIT_PER_HOUR`                    | `300` / `5` / `30`                            | OTP login                                                         |
+| `SMS_PROVIDER` / `OCR_PROVIDER`                                                     | `console` / `stub`                            | Provider selection (only stubs exist so far)                      |
+| `SENTRY_DSN`                                                                        | empty                                         | Sentry is enabled when set                                        |
+| `WORKERS_DASHBOARD_PORT`                                                            | `3001`                                        | Bull Board                                                        |
 
 ## Scripts
 
@@ -81,6 +82,7 @@ Run from the repo root with `bun run <script>`.
 | ----------------------------------------- | ---------------------------------------------------------------------------------------------------- |
 | `dev`                                     | API, workers and admin web in watch mode (builds libs first)                                         |
 | `dev:api` / `dev:workers` / `dev:admin`   | One app only                                                                                         |
+| `dev:driver-web`                          | The Flutter driver app in Chrome on port 5174 (needs the API running)                                |
 | `infra:up` / `infra:down` / `infra:reset` | Start, stop, or wipe and restart Postgres, Redis and RustFS                                          |
 | `db:migrate`                              | Apply migrations (`prisma migrate deploy`)                                                           |
 | `db:seed`                                 | Load the demo fleet (safe to re-run; skips if it already exists)                                     |
@@ -105,17 +107,17 @@ Run one project's target with `bunx nx run @taxcy/domain:test`. Nx caches result
 
 ## Projects
 
-| Project             | Path              | What's inside                                                                                                                                                                                                                    |
-| ------------------- | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `@taxcy/api`        | `apps/api`        | NestJS modular monolith: `platform/` (config, logging, auth guard, contract binding, idempotency, outbox, jobs) and `modules/` (identity, media, fleet, trips, fuel, telemetry, money, alerts)                                   |
-| `@taxcy/workers`    | `apps/workers`    | Outbox relay → BullMQ, a worker per queue, cron schedules, Bull Board. Boots the API's modules without HTTP (`@taxcy/api/worker`).                                                                                               |
-| `@taxcy/admin-web`  | `apps/admin-web`  | Owner/manager console (React 19, Vite 8, Tailwind 4)                                                                                                                                                                             |
-| `@taxcy/driver-app` | `apps/driver-app` | Flutter driver app (Dart package `taxcy_driver`). `bun run --cwd apps/driver-app codegen` regenerates the drift database code; `bunx nx run @taxcy/domain:fixtures` re-exports the trip transition fixture it is tested against. |
-| `@taxcy/contracts`  | `libs/contracts`  | Zod route contracts, error codes, OpenAPI builder                                                                                                                                                                                |
-| `@taxcy/domain`     | `libs/domain`     | Pure logic: fuel audit, GPS checks, trip state machine, settlement, document expiry                                                                                                                                              |
-| `@taxcy/db`         | `libs/db`         | Prisma schema, migrations, client, tenant/system transactions                                                                                                                                                                    |
-| `@taxcy/api-client` | `libs/api-client` | Generated TypeScript client (openapi-fetch)                                                                                                                                                                                      |
-| `@taxcy/ui`         | `libs/ui`         | Shared React UI                                                                                                                                                                                                                  |
+| Project             | Path              | What's inside                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| ------------------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `@taxcy/api`        | `apps/api`        | NestJS modular monolith: `platform/` (config, logging, auth guard, contract binding, idempotency, outbox, jobs) and `modules/` (identity, media, fleet, trips, fuel, telemetry, money, alerts)                                                                                                                                                                                                                                        |
+| `@taxcy/workers`    | `apps/workers`    | Outbox relay → BullMQ, a worker per queue, cron schedules, Bull Board. Boots the API's modules without HTTP (`@taxcy/api/worker`).                                                                                                                                                                                                                                                                                                    |
+| `@taxcy/admin-web`  | `apps/admin-web`  | Owner/manager console (React 19, Vite 8, Tailwind 4)                                                                                                                                                                                                                                                                                                                                                                                  |
+| `@taxcy/driver-app` | `apps/driver-app` | Flutter driver app (Dart package `taxcy_driver`). `bun run --cwd apps/driver-app codegen` regenerates the drift database code; `bun run dev:driver-web` runs it in Chrome on port 5174, and `bun run --cwd apps/driver-app web-assets` refreshes `web/sqlite3.wasm` and `web/drift_worker.js` after upgrading `sqlite3` or `drift`; `bunx nx run @taxcy/domain:fixtures` re-exports the trip transition fixture it is tested against. |
+| `@taxcy/contracts`  | `libs/contracts`  | Zod route contracts, error codes, OpenAPI builder                                                                                                                                                                                                                                                                                                                                                                                     |
+| `@taxcy/domain`     | `libs/domain`     | Pure logic: fuel audit, GPS checks, trip state machine, settlement, document expiry                                                                                                                                                                                                                                                                                                                                                   |
+| `@taxcy/db`         | `libs/db`         | Prisma schema, migrations, client, tenant/system transactions                                                                                                                                                                                                                                                                                                                                                                         |
+| `@taxcy/api-client` | `libs/api-client` | Generated TypeScript client (openapi-fetch)                                                                                                                                                                                                                                                                                                                                                                                           |
+| `@taxcy/ui`         | `libs/ui`         | Shared React UI                                                                                                                                                                                                                                                                                                                                                                                                                       |
 
 ## Testing
 
@@ -148,4 +150,4 @@ The integration suite covers OTP login and token rotation, row-level security, s
 | ------------------------ | --------------------------------------------------------------------------------------------------------------- |
 | TypeScript               | install, `format:check`, lint, typecheck, test, build (excluding the driver app)                                |
 | Migrations + integration | Postgres service → roles → `db:drift`; generated client must be up to date; `test:integration` (Testcontainers) |
-| Flutter driver app       | `dart format` check, `flutter analyze --fatal-infos`, `flutter test`                                            |
+| Flutter driver app       | `dart format` check, `flutter analyze --fatal-infos`, `flutter test`, `flutter build web`                       |

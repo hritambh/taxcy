@@ -24,7 +24,7 @@ Each milestone ends with lint, typecheck and tests passing, a summary of what ch
 
 ## Known gaps (found while building M1.7–M1.8)
 
-- **Not exercised on hardware:** the driver app hasn't run on a real phone or emulator yet (camera, background GPS, the foreground service, connectivity changes). There's no iOS build either; this machine has no Xcode or CocoaPods.
+- **Not exercised on hardware:** the driver app hasn't run on a real phone or emulator yet (camera, background GPS, the foreground service, connectivity changes). There's no iOS build either; this machine has no Xcode or CocoaPods. The web build compiles (and CI builds it) but hasn't been clicked through in a browser yet.
 - **API:**
   - no endpoint to invite or manage managers
   - staff can't cancel a started trip without an end-odometer photo
@@ -34,7 +34,8 @@ Each milestone ends with lint, typecheck and tests passing, a summary of what ch
   - no driver-facing "my fuel fills" list
   - `GET /vehicles` has no per-driver filter
 - **Driver app:**
-  - photos aren't compressed, and local copies aren't deleted after upload
+  - photos aren't compressed, and local copies aren't deleted after upload (in the browser build they're kept in the local database until sign-out)
+  - the browser build is for demos: GPS records only while the tab is open, and the location's "mock" flag is never set
   - conflict notices aren't kept as a history
   - fills and collections recorded offline don't show in a list
   - no org switching

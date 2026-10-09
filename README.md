@@ -68,7 +68,7 @@ bun run infra:up              # Postgres+PostGIS :5433, Redis :6380, RustFS :900
 bun run dev                   # api :3000, workers, admin web :5173
 ```
 
-Before the first `dev`, run `bun run db:migrate && bun run db:seed` to create the schema and the demo fleet. Then sign in at <http://localhost:5173> with a seeded phone number (e.g. `9000000001`, the owner); the OTP is printed in the `bun run dev` log.
+Before the first `dev`, run `bun run db:migrate && bun run db:seed` to create the schema and the demo fleet. Then sign in at <http://localhost:5173> with a seeded phone number (e.g. `9000000001`, the owner); the OTP is printed in the `bun run dev` log. To try the driver app without an emulator, run `bun run dev:driver-web` in a second terminal and sign in at <http://localhost:5174> as a driver (e.g. `9000000011`).
 
 ## Documentation
 

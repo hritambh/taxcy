@@ -1,6 +1,6 @@
 # Getting started: run Taxcy locally, step by step
 
-> Everything in this guide works as of M1.8. The one exception is the Maestro end-to-end flow (M1.9), marked below. The driver app has been built and unit-tested but not yet run on a real phone; see [roadmap.md](roadmap.md).
+> Everything in this guide works as of M1.8. The one exception is the Maestro end-to-end flow (M1.9), marked below. The driver app has been built and unit-tested, and compiles for Chrome, but hasn't yet been run on a real phone; see [roadmap.md](roadmap.md).
 
 This takes about 20 minutes the first time, mostly downloads.
 
@@ -100,9 +100,9 @@ curl localhost:3000/v1/health/ready
 # {"status":"ok","checks":{"postgres":"ok","redis":"ok","s3":"ok"}}
 ```
 
-Open <http://localhost:5173>. The placeholder admin page should show **API: up**. That confirms the browser reaches the API through Vite's `/api` proxy.
+Open <http://localhost:5173>. You should see the admin sign-in page; it reaches the API through Vite's `/api` proxy.
 
-Edit any file under `apps/api/src` and the API restarts by itself. Edit `apps/admin-web/src/App.tsx` and the page hot-reloads.
+Edit any file under `apps/api/src` and the API restarts by itself. Edit anything under `apps/admin-web/src` and the page hot-reloads.
 
 ---
 
@@ -146,6 +146,16 @@ Re-running the seed is safe. `bun run db:reset` wipes the database and seeds it 
 
 ## Step 10: Run the driver app
 
+**Quickest: in Chrome.** No emulator needed:
+
+```bash
+bun run dev:driver-web   # opens Chrome at http://localhost:5174, talking to the API on :3000
+```
+
+The browser build is for demos and UI work. It keeps its data in the browser (SQLite in WebAssembly) and uses the laptop's webcam and location. It records the route only while the tab is open, so use a phone or emulator to test background GPS. If sign-in fails with a network error, check that `CORS_ORIGINS` in `.env` includes `http://localhost:5174` and restart `bun run dev`.
+
+**On a phone, emulator or simulator:**
+
 ```bash
 cd apps/driver-app
 flutter pub get
@@ -166,17 +176,17 @@ On a physical phone, photo uploads also need `S3_PUBLIC_ENDPOINT=http://<your-LA
 ## Step 11: Drive a trip
 
 1. Log in as **Ramesh** (`9000000011`) with the OTP from the API log, and allow camera and location access.
-2. Open the Pune → Mumbai trip and tap **Start trip**. Photograph the odometer (an emulator camera shows a test scene, which is fine because OCR is stubbed), type `48210`, and tap **Start**.
-3. **Simulate driving.** On the Android emulator, open **Extended controls → Location → Routes**, pick or import any route, and press play. On the iOS simulator, use **Features → Location → Freeway Drive**.
+2. Open the Pune → Mumbai trip and tap **Start trip**. Photograph the odometer (an emulator camera shows a test scene and Chrome uses your webcam; either is fine because OCR is stubbed), type `48210`, and tap **Start**.
+3. **Simulate driving.** On the Android emulator, open **Extended controls → Location → Routes**, pick or import any route, and press play. On the iOS simulator, use **Features → Location → Freeway Drive**. In Chrome, open DevTools → **More tools → Sensors** and change **Location** a few times while the trip runs (points closer than 50 m apart are skipped).
 4. Add a ₹250 toll, marked **I paid this**.
 5. **End trip:** photograph the odometer, type `48365`, and enter ₹3,500 cash.
 6. In the admin web, the trip shows _Ended_, the GPS route, the toll, and an odometer-vs-GPS result within a few seconds.
 
 ## Step 12: Try offline mode
 
-1. Turn on airplane mode; the status bar shows 🔴 **Offline**.
+1. Turn on airplane mode (in Chrome: DevTools → **Network** → **Offline**); the status bar shows 🔴 **Offline**.
 2. Log a fuel fill: receipt photo, odometer, 40 L, ₹3,800, **Full tank** on. The bar shows 🟡 **1 pending**.
-3. Turn airplane mode off. The bar goes back to 🟢 **Synced**, and the fill appears in the admin web.
+3. Turn airplane mode (or DevTools' Offline) off. The bar goes back to 🟢 **Synced**, and the fill appears in the admin web.
 
 To see a sync conflict: put the phone offline, start an assigned trip in the app, cancel that trip in the admin web, then go back online. The app shows _"This trip was cancelled by the owner"_.
 

@@ -1,6 +1,6 @@
 # Driver guide (mobile app)
 
-> **(planned)** This guide describes the driver app as specified for milestone M1.8.
+> Describes the driver app as built in M1.8. Drivers use the Android or iOS app; the browser version (`bun run dev:driver-web`) is for demos and testing, and records the route only while its tab is open.
 
 ## Sign in
 

@@ -15,6 +15,7 @@
     "dev:api": "nx run @taxcy/api:dev --output-style=stream",
     "dev:workers": "nx run @taxcy/workers:dev --output-style=stream",
     "dev:admin": "nx run @taxcy/admin-web:dev --output-style=stream",
+    "dev:driver-web": "bun run --cwd apps/driver-app web",
     "build": "nx run-many -t build",
     "lint": "nx run-many -t lint",
     "typecheck": "nx run-many -t typecheck",

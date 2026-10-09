@@ -22,15 +22,16 @@
 
 ## Implementation choices (made during M0.2–M1.6)
 
-| Area                   | Choice                                                                                              | Why                                                                                            |
-| ---------------------- | --------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| Settlement drafts      | Computed on read, persisted only when marked settled                                                | Always current, with no recompute jobs to fall behind; settled days are frozen with line items |
-| Late items             | Carried into the next unsettled draft as adjustments, excluded by `ref_id` once settled             | Nothing is counted twice, and settled days never change                                        |
-| Fuel audit             | Whole-vehicle recompute on every fill, void or reviewer decision; cycle rows versioned              | Deterministic and cheap; out-of-order offline fills need no special handling                   |
-| Reviewer "false alarm" | Stored on the dismissed alert (`data.falsePositive`); recompute includes that cycle in the baseline | No extra table                                                                                 |
-| Partition maintenance  | `SECURITY DEFINER` functions owned by the migration role                                            | The app role must not own tables (otherwise RLS wouldn't apply to it)                          |
-| Seed                   | Runs after M1.6, through the real services and jobs                                                 | Demo alerts and settlements come from the actual logic                                         |
-| OTP per-IP limit       | Configurable (`OTP_IP_LIMIT_PER_HOUR`, default 30)                                                  | Shared networks and the test suite need headroom                                               |
+| Area                   | Choice                                                                                                                                              | Why                                                                                            |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| Settlement drafts      | Computed on read, persisted only when marked settled                                                                                                | Always current, with no recompute jobs to fall behind; settled days are frozen with line items |
+| Late items             | Carried into the next unsettled draft as adjustments, excluded by `ref_id` once settled                                                             | Nothing is counted twice, and settled days never change                                        |
+| Fuel audit             | Whole-vehicle recompute on every fill, void or reviewer decision; cycle rows versioned                                                              | Deterministic and cheap; out-of-order offline fills need no special handling                   |
+| Reviewer "false alarm" | Stored on the dismissed alert (`data.falsePositive`); recompute includes that cycle in the baseline                                                 | No extra table                                                                                 |
+| Partition maintenance  | `SECURITY DEFINER` functions owned by the migration role                                                                                            | The app role must not own tables (otherwise RLS wouldn't apply to it)                          |
+| Seed                   | Runs after M1.6, through the real services and jobs                                                                                                 | Demo alerts and settlements come from the actual logic                                         |
+| OTP per-IP limit       | Configurable (`OTP_IP_LIMIT_PER_HOUR`, default 30)                                                                                                  | Shared networks and the test suite need headroom                                               |
+| Driver app in Chrome   | Web build with drift on SQLite WASM; photos stored behind `PhotoStore` (files on phones, a `photo_blobs` table in the browser); served on port 5174 | Demos and UI work without an emulator; native code paths stay unchanged                        |
 
 ## Accepted defaults (change by editing this file and the code together)
 
