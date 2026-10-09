@@ -1,0 +1,10 @@
+{
+  "name": "@taxcy/driver-app",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Flutter driver app. These scripts let Nx run Flutter tooling alongside the TypeScript projects.",
+  "scripts": {
+    "lint": "flutter pub get && dart format --output=none --set-exit-if-changed lib test && flutter analyze --fatal-infos",
+    "test": "flutter pub get && flutter test"
+  }
+}
