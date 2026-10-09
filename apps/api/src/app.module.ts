@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR, DiscoveryModule } from '@nestjs/core';
 import { LoggerModule } from 'nestjs-pino';
 import { HealthModule } from './modules/health/health.module.js';
+import { IdentityModule } from './modules/identity/identity.module.js';
 import { APP_CONFIG, type AppConfig } from './platform/config.js';
 import { AuthGuard } from './platform/http/auth.guard.js';
 import { ErrorFilter } from './platform/http/error.filter.js';
@@ -18,6 +19,7 @@ import { PlatformModule } from './platform/platform.module.js';
       useFactory: (config: AppConfig) => loggerParams(config),
     }),
     HealthModule,
+    IdentityModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: AuthGuard },

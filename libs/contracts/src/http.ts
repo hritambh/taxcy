@@ -54,8 +54,8 @@ export interface RouteInput<R extends RouteDef> {
   body: Infer<R['body']>;
 }
 
-/** What a handler must return for a route (validated and stripped on the way out). */
-export type RouteOutput<R extends RouteDef> = z.input<R['response']>;
+/** What a handler returns for a route: the decoded (in-code) side, encoded to the wire on the way out. */
+export type RouteOutput<R extends RouteDef> = z.output<R['response']>;
 
 /** `/trips/{id}` → `/trips/:id` for Express/Nest. */
 export function toExpressPath(path: string): string {

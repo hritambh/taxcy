@@ -17,3 +17,18 @@ export type Id = z.infer<typeof Id>;
 /** Timestamp with an explicit offset, e.g. 2026-10-09T08:30:00Z or 2026-10-09T14:00:00+05:30. */
 export const Instant = z.iso.datetime({ offset: true });
 export type Instant = z.infer<typeof Instant>;
+
+/**
+ * Timestamp: an ISO-8601 string with offset on the wire, a Date in code.
+ * Responses are encoded (Date → string) and requests decoded (string → Date).
+ */
+export const DateTime = z.codec(z.iso.datetime({ offset: true }), z.date(), {
+  decode: (iso) => new Date(iso),
+  encode: (date) => date.toISOString(),
+});
+
+/** Calendar date (YYYY-MM-DD, IST) on the wire; a Date at UTC midnight in code. */
+export const CalendarDate = z.codec(z.iso.date(), z.date(), {
+  decode: (iso) => new Date(`${iso}T00:00:00.000Z`),
+  encode: (date) => date.toISOString().slice(0, 10),
+});

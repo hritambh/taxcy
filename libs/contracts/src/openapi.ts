@@ -27,7 +27,7 @@ function parametersFor(schema: z.ZodType | undefined, location: 'path' | 'query'
 
 const errorResponse = {
   description: 'Error',
-  content: { 'application/json': { schema: toSchema(ErrorBody, 'output') } },
+  content: { 'application/json': { schema: toSchema(ErrorBody, 'input') } },
 };
 
 /** Builds an OpenAPI 3.1 document from route contracts. */
@@ -75,7 +75,7 @@ export function buildOpenApiDocument(
             ? { description: 'No content' }
             : {
                 description: 'OK',
-                content: { 'application/json': { schema: toSchema(route.response, 'output') } },
+                content: { 'application/json': { schema: toSchema(route.response, 'input') } },
               },
         default: errorResponse,
       },
