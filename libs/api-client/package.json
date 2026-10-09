@@ -2,7 +2,7 @@
   "name": "@taxcy/api-client",
   "version": "0.0.0",
   "private": true,
-  "description": "Typed API client generated from the OpenAPI document (generation lands in M0.2)",
+  "description": "Typed API client generated from the OpenAPI document built from @taxcy/contracts",
   "type": "module",
   "exports": {
     ".": {
@@ -18,6 +18,14 @@
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc -p tsconfig.json",
     "lint": "eslint .",
-    "test": "vitest run --passWithNoTests"
+    "test": "vitest run --passWithNoTests",
+    "generate": "node ../contracts/scripts/write-openapi.mjs openapi.json && openapi-typescript openapi.json -o src/schema.ts && prettier --write openapi.json src/schema.ts"
+  },
+  "dependencies": {
+    "openapi-fetch": "^0.17.0"
+  },
+  "devDependencies": {
+    "@taxcy/contracts": "workspace:*",
+    "openapi-typescript": "^7.13.0"
   }
 }
