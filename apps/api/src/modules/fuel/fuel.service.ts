@@ -148,7 +148,6 @@ export class FuelService {
       await this.evidence.reconcileOdometerMedia(tx, input.odometer.mediaId);
       if (input.receiptMediaId) await this.evidence.reconcileReceiptMedia(tx, input.receiptMediaId);
       await publish(tx, 'fuel.fill_recorded', { vehicleId: vehicle.id, fillId: input.id });
-      await publish(tx, 'money.changed', { fillId: input.id });
       return this.require(tx, input.id);
     });
   }
@@ -201,7 +200,6 @@ export class FuelService {
           voided: true,
           reason,
         });
-        await publish(tx, 'money.changed', { fillId: id });
       }
       return this.require(tx, id);
     });

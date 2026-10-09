@@ -529,7 +529,6 @@ export class TripsService {
           occurredAt: new Date(),
           payload: { chargeId: charge.id, kind: charge.kind, amountPaise: charge.amountPaise },
         });
-        await publish(tx, 'money.changed', { tripId });
       }
       return this.requireView(tx, tripId);
     });
@@ -554,7 +553,6 @@ export class TripsService {
           occurredAt: new Date(),
           payload: { chargeId },
         });
-        await publish(tx, 'money.changed', { tripId });
       }
       return this.requireView(tx, tripId);
     });

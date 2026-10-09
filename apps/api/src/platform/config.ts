@@ -35,6 +35,8 @@ const Env = z.object({
 
   OTP_TTL_SECONDS: z.coerce.number().int().positive().default(300),
   OTP_MAX_ATTEMPTS: z.coerce.number().int().positive().default(5),
+  /** OTP requests allowed per client IP per hour (shared networks, e.g. a depot's Wi-Fi, need headroom). */
+  OTP_IP_LIMIT_PER_HOUR: z.coerce.number().int().positive().default(30),
   SMS_PROVIDER: z.enum(['console']).default('console'),
   OCR_PROVIDER: z.enum(['stub']).default('stub'),
 

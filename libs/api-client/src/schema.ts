@@ -746,6 +746,159 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/trips/{id}/collections': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Record what the customer paid (idempotent on id) */
+    post: operations['postTripsIdCollections'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/settlements': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Each driver's settlement for an IST day (drafts are computed live) */
+    get: operations['getSettlements'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/settlements/{date}/drivers/{driverId}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** A driver’s settlement for a day, with every item it covers */
+    get: operations['getSettlementsDateDriversDriverId'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/settlements/{date}/drivers/{driverId}/settle': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Mark the day settled: freezes the totals and settles its ended trips */
+    post: operations['postSettlementsDateDriversDriverIdSettle'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/alerts': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Alerts inbox, newest first */
+    get: operations['getAlerts'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/alerts/summary': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Open alert and review counts, for badges */
+    get: operations['getAlertsSummary'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/alerts/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    /** Acknowledge, resolve or dismiss an alert (dismissing a fuel alert as a false alarm retrains the baseline) */
+    patch: operations['patchAlertsId'];
+    trace?: never;
+  };
+  '/review-items': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Review queue, oldest first */
+    get: operations['getReviewitems'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/review-items/{id}/resolve': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Decide a review item; using the OCR or a corrected value updates the record and re-runs its checks */
+    post: operations['postReviewitemsIdResolve'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -7749,6 +7902,1037 @@ export interface operations {
             /** Format: date-time */
             computedAt: string;
           } | null;
+        };
+      };
+      /** @description Error */
+      default: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            error: {
+              /** @enum {string} */
+              code:
+                | 'VALIDATION_FAILED'
+                | 'UNAUTHENTICATED'
+                | 'TOKEN_EXPIRED'
+                | 'FORBIDDEN_ROLE'
+                | 'NO_ACTIVE_ORG'
+                | 'NOT_FOUND'
+                | 'ILLEGAL_TRANSITION'
+                | 'TRIP_CANCELLED'
+                | 'TRIP_REASSIGNED'
+                | 'VEHICLE_BUSY'
+                | 'DRIVER_BUSY'
+                | 'CANCELLATION_PENDING'
+                | 'ALREADY_SETTLED'
+                | 'IDEMPOTENCY_CONFLICT'
+                | 'IDEMPOTENCY_KEY_REQUIRED'
+                | 'VERSION_CONFLICT'
+                | 'CONFLICT'
+                | 'FUEL_TYPE_MISMATCH'
+                | 'ODOMETER_BEFORE_START'
+                | 'OTP_INVALID'
+                | 'OTP_EXPIRED'
+                | 'RATE_LIMITED'
+                | 'UPLOAD_NOT_FOUND'
+                | 'UPLOAD_MISMATCH'
+                | 'INTERNAL';
+              message: string;
+              details?: unknown;
+              requestId?: string;
+            };
+          };
+        };
+      };
+    };
+  };
+  postTripsIdCollections: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': {
+          /** Format: uuid */
+          id: string;
+          /** @enum {string} */
+          method: 'cash' | 'upi' | 'card';
+          amountPaise: number;
+          reference?: string;
+          /** Format: date-time */
+          collectedAt?: string;
+        };
+      };
+    };
+    responses: {
+      /** @description OK */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            tripType: 'one_way' | 'round_trip' | 'local_rental';
+            /** @enum {string} */
+            status: 'created' | 'assigned' | 'started' | 'ended' | 'settled' | 'cancelled';
+            channel: string;
+            customer: {
+              name: string;
+              phone: string | null;
+            } | null;
+            from: {
+              text: string;
+              point: {
+                lat: number;
+                lng: number;
+              } | null;
+            };
+            to: {
+              text: string;
+              point: {
+                lat: number;
+                lng: number;
+              } | null;
+            } | null;
+            /** Format: date-time */
+            scheduledStartAt: string;
+            /** Format: date-time */
+            scheduledEndAt: string;
+            vehicle: {
+              /** Format: uuid */
+              id: string;
+              registrationNo: string;
+              model: string;
+            } | null;
+            driver: {
+              /** Format: uuid */
+              id: string;
+              name: string;
+            } | null;
+            quotedFarePaise: number;
+            cancellationFarePaise: number | null;
+            startOdometer: {
+              /** Format: uuid */
+              id: string;
+              typedKm: number;
+              ocrKm: number | null;
+              /** Format: uuid */
+              mediaId: string;
+              /** Format: date-time */
+              capturedAt: string;
+            } | null;
+            endOdometer: {
+              /** Format: uuid */
+              id: string;
+              typedKm: number;
+              ocrKm: number | null;
+              /** Format: uuid */
+              mediaId: string;
+              /** Format: date-time */
+              capturedAt: string;
+            } | null;
+            startedAt: string | null;
+            endedAt: string | null;
+            cancelledAt: string | null;
+            cancelReason: string | null;
+            cancellationRequest: {
+              /** Format: uuid */
+              id: string;
+              /** @enum {string} */
+              status: 'pending' | 'approved' | 'rejected' | 'withdrawn';
+              reason: string;
+              /** Format: uuid */
+              requestedBy: string;
+              /** @enum {string} */
+              requestedRole: 'owner' | 'manager' | 'driver';
+              endOdometer: {
+                /** Format: uuid */
+                id: string;
+                typedKm: number;
+                ocrKm: number | null;
+                /** Format: uuid */
+                mediaId: string;
+                /** Format: date-time */
+                capturedAt: string;
+              } | null;
+              decidedBy: string | null;
+              decidedAt: string | null;
+              decisionNote: string | null;
+              /** Format: date-time */
+              createdAt: string;
+            } | null;
+            charges: {
+              /** Format: uuid */
+              id: string;
+              /** @enum {string} */
+              kind:
+                | 'toll'
+                | 'parking'
+                | 'state_tax'
+                | 'driver_allowance'
+                | 'night_charge'
+                | 'extra_km'
+                | 'other';
+              amountPaise: number;
+              paidByDriver: boolean;
+              mediaId: string | null;
+              note: string | null;
+              /** Format: uuid */
+              enteredBy: string;
+              /** @enum {string} */
+              enteredRole: 'owner' | 'manager' | 'driver';
+              voidedAt: string | null;
+              /** Format: date-time */
+              createdAt: string;
+            }[];
+            collections: {
+              /** Format: uuid */
+              id: string;
+              /** @enum {string} */
+              method: 'cash' | 'upi' | 'card';
+              amountPaise: number;
+              reference: string | null;
+              /** Format: date-time */
+              collectedAt: string;
+            }[];
+            allowedCommands: (
+              | 'assign'
+              | 'reassign'
+              | 'unassign'
+              | 'start'
+              | 'end'
+              | 'requestCancel'
+              | 'approveCancel'
+              | 'rejectCancel'
+              | 'withdrawCancel'
+              | 'cancel'
+              | 'settle'
+            )[];
+            version: number;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+          };
+        };
+      };
+      /** @description Error */
+      default: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            error: {
+              /** @enum {string} */
+              code:
+                | 'VALIDATION_FAILED'
+                | 'UNAUTHENTICATED'
+                | 'TOKEN_EXPIRED'
+                | 'FORBIDDEN_ROLE'
+                | 'NO_ACTIVE_ORG'
+                | 'NOT_FOUND'
+                | 'ILLEGAL_TRANSITION'
+                | 'TRIP_CANCELLED'
+                | 'TRIP_REASSIGNED'
+                | 'VEHICLE_BUSY'
+                | 'DRIVER_BUSY'
+                | 'CANCELLATION_PENDING'
+                | 'ALREADY_SETTLED'
+                | 'IDEMPOTENCY_CONFLICT'
+                | 'IDEMPOTENCY_KEY_REQUIRED'
+                | 'VERSION_CONFLICT'
+                | 'CONFLICT'
+                | 'FUEL_TYPE_MISMATCH'
+                | 'ODOMETER_BEFORE_START'
+                | 'OTP_INVALID'
+                | 'OTP_EXPIRED'
+                | 'RATE_LIMITED'
+                | 'UPLOAD_NOT_FOUND'
+                | 'UPLOAD_MISMATCH'
+                | 'INTERNAL';
+              message: string;
+              details?: unknown;
+              requestId?: string;
+            };
+          };
+        };
+      };
+    };
+  };
+  getSettlements: {
+    parameters: {
+      query: {
+        date: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            /** Format: uuid */
+            driverId: string;
+            driverName: string;
+            /** Format: date */
+            businessDate: string;
+            /** @enum {string} */
+            status: 'draft' | 'settled';
+            expectedFarePaise: number;
+            cashPaise: number;
+            onlinePaise: number;
+            driverExpensesPaise: number;
+            driverEarningsPaise: number;
+            carriedAdjustmentPaise: number;
+            netPayablePaise: number;
+            shortfallPaise: number;
+            tripCount: number;
+            settledAt: string | null;
+            settledBy: string | null;
+          }[];
+        };
+      };
+      /** @description Error */
+      default: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            error: {
+              /** @enum {string} */
+              code:
+                | 'VALIDATION_FAILED'
+                | 'UNAUTHENTICATED'
+                | 'TOKEN_EXPIRED'
+                | 'FORBIDDEN_ROLE'
+                | 'NO_ACTIVE_ORG'
+                | 'NOT_FOUND'
+                | 'ILLEGAL_TRANSITION'
+                | 'TRIP_CANCELLED'
+                | 'TRIP_REASSIGNED'
+                | 'VEHICLE_BUSY'
+                | 'DRIVER_BUSY'
+                | 'CANCELLATION_PENDING'
+                | 'ALREADY_SETTLED'
+                | 'IDEMPOTENCY_CONFLICT'
+                | 'IDEMPOTENCY_KEY_REQUIRED'
+                | 'VERSION_CONFLICT'
+                | 'CONFLICT'
+                | 'FUEL_TYPE_MISMATCH'
+                | 'ODOMETER_BEFORE_START'
+                | 'OTP_INVALID'
+                | 'OTP_EXPIRED'
+                | 'RATE_LIMITED'
+                | 'UPLOAD_NOT_FOUND'
+                | 'UPLOAD_MISMATCH'
+                | 'INTERNAL';
+              message: string;
+              details?: unknown;
+              requestId?: string;
+            };
+          };
+        };
+      };
+    };
+  };
+  getSettlementsDateDriversDriverId: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        date: string;
+        driverId: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            /** Format: uuid */
+            driverId: string;
+            driverName: string;
+            /** Format: date */
+            businessDate: string;
+            /** @enum {string} */
+            status: 'draft' | 'settled';
+            expectedFarePaise: number;
+            cashPaise: number;
+            onlinePaise: number;
+            driverExpensesPaise: number;
+            driverEarningsPaise: number;
+            carriedAdjustmentPaise: number;
+            netPayablePaise: number;
+            shortfallPaise: number;
+            tripCount: number;
+            settledAt: string | null;
+            settledBy: string | null;
+            payRule:
+              | {
+                  allowanceToDriver: boolean;
+                  /** @constant */
+                  kind: 'none';
+                }
+              | {
+                  allowanceToDriver: boolean;
+                  /** @constant */
+                  kind: 'percent_of_fare';
+                  percent: number;
+                  /** @enum {string} */
+                  base: 'quoted' | 'expected';
+                }
+              | {
+                  allowanceToDriver: boolean;
+                  /** @constant */
+                  kind: 'per_trip';
+                  amountPaise: number;
+                }
+              | {
+                  allowanceToDriver: boolean;
+                  /** @constant */
+                  kind: 'per_km';
+                  paisePerKm: number;
+                }
+              | {
+                  allowanceToDriver: boolean;
+                  /** @constant */
+                  kind: 'fixed_daily';
+                  amountPaise: number;
+                };
+            lines: {
+              /** @enum {string} */
+              refType: 'trip' | 'trip_charge' | 'collection' | 'fuel_fill' | 'adjustment';
+              /** Format: uuid */
+              refId: string;
+              amountPaise: number;
+              description: string;
+              originalDate: string | null;
+            }[];
+          };
+        };
+      };
+      /** @description Error */
+      default: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            error: {
+              /** @enum {string} */
+              code:
+                | 'VALIDATION_FAILED'
+                | 'UNAUTHENTICATED'
+                | 'TOKEN_EXPIRED'
+                | 'FORBIDDEN_ROLE'
+                | 'NO_ACTIVE_ORG'
+                | 'NOT_FOUND'
+                | 'ILLEGAL_TRANSITION'
+                | 'TRIP_CANCELLED'
+                | 'TRIP_REASSIGNED'
+                | 'VEHICLE_BUSY'
+                | 'DRIVER_BUSY'
+                | 'CANCELLATION_PENDING'
+                | 'ALREADY_SETTLED'
+                | 'IDEMPOTENCY_CONFLICT'
+                | 'IDEMPOTENCY_KEY_REQUIRED'
+                | 'VERSION_CONFLICT'
+                | 'CONFLICT'
+                | 'FUEL_TYPE_MISMATCH'
+                | 'ODOMETER_BEFORE_START'
+                | 'OTP_INVALID'
+                | 'OTP_EXPIRED'
+                | 'RATE_LIMITED'
+                | 'UPLOAD_NOT_FOUND'
+                | 'UPLOAD_MISMATCH'
+                | 'INTERNAL';
+              message: string;
+              details?: unknown;
+              requestId?: string;
+            };
+          };
+        };
+      };
+    };
+  };
+  postSettlementsDateDriversDriverIdSettle: {
+    parameters: {
+      query?: never;
+      header: {
+        'Idempotency-Key': string;
+      };
+      path: {
+        date: string;
+        driverId: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            /** Format: uuid */
+            driverId: string;
+            driverName: string;
+            /** Format: date */
+            businessDate: string;
+            /** @enum {string} */
+            status: 'draft' | 'settled';
+            expectedFarePaise: number;
+            cashPaise: number;
+            onlinePaise: number;
+            driverExpensesPaise: number;
+            driverEarningsPaise: number;
+            carriedAdjustmentPaise: number;
+            netPayablePaise: number;
+            shortfallPaise: number;
+            tripCount: number;
+            settledAt: string | null;
+            settledBy: string | null;
+            payRule:
+              | {
+                  allowanceToDriver: boolean;
+                  /** @constant */
+                  kind: 'none';
+                }
+              | {
+                  allowanceToDriver: boolean;
+                  /** @constant */
+                  kind: 'percent_of_fare';
+                  percent: number;
+                  /** @enum {string} */
+                  base: 'quoted' | 'expected';
+                }
+              | {
+                  allowanceToDriver: boolean;
+                  /** @constant */
+                  kind: 'per_trip';
+                  amountPaise: number;
+                }
+              | {
+                  allowanceToDriver: boolean;
+                  /** @constant */
+                  kind: 'per_km';
+                  paisePerKm: number;
+                }
+              | {
+                  allowanceToDriver: boolean;
+                  /** @constant */
+                  kind: 'fixed_daily';
+                  amountPaise: number;
+                };
+            lines: {
+              /** @enum {string} */
+              refType: 'trip' | 'trip_charge' | 'collection' | 'fuel_fill' | 'adjustment';
+              /** Format: uuid */
+              refId: string;
+              amountPaise: number;
+              description: string;
+              originalDate: string | null;
+            }[];
+          };
+        };
+      };
+      /** @description Error */
+      default: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            error: {
+              /** @enum {string} */
+              code:
+                | 'VALIDATION_FAILED'
+                | 'UNAUTHENTICATED'
+                | 'TOKEN_EXPIRED'
+                | 'FORBIDDEN_ROLE'
+                | 'NO_ACTIVE_ORG'
+                | 'NOT_FOUND'
+                | 'ILLEGAL_TRANSITION'
+                | 'TRIP_CANCELLED'
+                | 'TRIP_REASSIGNED'
+                | 'VEHICLE_BUSY'
+                | 'DRIVER_BUSY'
+                | 'CANCELLATION_PENDING'
+                | 'ALREADY_SETTLED'
+                | 'IDEMPOTENCY_CONFLICT'
+                | 'IDEMPOTENCY_KEY_REQUIRED'
+                | 'VERSION_CONFLICT'
+                | 'CONFLICT'
+                | 'FUEL_TYPE_MISMATCH'
+                | 'ODOMETER_BEFORE_START'
+                | 'OTP_INVALID'
+                | 'OTP_EXPIRED'
+                | 'RATE_LIMITED'
+                | 'UPLOAD_NOT_FOUND'
+                | 'UPLOAD_MISMATCH'
+                | 'INTERNAL';
+              message: string;
+              details?: unknown;
+              requestId?: string;
+            };
+          };
+        };
+      };
+    };
+  };
+  getAlerts: {
+    parameters: {
+      query?: {
+        status?: 'open' | 'acknowledged' | 'resolved' | 'dismissed';
+        kind?:
+          | 'fuel_efficiency_low'
+          | 'fuel_cost_high'
+          | 'odo_gps_mismatch'
+          | 'document_expiring'
+          | 'document_expired'
+          | 'cancellation_requested'
+          | 'gps_coverage_low';
+        vehicleId?: string;
+        tripId?: string;
+        limit?: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            kind:
+              | 'fuel_efficiency_low'
+              | 'fuel_cost_high'
+              | 'odo_gps_mismatch'
+              | 'document_expiring'
+              | 'document_expired'
+              | 'cancellation_requested'
+              | 'gps_coverage_low';
+            /** @enum {string} */
+            severity: 'info' | 'warning' | 'critical';
+            title: string;
+            explanation: string;
+            /** @enum {string} */
+            status: 'open' | 'acknowledged' | 'resolved' | 'dismissed';
+            subjectType: string;
+            /** Format: uuid */
+            subjectId: string;
+            vehicleId: string | null;
+            driverId: string | null;
+            tripId: string | null;
+            data: {
+              [key: string]: unknown;
+            };
+            /** Format: date-time */
+            createdAt: string;
+            resolvedAt: string | null;
+          }[];
+        };
+      };
+      /** @description Error */
+      default: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            error: {
+              /** @enum {string} */
+              code:
+                | 'VALIDATION_FAILED'
+                | 'UNAUTHENTICATED'
+                | 'TOKEN_EXPIRED'
+                | 'FORBIDDEN_ROLE'
+                | 'NO_ACTIVE_ORG'
+                | 'NOT_FOUND'
+                | 'ILLEGAL_TRANSITION'
+                | 'TRIP_CANCELLED'
+                | 'TRIP_REASSIGNED'
+                | 'VEHICLE_BUSY'
+                | 'DRIVER_BUSY'
+                | 'CANCELLATION_PENDING'
+                | 'ALREADY_SETTLED'
+                | 'IDEMPOTENCY_CONFLICT'
+                | 'IDEMPOTENCY_KEY_REQUIRED'
+                | 'VERSION_CONFLICT'
+                | 'CONFLICT'
+                | 'FUEL_TYPE_MISMATCH'
+                | 'ODOMETER_BEFORE_START'
+                | 'OTP_INVALID'
+                | 'OTP_EXPIRED'
+                | 'RATE_LIMITED'
+                | 'UPLOAD_NOT_FOUND'
+                | 'UPLOAD_MISMATCH'
+                | 'INTERNAL';
+              message: string;
+              details?: unknown;
+              requestId?: string;
+            };
+          };
+        };
+      };
+    };
+  };
+  getAlertsSummary: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            openAlerts: {
+              info: number;
+              warning: number;
+              critical: number;
+            };
+            openReviewItems: number;
+          };
+        };
+      };
+      /** @description Error */
+      default: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            error: {
+              /** @enum {string} */
+              code:
+                | 'VALIDATION_FAILED'
+                | 'UNAUTHENTICATED'
+                | 'TOKEN_EXPIRED'
+                | 'FORBIDDEN_ROLE'
+                | 'NO_ACTIVE_ORG'
+                | 'NOT_FOUND'
+                | 'ILLEGAL_TRANSITION'
+                | 'TRIP_CANCELLED'
+                | 'TRIP_REASSIGNED'
+                | 'VEHICLE_BUSY'
+                | 'DRIVER_BUSY'
+                | 'CANCELLATION_PENDING'
+                | 'ALREADY_SETTLED'
+                | 'IDEMPOTENCY_CONFLICT'
+                | 'IDEMPOTENCY_KEY_REQUIRED'
+                | 'VERSION_CONFLICT'
+                | 'CONFLICT'
+                | 'FUEL_TYPE_MISMATCH'
+                | 'ODOMETER_BEFORE_START'
+                | 'OTP_INVALID'
+                | 'OTP_EXPIRED'
+                | 'RATE_LIMITED'
+                | 'UPLOAD_NOT_FOUND'
+                | 'UPLOAD_MISMATCH'
+                | 'INTERNAL';
+              message: string;
+              details?: unknown;
+              requestId?: string;
+            };
+          };
+        };
+      };
+    };
+  };
+  patchAlertsId: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': {
+          /** @enum {string} */
+          status: 'acknowledged' | 'resolved' | 'dismissed';
+          falsePositive?: boolean;
+        };
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            kind:
+              | 'fuel_efficiency_low'
+              | 'fuel_cost_high'
+              | 'odo_gps_mismatch'
+              | 'document_expiring'
+              | 'document_expired'
+              | 'cancellation_requested'
+              | 'gps_coverage_low';
+            /** @enum {string} */
+            severity: 'info' | 'warning' | 'critical';
+            title: string;
+            explanation: string;
+            /** @enum {string} */
+            status: 'open' | 'acknowledged' | 'resolved' | 'dismissed';
+            subjectType: string;
+            /** Format: uuid */
+            subjectId: string;
+            vehicleId: string | null;
+            driverId: string | null;
+            tripId: string | null;
+            data: {
+              [key: string]: unknown;
+            };
+            /** Format: date-time */
+            createdAt: string;
+            resolvedAt: string | null;
+          };
+        };
+      };
+      /** @description Error */
+      default: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            error: {
+              /** @enum {string} */
+              code:
+                | 'VALIDATION_FAILED'
+                | 'UNAUTHENTICATED'
+                | 'TOKEN_EXPIRED'
+                | 'FORBIDDEN_ROLE'
+                | 'NO_ACTIVE_ORG'
+                | 'NOT_FOUND'
+                | 'ILLEGAL_TRANSITION'
+                | 'TRIP_CANCELLED'
+                | 'TRIP_REASSIGNED'
+                | 'VEHICLE_BUSY'
+                | 'DRIVER_BUSY'
+                | 'CANCELLATION_PENDING'
+                | 'ALREADY_SETTLED'
+                | 'IDEMPOTENCY_CONFLICT'
+                | 'IDEMPOTENCY_KEY_REQUIRED'
+                | 'VERSION_CONFLICT'
+                | 'CONFLICT'
+                | 'FUEL_TYPE_MISMATCH'
+                | 'ODOMETER_BEFORE_START'
+                | 'OTP_INVALID'
+                | 'OTP_EXPIRED'
+                | 'RATE_LIMITED'
+                | 'UPLOAD_NOT_FOUND'
+                | 'UPLOAD_MISMATCH'
+                | 'INTERNAL';
+              message: string;
+              details?: unknown;
+              requestId?: string;
+            };
+          };
+        };
+      };
+    };
+  };
+  getReviewitems: {
+    parameters: {
+      query?: {
+        status?: 'open' | 'accepted_typed' | 'accepted_ocr' | 'corrected' | 'dismissed';
+        limit?: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            kind:
+              | 'ocr_mismatch_odometer'
+              | 'ocr_mismatch_receipt'
+              | 'odometer_regression'
+              | 'implausible_efficiency'
+              | 'mock_location'
+              | 'orphan_evidence'
+              | 'clock_skew'
+              | 'upload_mismatch';
+            /** @enum {string} */
+            status: 'open' | 'accepted_typed' | 'accepted_ocr' | 'corrected' | 'dismissed';
+            subjectType: string;
+            /** Format: uuid */
+            subjectId: string;
+            mediaId: string | null;
+            typedValue: string | null;
+            ocrValue: string | null;
+            context: {
+              [key: string]: unknown;
+            };
+            resolution: {
+              [key: string]: unknown;
+            } | null;
+            /** Format: date-time */
+            createdAt: string;
+            resolvedAt: string | null;
+          }[];
+        };
+      };
+      /** @description Error */
+      default: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            error: {
+              /** @enum {string} */
+              code:
+                | 'VALIDATION_FAILED'
+                | 'UNAUTHENTICATED'
+                | 'TOKEN_EXPIRED'
+                | 'FORBIDDEN_ROLE'
+                | 'NO_ACTIVE_ORG'
+                | 'NOT_FOUND'
+                | 'ILLEGAL_TRANSITION'
+                | 'TRIP_CANCELLED'
+                | 'TRIP_REASSIGNED'
+                | 'VEHICLE_BUSY'
+                | 'DRIVER_BUSY'
+                | 'CANCELLATION_PENDING'
+                | 'ALREADY_SETTLED'
+                | 'IDEMPOTENCY_CONFLICT'
+                | 'IDEMPOTENCY_KEY_REQUIRED'
+                | 'VERSION_CONFLICT'
+                | 'CONFLICT'
+                | 'FUEL_TYPE_MISMATCH'
+                | 'ODOMETER_BEFORE_START'
+                | 'OTP_INVALID'
+                | 'OTP_EXPIRED'
+                | 'RATE_LIMITED'
+                | 'UPLOAD_NOT_FOUND'
+                | 'UPLOAD_MISMATCH'
+                | 'INTERNAL';
+              message: string;
+              details?: unknown;
+              requestId?: string;
+            };
+          };
+        };
+      };
+    };
+  };
+  postReviewitemsIdResolve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': {
+          /** @enum {string} */
+          resolution: 'accepted_typed' | 'accepted_ocr' | 'corrected' | 'dismissed';
+          correctedValue?: number;
+          note?: string;
+        };
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            kind:
+              | 'ocr_mismatch_odometer'
+              | 'ocr_mismatch_receipt'
+              | 'odometer_regression'
+              | 'implausible_efficiency'
+              | 'mock_location'
+              | 'orphan_evidence'
+              | 'clock_skew'
+              | 'upload_mismatch';
+            /** @enum {string} */
+            status: 'open' | 'accepted_typed' | 'accepted_ocr' | 'corrected' | 'dismissed';
+            subjectType: string;
+            /** Format: uuid */
+            subjectId: string;
+            mediaId: string | null;
+            typedValue: string | null;
+            ocrValue: string | null;
+            context: {
+              [key: string]: unknown;
+            };
+            resolution: {
+              [key: string]: unknown;
+            } | null;
+            /** Format: date-time */
+            createdAt: string;
+            resolvedAt: string | null;
+          };
         };
       };
       /** @description Error */

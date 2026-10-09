@@ -28,7 +28,7 @@ export class OtpService {
       { key: `otp:resend:${phone}`, max: 1, windowSeconds: RESEND_AFTER_SECONDS },
       { key: `otp:phone:${phone}:10m`, max: 3, windowSeconds: 600 },
       { key: `otp:phone:${phone}:1d`, max: 10, windowSeconds: 86_400 },
-      { key: `otp:ip:${ip}:1h`, max: 30, windowSeconds: 3_600 },
+      { key: `otp:ip:${ip}:1h`, max: this.config.OTP_IP_LIMIT_PER_HOUR, windowSeconds: 3_600 },
     ]);
     const code = randomInt(0, 1_000_000).toString().padStart(6, '0');
     const challenge: z.infer<typeof Challenge> = { hash: this.hash(phone, code), attempts: 0 };
