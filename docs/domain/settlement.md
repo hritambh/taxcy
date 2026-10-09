@@ -70,11 +70,11 @@ Driver Ramesh, 9 Oct, pay rule = `{ kind: 'percent_of_fare', percent: 20, base: 
 
 ```mermaid
 stateDiagram-v2
-  [*] --> draft: first activity on the day (recomputed on every change)
+  [*] --> draft: computed live whenever it is viewed
   draft --> settled: owner/manager marks settled
   settled --> [*]
 ```
 
-- While a settlement is `draft`, it's recomputed whenever a trip, collection, charge or fill for that driver and day changes.
+- A `draft` isn't stored: it's computed from the current trips, collections, charges and fills every time it's viewed, so it's always up to date.
 - **Mark settled** (owner/manager): in one transaction, the API writes `settlement_lines` for every included item, freezes the totals, and moves the included `ended` trips to `settled` (with trip events).
 - A settled day is **never mutated**. A fill or collection that syncs later for that day is included in the next draft as a `carried_adjustment` line that references the original item. `UNIQUE (ref_type, ref_id)` on `settlement_lines` guarantees nothing is counted twice.

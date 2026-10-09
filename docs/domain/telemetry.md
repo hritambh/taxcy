@@ -12,7 +12,7 @@
 
 - The batch is Zod-validated. Points are inserted with `ON CONFLICT (recorded_at, client_point_id) DO NOTHING`, so re-sending a batch is safe.
 - Points are accepted only for trips the caller drives, and only between `started_at − 5 min` and `ended_at + 30 min`. Points outside that window are dropped and counted in the response.
-- A batch that arrives after the trip ended re-queues `trip-distance` for that trip.
+- A batch that arrives after the trip ended publishes `trip.closed` again, so its distance check is recomputed.
 
 ## Storage
 

@@ -1,38 +1,33 @@
 # Development guide
 
-For a first run, follow [getting-started.md](getting-started.md). This page is the reference: tools, services, environment variables, scripts and conventions.
-
-> Rows marked **(planned)** describe things later milestones add. Everything else works as of M0.1.
+For a first run, follow [getting-started.md](getting-started.md). This page is the reference: tools, services, environment variables, scripts, tests and conventions.
 
 ## Toolchain
 
-| Tool                   | Version                                    | Used for                                                                            |
-| ---------------------- | ------------------------------------------ | ----------------------------------------------------------------------------------- |
-| Node.js                | 24.x (`.nvmrc`)                            | Runtime for the API, workers and all tooling                                        |
-| Bun                    | 1.4.x (`packageManager` in `package.json`) | **Package manager only**: installs, workspaces, running scripts. Code runs on Node. |
-| Nx                     | 23.x                                       | Task runner and cache (`nx run-many`, `dependsOn: ^build`)                          |
-| TypeScript             | 6.0.x                                      | Pinned below 7 because typescript-eslint doesn't support TypeScript 7 yet           |
-| Docker                 | 24+                                        | Postgres, Redis and RustFS locally; Testcontainers in integration tests (planned)   |
-| Flutter                | 3.38.x (Dart 3.10)                         | Driver app only                                                                     |
-| Android Studio / Xcode | latest                                     | Driver app emulator/simulator builds                                                |
+| Tool                   | Version                  | Used for                                                                            |
+| ---------------------- | ------------------------ | ----------------------------------------------------------------------------------- |
+| Node.js                | 24.x (`.nvmrc`)          | Runtime for the API, workers, seed and tooling                                      |
+| Bun                    | 1.4.x (`packageManager`) | **Package manager only**: installs, workspaces, running scripts. Code runs on Node. |
+| Nx                     | 23.x                     | Task runner and cache (`nx run-many`, libs build before their dependents)           |
+| TypeScript             | 6.0.x                    | Pinned below 7 because typescript-eslint doesn't support TypeScript 7 yet           |
+| Prisma                 | 7.10 (`libs/db`)         | Schema, migrations, client (driver adapter `@prisma/adapter-pg`)                    |
+| Docker                 | 24+                      | Postgres, Redis and RustFS locally; Testcontainers in integration tests             |
+| Flutter                | 3.38.x (Dart 3.10)       | Driver app                                                                          |
+| Android Studio / Xcode | latest                   | Driver app emulator/simulator builds                                                |
 
 ### Why the Node apps build with `tsc`
 
-NestJS 12 is ESM-only and relies on `emitDecoratorMetadata` for dependency injection. esbuild-based runners (tsx, `bun run file.ts`) don't emit that metadata. So `apps/api` and `apps/workers` compile with `tsc`, and `dev` runs `tsc --watch` next to `node --watch dist/main.js`.
+NestJS 12 is ESM-only and relies on `emitDecoratorMetadata` for dependency injection. esbuild-based runners (tsx, `bun run file.ts`) and Vite's default transform don't emit that metadata. So `apps/api` and `apps/workers` compile with `tsc`, `dev` runs `tsc --watch` next to `node --watch`, and the API's Vitest configs use SWC (`unplugin-swc`).
 
 ### How workspace libs are consumed
 
-Each lib's `package.json` exports three conditions:
+| Condition | Target            | Used by                                |
+| --------- | ----------------- | -------------------------------------- |
+| `source`  | `src/index.ts`    | Vite (admin web) and its type-checking |
+| `types`   | `dist/index.d.ts` | `tsc` in the Node apps                 |
+| `default` | `dist/index.js`   | Node at runtime                        |
 
-| Condition | Target            | Used by                                                                               |
-| --------- | ----------------- | ------------------------------------------------------------------------------------- |
-| `source`  | `src/index.ts`    | Vite (admin web) and its type-checking, via `resolve.conditions` / `customConditions` |
-| `types`   | `dist/index.d.ts` | `tsc` in the Node apps                                                                |
-| `default` | `dist/index.js`   | Node at runtime                                                                       |
-
-Nx builds a project's libs before anything that depends on them, so `dist/` is always fresh when a Node app needs it.
-
-Bun installs workspaces in **isolated** mode: an app can only import the packages it lists in its own `package.json`, including `@types/node`.
+Nx builds a project's libs first, so `dist/` is fresh whenever a Node app needs it. Bun installs workspaces in **isolated** mode: a package can only import what its own `package.json` lists, including `@types/node`.
 
 ## Local services
 
@@ -40,140 +35,117 @@ Bun installs workspaces in **isolated** mode: an app can only import the package
 
 | Service                     | Address                                               | Credentials (dev only)                                                    |
 | --------------------------- | ----------------------------------------------------- | ------------------------------------------------------------------------- |
-| PostgreSQL 16 + PostGIS 3.5 | `localhost:5433`                                      | `taxcy` / `taxcy`, database `taxcy`                                       |
+| PostgreSQL 16 + PostGIS 3.5 | `localhost:5433`                                      | owner `taxcy`/`taxcy`; app role `taxcy_api`/`taxcy_api`; database `taxcy` |
 | Redis 8                     | `localhost:6380`                                      | —                                                                         |
-| RustFS (S3 API)             | <http://localhost:9000>                               | `taxcy` / `taxcy-dev-secret`, bucket `taxcy-media` (created by `s3-init`) |
+| RustFS (S3 API)             | <http://localhost:9000>                               | `taxcy` / `taxcy-dev-secret`, bucket `taxcy-media`                        |
 | RustFS console              | <http://localhost:9001/rustfs/console/>               | same                                                                      |
-| API                         | <http://localhost:3000> (`GET /health/live`)          | —                                                                         |
+| API                         | <http://localhost:3000/v1>                            | —                                                                         |
+| API docs                    | <http://localhost:3000/docs> (`/` redirects here)     | —                                                                         |
+| Bull Board (job queues)     | <http://localhost:3001/queues>                        | —                                                                         |
 | Admin web                   | <http://localhost:5173> (proxies `/api/*` to the API) | —                                                                         |
-| API docs (planned, M0.2)    | <http://localhost:3000/docs>                          | —                                                                         |
-| Bull Board (planned, M0.4)  | <http://localhost:3001/queues>                        | —                                                                         |
 
-The host ports deliberately avoid 5432 and 6379. Without this, a natively installed Postgres or another project's Redis could silently answer on `localhost` instead of Taxcy's containers. Every port can be overridden in `.env` (`POSTGRES_PORT`, `REDIS_PORT`, `S3_PORT`, `S3_CONSOLE_PORT`).
-
-Local S3 runs on **RustFS** because MinIO no longer publishes container images. The API only talks the generic S3 protocol (AWS SDK), so any S3-compatible store works in other environments.
+- **Ports:** the host ports avoid 5432 and 6379, so a natively installed Postgres or another project's Redis can't silently answer on `localhost`.
+- **Database roles:** the Postgres init script (`infra/postgres/init-roles.sql`) creates `taxcy_api`, the role the API and workers connect as. It is neither a superuser nor the table owner, so [row-level security](architecture.md#multi-tenancy) applies to it. Migrations and the seed's reference data run as the owner.
+- **Object storage:** local S3 is **RustFS**, because MinIO no longer publishes container images. The API speaks plain S3 (AWS SDK).
 
 ## Environment variables
 
-`.env.example` holds the variables in use today. The API's typed config module (M0.2) validates everything at startup with Zod and exits with a readable error if anything is missing or malformed. Never hardcode secrets.
+The API and workers validate their environment at startup with Zod (`apps/api/src/platform/config.ts`) and exit with a readable list of problems. `.env.example` has working local values; never commit real secrets.
 
-| Variable                                              | Default (dev)                                 | Purpose                                  |
-| ----------------------------------------------------- | --------------------------------------------- | ---------------------------------------- |
-| `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` | `taxcy`                                       | Container setup                          |
-| `POSTGRES_PORT`                                       | `5433`                                        | Host port for Postgres                   |
-| `DATABASE_URL`                                        | `postgres://taxcy:taxcy@localhost:5433/taxcy` | API connection                           |
-| `REDIS_PORT` / `REDIS_URL`                            | `6380` / `redis://localhost:6380`             |                                          |
-| `S3_ENDPOINT`                                         | `http://localhost:9000`                       |                                          |
-| `S3_PORT` / `S3_CONSOLE_PORT`                         | `9000` / `9001`                               | Host ports for RustFS                    |
-| `S3_REGION`                                           | `ap-south-1`                                  |                                          |
-| `S3_BUCKET`                                           | `taxcy-media`                                 |                                          |
-| `S3_ACCESS_KEY_ID` / `S3_SECRET_ACCESS_KEY`           | `taxcy` / `taxcy-dev-secret`                  | Also the RustFS root credentials locally |
-| `PORT`                                                | `3000`                                        | API port                                 |
-
-Added by later milestones (planned):
-
-| Variable                                                                                   | Milestone   | Purpose                                                                       |
-| ------------------------------------------------------------------------------------------ | ----------- | ----------------------------------------------------------------------------- |
-| `NODE_ENV`, `LOG_LEVEL`, `SENTRY_DSN`                                                      | M0.2        | Runtime mode, pino level, Sentry (disabled when empty)                        |
-| `DATABASE_MIGRATION_URL`                                                                   | M0.2        | Owner role for migrations; `DATABASE_URL` becomes the RLS-restricted app role |
-| `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, `JWT_ACCESS_TTL` (15m), `JWT_REFRESH_TTL` (30d) | M0.3        | Tokens                                                                        |
-| `OTP_TTL_SECONDS` (300), `OTP_MAX_ATTEMPTS` (5), `SMS_PROVIDER` (`console`)                | M0.3        | OTP login                                                                     |
-| `S3_PUBLIC_ENDPOINT`, `S3_UPLOAD_URL_TTL_SECONDS` (600)                                    | M0.4        | Host used in signed URLs (your LAN IP for a physical phone); URL lifetime     |
-| `OCR_PROVIDER` (`stub`), `MAPS_PROVIDER` (`stub`), `MAP_TILE_URL`                          | M0.4 / M1.7 | Provider selection                                                            |
-| `GPS_RETENTION_MONTHS` (12)                                                                | M1.5        | Older GPS partitions are dropped                                              |
+| Variable                                                                            | Default                 | Purpose                                                           |
+| ----------------------------------------------------------------------------------- | ----------------------- | ----------------------------------------------------------------- |
+| `NODE_ENV`                                                                          | `development`           | `development` \| `test` \| `production`                           |
+| `PORT`                                                                              | `3000`                  | API port                                                          |
+| `LOG_LEVEL`                                                                         | `info`                  | pino level; pretty-printed in development                         |
+| `CORS_ORIGINS`                                                                      | `http://localhost:5173` | Comma-separated allowed origins                                   |
+| `DATABASE_URL`                                                                      | —                       | App role connection (`taxcy_api`, RLS applies)                    |
+| `DATABASE_MIGRATION_URL`                                                            | —                       | Owner connection for migrations and the seed                      |
+| `SHADOW_DATABASE_URL`                                                               | —                       | Empty database used by `db:drift`                                 |
+| `POSTGRES_*`, `REDIS_PORT`, `S3_PORT`, `S3_CONSOLE_PORT`                            | see `.env.example`      | docker-compose settings                                           |
+| `REDIS_URL`                                                                         | —                       | OTPs, rate limits, BullMQ                                         |
+| `S3_ENDPOINT`, `S3_REGION`, `S3_BUCKET`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY` | —                       | Object storage                                                    |
+| `S3_PUBLIC_ENDPOINT`                                                                | `S3_ENDPOINT`           | Host used in signed URLs; set to your LAN IP for a physical phone |
+| `S3_UPLOAD_URL_TTL_SECONDS`                                                         | `600`                   | Signed upload URL lifetime                                        |
+| `JWT_ACCESS_SECRET`                                                                 | —                       | ≥ 32 characters                                                   |
+| `JWT_ACCESS_TTL_SECONDS` / `JWT_REFRESH_TTL_DAYS`                                   | `900` / `30`            | Token lifetimes                                                   |
+| `OTP_TTL_SECONDS` / `OTP_MAX_ATTEMPTS` / `OTP_IP_LIMIT_PER_HOUR`                    | `300` / `5` / `30`      | OTP login                                                         |
+| `SMS_PROVIDER` / `OCR_PROVIDER`                                                     | `console` / `stub`      | Provider selection (only stubs exist so far)                      |
+| `SENTRY_DSN`                                                                        | empty                   | Sentry is enabled when set                                        |
+| `WORKERS_DASHBOARD_PORT`                                                            | `3001`                  | Bull Board                                                        |
 
 ## Scripts
 
 Run from the repo root with `bun run <script>`.
 
-| Script                                    | What it does                                                                             |
-| ----------------------------------------- | ---------------------------------------------------------------------------------------- |
-| `dev`                                     | API + workers + admin web in watch mode (builds libs first)                              |
-| `dev:api` / `dev:workers` / `dev:admin`   | One app only                                                                             |
-| `infra:up` / `infra:down` / `infra:reset` | Start, stop, or wipe and restart Postgres, Redis and RustFS                              |
-| `lint`                                    | ESLint on TypeScript projects; `dart format` check + `flutter analyze` on the driver app |
-| `typecheck`                               | `tsc` for every TypeScript project                                                       |
-| `test`                                    | Vitest for TypeScript projects; `flutter test` for the driver app                        |
-| `build`                                   | Build every project                                                                      |
-| `format` / `format:check`                 | Prettier (Dart files are formatted by `dart format`)                                     |
-| `verify`                                  | `format:check`, then lint, typecheck, test and build: everything CI runs                 |
+| Script                                    | What it does                                                                                         |
+| ----------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `dev`                                     | API, workers and admin web in watch mode (builds libs first)                                         |
+| `dev:api` / `dev:workers` / `dev:admin`   | One app only                                                                                         |
+| `infra:up` / `infra:down` / `infra:reset` | Start, stop, or wipe and restart Postgres, Redis and RustFS                                          |
+| `db:migrate`                              | Apply migrations (`prisma migrate deploy`)                                                           |
+| `db:seed`                                 | Load the demo fleet (safe to re-run; skips if it already exists)                                     |
+| `db:reset`                                | Drop everything, migrate, and seed                                                                   |
+| `db:migration <name>`                     | Create a migration for review (`prisma migrate dev --create-only`)                                   |
+| `db:drift`                                | Fail if `schema.prisma` and the migrations disagree (needs the shadow database)                      |
+| `db:generate` / `db:studio`               | Prisma client generation / Prisma Studio                                                             |
+| `api:client`                              | Rebuild `libs/api-client/openapi.json` and the typed client from the contracts                       |
+| `lint` / `typecheck` / `test` / `build`   | Across all projects, including `dart format` + `flutter analyze` + `flutter test` for the driver app |
+| `test:integration`                        | API integration tests against throwaway containers (about 5 minutes)                                 |
+| `format` / `format:check`                 | Prettier                                                                                             |
+| `verify`                                  | `format:check`, then lint, typecheck, test and build: what CI runs                                   |
 
-Run any target for one project: `bunx nx run @taxcy/domain:test`. Nx caches results, so unchanged projects are skipped; use `--skip-nx-cache` to force a run.
+Run one project's target with `bunx nx run @taxcy/domain:test`. Nx caches results; add `--skip-nx-cache` to force a run.
 
-Planned scripts:
+### Creating a migration
 
-| Script                       | Milestone | What it does                                                                       |
-| ---------------------------- | --------- | ---------------------------------------------------------------------------------- |
-| `db:generate`                | M0.2      | `prisma generate` (client + TypedSQL)                                              |
-| `db:migration <name>`        | M0.2      | `prisma migrate dev --create-only`: create a migration for review and hand-editing |
-| `db:migrate`                 | M0.2      | `prisma migrate deploy`                                                            |
-| `db:drift`                   | M0.2      | Fail if `schema.prisma` and the migrations disagree (also in CI)                   |
-| `db:studio`                  | M0.2      | Prisma Studio                                                                      |
-| `db:seed` / `db:reset`       | M0.5      | Load sample data / drop, migrate and seed                                          |
-| `api:openapi` / `api:client` | M0.2      | Write `openapi.json`; regenerate the TypeScript client (and the Dart client, M1.8) |
-| `test:integration`           | M0.2      | API tests against Testcontainers (PostGIS, Redis, RustFS)                          |
-| `test:e2e:driver`            | M1.9      | Maestro start-trip → end-trip flow on an emulator                                  |
+1. Edit `libs/db/prisma/schema.prisma`.
+2. `bun run db:migration add_something` writes `libs/db/prisma/migrations/<timestamp>_add_something/migration.sql` without applying it.
+3. **Read the SQL.** Prisma will drop objects it doesn't model, such as partitions, exclusion constraints, CHECKs, RLS policies and functions. If you see such drops, delete them.
+4. `bun run db:migrate`, then `bun run db:drift`.
 
 ## Projects
 
-| Project             | Path              | Stack                                                                                     |
-| ------------------- | ----------------- | ----------------------------------------------------------------------------------------- |
-| `@taxcy/api`        | `apps/api`        | NestJS 12 (ESM), built with `tsc`                                                         |
-| `@taxcy/workers`    | `apps/workers`    | Node process; BullMQ from M0.4                                                            |
-| `@taxcy/admin-web`  | `apps/admin-web`  | React 19, Vite 8, Tailwind 4                                                              |
-| `@taxcy/driver-app` | `apps/driver-app` | Flutter (Dart package `taxcy_driver`); `package.json` only exposes Flutter commands to Nx |
-| `@taxcy/contracts`  | `libs/contracts`  | Zod 4 schemas                                                                             |
-| `@taxcy/domain`     | `libs/domain`     | Pure TypeScript                                                                           |
-| `@taxcy/api-client` | `libs/api-client` | Generated TypeScript client (M0.2)                                                        |
-| `@taxcy/ui`         | `libs/ui`         | Shared React UI (shadcn/ui in M1.7)                                                       |
-| `@taxcy/db`         | `libs/db`         | Prisma schema, migrations, client (M0.2)                                                  |
-
-## Driver app (Flutter)
-
-```bash
-cd apps/driver-app
-flutter pub get
-flutter run                     # choose an emulator, simulator or device
-flutter test
-flutter analyze --fatal-infos
-```
-
-Analysis is strict (`strict-casts`, `strict-inference`, `strict-raw-types`), which is the Dart equivalent of "no `any`".
-
-From M1.8, the API base URL is passed at build time:
-
-```bash
-flutter run --dart-define=API_URL=http://10.0.2.2:3000     # Android emulator
-flutter run --dart-define=API_URL=http://localhost:3000    # iOS simulator
-flutter run --dart-define=API_URL=http://<LAN-IP>:3000     # physical device
-```
-
-The driver app can't import `libs/contracts` or `libs/domain` (they're TypeScript). It gets:
-
-- **API types:** a Dart client generated from the same OpenAPI document as `libs/api-client`.
-- **Trip state machine:** the transition table is exported from `libs/domain` as JSON. The Dart app loads that JSON, and a shared fixture test fails if the two implementations disagree.
+| Project             | Path              | What's inside                                                                                                                                                                                  |
+| ------------------- | ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `@taxcy/api`        | `apps/api`        | NestJS modular monolith: `platform/` (config, logging, auth guard, contract binding, idempotency, outbox, jobs) and `modules/` (identity, media, fleet, trips, fuel, telemetry, money, alerts) |
+| `@taxcy/workers`    | `apps/workers`    | Outbox relay → BullMQ, a worker per queue, cron schedules, Bull Board. Boots the API's modules without HTTP (`@taxcy/api/worker`).                                                             |
+| `@taxcy/admin-web`  | `apps/admin-web`  | Owner/manager console (React 19, Vite 8, Tailwind 4)                                                                                                                                           |
+| `@taxcy/driver-app` | `apps/driver-app` | Flutter driver app (Dart package `taxcy_driver`)                                                                                                                                               |
+| `@taxcy/contracts`  | `libs/contracts`  | Zod route contracts, error codes, OpenAPI builder                                                                                                                                              |
+| `@taxcy/domain`     | `libs/domain`     | Pure logic: fuel audit, GPS checks, trip state machine, settlement, document expiry                                                                                                            |
+| `@taxcy/db`         | `libs/db`         | Prisma schema, migrations, client, tenant/system transactions                                                                                                                                  |
+| `@taxcy/api-client` | `libs/api-client` | Generated TypeScript client (openapi-fetch)                                                                                                                                                    |
+| `@taxcy/ui`         | `libs/ui`         | Shared React UI                                                                                                                                                                                |
 
 ## Testing
 
-- **Unit (`libs/domain`, `libs/contracts`)**: pure functions with table-driven Vitest tests. The worked examples in [`docs/domain`](domain/) become test cases.
-- **Integration (`apps/api`, planned M0.2)**: tests boot Nest against Testcontainers (PostGIS, Redis, RustFS), apply migrations, and drive HTTP. They cover the trip lifecycle, idempotent replays, sync conflicts and tenant isolation.
-- **Driver app**: `flutter test` widget and unit tests; one Maestro flow (M1.9).
+| Suite                 | Where                            | What it covers                                                                                                                                                                                |
+| --------------------- | -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Domain unit tests     | `libs/domain` (Vitest)           | Every rule, table-driven, including the worked examples in [`docs/domain`](domain/)                                                                                                           |
+| Contract tests        | `libs/contracts`                 | Shared schemas                                                                                                                                                                                |
+| API integration tests | `apps/api/test/*.int.test.ts`    | Each file boots the real Nest app on a port against Testcontainers (PostGIS, Redis, RustFS) with migrations applied, and drives it over HTTP. Background jobs run in-process via `runJobs()`. |
+| Seed test             | `apps/api/test/seed.int.test.ts` | Runs the full demo seed and checks it produces the alerts, review items, trip states and settlements the guides promise                                                                       |
+| Driver app            | `apps/driver-app/test`           | `flutter test`                                                                                                                                                                                |
+
+The integration suite covers OTP login and token rotation, row-level security, signed uploads and OCR reconciliation, fleet and document expiry, the trip lifecycle (idempotent replays, double-booking, offline conflicts, cancellation approval), fuel audits (late fills, voids, bi-fuel), GPS distance checks and partitions, and settlements (carry-forward of late items).
 
 ## Conventions
 
-- **Layering:** controller (HTTP + Zod parse) → service (orchestration, transactions) → repository (Prisma, tenant-scoped) → `libs/domain` (pure rules). Controllers contain no business logic.
-- **Types:** strict TypeScript (`strictTypeChecked` lint preset, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`). No `any`; use `unknown` and narrow with Zod.
-- **Validation:** every request, env var, queue payload and sync record is parsed with a schema from `libs/contracts`.
-- **Money and time:** paise as `bigint` in the DB and `number` in TypeScript (safe below ₹90 trillion). UTC everywhere; convert to IST only for display and business dates (`istBusinessDate` in `libs/domain`).
-- **Migrations:** create them with `--create-only` and read the SQL before applying it. Prisma will drop objects it doesn't model, such as partitions, exclusion constraints and RLS policies.
-- **Commits:** [Conventional Commits](https://www.conventionalcommits.org/), small and focused: `feat(fuel): compute cycles on full-tank fill`.
-- **Docs:** a milestone isn't done until the docs it affects are updated.
+- **Layering:** controller (bound to a contract with `@Route`; `@Input()` gives validated params/query/body) → service (transactions via `Db.tenant()`/`Db.system()`) → repository or Prisma calls on the transaction → `libs/domain` for rules. Controllers hold no logic.
+- **Tenancy:** org-scoped work happens inside `db.tenant(orgId, tx => …)`. `TenantTx` is the only way to reach org data, and RLS backs it up.
+- **Writes and jobs:** side effects that should happen after commit are published with `publish(tx, topic, payload)` into the outbox. Handlers are marked `@OnJob(topic)` and must be idempotent.
+- **Errors:** throw `AppError(code, message, details?)`. Anything else becomes a logged `500 INTERNAL`.
+- **Errors that must persist:** if something must be recorded _and_ the request must fail (e.g. a rejected upload), commit the record in its own transaction, then throw. A throw inside the transaction rolls the record back.
+- **Types:** strict TypeScript (`strictTypeChecked`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`), no `any`. Use `Patch<T>` + `definedOnly()` for partial updates.
+- **Money and time:** paise as `bigint` in the DB and `number` in code. UTC everywhere; IST only for display and business dates (`istBusinessDate`).
+- **Commits:** [Conventional Commits](https://www.conventionalcommits.org/).
 
 ## CI
 
-`.github/workflows/ci.yml` runs on pushes to `main` and on pull requests (<https://github.com/hritambh/taxcy>):
+`.github/workflows/ci.yml` runs on pushes to `main` and on pull requests:
 
-| Job                | Steps                                                                                                                 |
-| ------------------ | --------------------------------------------------------------------------------------------------------------------- |
-| TypeScript         | `bun install --frozen-lockfile`, `format:check`, `nx run-many -t lint typecheck test build` (excludes the driver app) |
-| Flutter driver app | `flutter pub get`, `dart format` check, `flutter analyze --fatal-infos`, `flutter test` (Flutter 3.38.5)              |
+| Job                      | Steps                                                                                                           |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------- |
+| TypeScript               | install, `format:check`, lint, typecheck, test, build (excluding the driver app)                                |
+| Migrations + integration | Postgres service → roles → `db:drift`; generated client must be up to date; `test:integration` (Testcontainers) |
+| Flutter driver app       | `dart format` check, `flutter analyze --fatal-infos`, `flutter test`                                            |

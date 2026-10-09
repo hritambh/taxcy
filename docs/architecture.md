@@ -55,7 +55,7 @@ HTTP ─▶ Controller ─▶ Service ─▶ Repository ─▶ Postgres
 
 - **Controllers** parse input with `libs/contracts` schemas, call one service method and map the result to a response. No business logic.
 - **Services** open transactions, load data through repositories, call domain functions, persist results and write outbox events.
-- **Repositories** are the only code that touches Prisma (`libs/db`), including TypedSQL for PostGIS. They get the tenant from the request context, so callers can't forget it, and convert `bigint` paise to `number`.
+- **Repositories and services** use Prisma (`libs/db`) on the transaction they're given, with raw SQL for PostGIS and partitioned tables. They receive the tenant through `TenantTx`, so a query can't run without one, and they convert `bigint` paise to `number`.
 - **`libs/domain`** takes plain data and returns plain data: easy to unit-test, and reusable by the admin web. The Flutter driver app can't import it; it gets the trip transition table as a JSON export, kept in sync by a shared fixture test.
 
 ## Multi-tenancy
@@ -66,7 +66,7 @@ Enforcement has three layers, so that missing one doesn't leak data:
 
 1. **Guard.** It verifies the JWT, loads the membership for the token's `org_id` claim, checks the route's required roles, and stores `{ userId, orgId, roles }` in AsyncLocalStorage.
 2. **Repository.** The base repository reads `orgId` from context and adds it to every query and insert. Running a query without a tenant context throws.
-3. **Postgres RLS.** Every org-scoped table has a policy `org_id = current_setting('app.org_id')::uuid`. The API connects as a non-owner role. A Prisma client extension wraps each operation in a transaction that first runs `set_config('app.org_id', …, true)`. Workers process one org per job via `withOrg(orgId, fn)`.
+3. **Postgres RLS.** Every org-scoped table has a policy `org_id = current_setting('app.org_id')::uuid`. The API connects as `taxcy_api`, which is neither the table owner nor a superuser. Services do all org work inside `db.tenant(orgId, tx => …)`, which sets `app.org_id` for that transaction. Cross-org system jobs and pre-login lookups use `db.system(…)`, which sets `app.bypass_rls`.
 
    This costs one extra round trip per standalone query. If profiling shows that matters, RLS can be turned off for reads with a flag while keeping layers 1–2.
 
@@ -96,15 +96,14 @@ sequenceDiagram
 
 ## Background jobs
 
-| Queue / job       | Trigger                                        | Work                                                                       |
-| ----------------- | ---------------------------------------------- | -------------------------------------------------------------------------- |
-| `outbox-relay`    | Polls `outbox` (every second)                  | Publishes committed events to BullMQ                                       |
-| `ocr`             | `media.uploaded` (odometer, receipt)           | Runs `OcrProvider` and stores the result; a mismatch creates a review item |
-| `fuel-cycles`     | `fuel.fill_recorded` / `fuel.fill_voided`      | Recomputes the vehicle's cycles and baseline from the affected fill onward |
-| `trip-distance`   | `trip.ended`, late GPS batch for an ended trip | PostGIS distance, coverage, odometer-vs-GPS verdict                        |
-| `document-expiry` | Cron, 06:00 IST daily                          | Raises 30/7/1-day and expired alerts (deduplicated)                        |
-| `gps-partitions`  | Cron, daily                                    | Creates the next 2 monthly partitions; drops partitions past retention     |
-| `idempotency-gc`  | Cron, daily                                    | Deletes idempotency keys older than 30 days                                |
+| Topic (queue = prefix)                  | Trigger                                                                             | Work                                                                                          |
+| --------------------------------------- | ----------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| _(relay)_                               | Every second in the workers process                                                 | Moves committed `outbox` rows into BullMQ (job id = outbox id, so no duplicates)              |
+| `media.uploaded`                        | Upload confirmed                                                                    | Runs `OcrProvider`; `EvidenceReconciler` compares typed vs OCR values and raises review items |
+| `fuel.fill_recorded` / `fuel.recompute` | Fill recorded or voided; reviewer correction; fuel alert dismissed as a false alarm | Recomputes the vehicle's cycles, baseline, alerts and review items                            |
+| `trip.closed`                           | Trip ended, cancellation approved, late GPS batch, corrected odometer               | PostGIS distance, coverage, odometer-vs-GPS verdict and alert                                 |
+| `fleet.document_expiry_scan`            | Cron, 06:00 IST                                                                     | Raises the current 30/7/1-day or expired alert per document, resolving older ones             |
+| `telemetry.gps_partitions`              | Cron, 03:30 IST                                                                     | Creates upcoming monthly partitions, drops ones past retention                                |
 
 All job payloads are Zod-validated. Every job is idempotent: retries and duplicate deliveries are safe.
 
@@ -116,7 +115,7 @@ Calling BullMQ directly from a service either enqueues jobs for transactions tha
 
 The Flutter driver app writes everything to local SQLite (drift) and an outbox table first. A sync engine replays the outbox in order when online.
 
-- **Records the app creates** (fuel fills, collections, media, GPS points, trip events) use the **client-generated UUID as their primary key**.
+- **Records the app creates** (media, odometer readings, fuel fills, charges, collections, cancellation requests, GPS points) use the **client-generated UUID as their primary key**.
   - Re-sending the same id with the same payload returns the original result (`200`, plus the header `Idempotent-Replay: true`).
   - Re-sending the same id with a different payload returns `409 IDEMPOTENCY_CONFLICT`.
 - **Commands** (trip transitions) carry an `Idempotency-Key` header. The response is stored in `idempotency_keys` with a hash of the request, and a replay returns the stored response.
@@ -134,11 +133,11 @@ The Flutter driver app writes everything to local SQLite (drift) and an outbox t
 
 ## Provider interfaces
 
-| Interface          | Stub                                                                     | Real (later)                                   |
-| ------------------ | ------------------------------------------------------------------------ | ---------------------------------------------- |
-| `SmsProvider`      | `ConsoleSmsProvider` logs the OTP                                        | MSG91 / Gupshup etc. (DLT-registered template) |
-| `OcrProvider`      | `StubOcrProvider` returns configured values or "unreadable"              | Cloud OCR or an on-device model                |
-| `MapsProvider`     | `StubMapsProvider` (geocode returns null; route distance uses haversine) | Google / Mapbox / Ola Maps                     |
-| `PaymentsProvider` | not needed in Phase 1                                                    | UPI collect / payment links                    |
+| Interface          | Stub                                                        | Real (later)                                   |
+| ------------------ | ----------------------------------------------------------- | ---------------------------------------------- |
+| `SmsProvider`      | `ConsoleSmsProvider` logs the OTP                           | MSG91 / Gupshup etc. (DLT-registered template) |
+| `OcrProvider`      | `StubOcrProvider` returns configured values or "unreadable" | Cloud OCR or an on-device model                |
+| `MapsProvider`     | not built yet (pins are entered manually)                   | Google / Mapbox / Ola Maps                     |
+| `PaymentsProvider` | not needed in Phase 1                                       | UPI collect / payment links                    |
 
 Providers are chosen by env var and injected by Nest DI. Tests swap in fakes.
