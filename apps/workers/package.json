@@ -1,0 +1,17 @@
+{
+  "name": "@taxcy/workers",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "dev": "tsc -p tsconfig.build.json && concurrently -k -n tsc,workers -c blue,magenta \"tsc -p tsconfig.build.json --watch --preserveWatchOutput\" \"node --enable-source-maps --watch dist/main.js\"",
+    "start": "node --enable-source-maps dist/main.js",
+    "typecheck": "tsc -p tsconfig.json",
+    "lint": "eslint ."
+  },
+  "devDependencies": {
+    "@types/node": "~24.19.1",
+    "concurrently": "^10.0.6"
+  }
+}
