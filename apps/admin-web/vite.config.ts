@@ -9,11 +9,12 @@ export default defineConfig({
     conditions: ['source'],
   },
   server: {
-    port: 5173,
+    port: Number(process.env['ADMIN_PORT'] ?? 5173),
     strictPort: true,
     proxy: {
       '/api': {
-        target: 'http://localhost:3000',
+        // Override when the API runs on another port (e.g. API_PROXY_TARGET=http://localhost:3001).
+        target: process.env['API_PROXY_TARGET'] ?? 'http://localhost:3000',
         rewrite: (path) => path.replace(/^\/api/, ''),
       },
     },
