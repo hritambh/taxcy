@@ -5,3 +5,5 @@ node_modules
 bun.lock
 apps/driver-app
 docs/design/schema.sql
+**/generated/**
+libs/db/prisma/migrations

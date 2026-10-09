@@ -1,0 +1,702 @@
+// Taxcy database schema.
+//
+// Prisma can't express everything this schema relies on. Those parts live in
+// hand-written migrations and are listed in docs/database.md#prisma-notes:
+//   - PostGIS geography columns (Unsupported here; read/written with raw SQL)
+//   - trips.busy_window generated column + btree_gist exclusion constraints
+//   - CHECK constraints and partial unique indexes
+//   - gps_points monthly partitioning (declared external in prisma.config.ts)
+//   - row-level security policies
+
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "esm"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ───────── enums ─────────
+
+enum OrgKind {
+  fleet
+  dco
+
+  @@map("org_kind")
+}
+
+enum MembershipRole {
+  owner
+  manager
+  driver
+
+  @@map("membership_role")
+}
+
+enum FuelType {
+  petrol
+  diesel
+  cng
+  petrol_cng
+
+  @@map("fuel_type")
+}
+
+enum FuelKind {
+  petrol
+  diesel
+  cng
+
+  @@map("fuel_kind")
+}
+
+enum AuditTrack {
+  petrol
+  diesel
+  cng
+  bifuel_cost
+
+  @@map("audit_track")
+}
+
+enum TripType {
+  one_way
+  round_trip
+  local_rental
+
+  @@map("trip_type")
+}
+
+enum TripStatus {
+  created
+  assigned
+  started
+  ended
+  settled
+  cancelled
+
+  @@map("trip_status")
+}
+
+enum BookingChannel {
+  direct
+
+  @@map("booking_channel")
+}
+
+enum DocType {
+  rc
+  insurance
+  permit
+  puc
+  driving_licence
+
+  @@map("doc_type")
+}
+
+enum MediaKind {
+  odometer
+  fuel_receipt
+  document
+  other
+
+  @@map("media_kind")
+}
+
+enum AlertSeverity {
+  info
+  warning
+  critical
+
+  @@map("alert_severity")
+}
+
+// ───────── identity ─────────
+
+model User {
+  id        String   @id @db.Uuid
+  phoneE164 String   @unique @map("phone_e164")
+  name      String?
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  memberships   Membership[]
+  devices       Device[]
+  refreshTokens RefreshToken[]
+
+  @@map("users")
+}
+
+model Organization {
+  id        String   @id @db.Uuid
+  name      String
+  kind      OrgKind
+  timezone  String   @default("Asia/Kolkata")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  settings      OrgSettings?
+  memberships   Membership[]
+  refreshTokens RefreshToken[]
+
+  @@map("organizations")
+}
+
+model OrgSettings {
+  orgId              String       @id @map("org_id") @db.Uuid
+  fuelKSigma         Float        @default(2.0) @map("fuel_k_sigma")
+  fuelMinCycles      Int          @default(3) @map("fuel_min_cycles")
+  fuelPctThreshold   Float        @default(20.0) @map("fuel_pct_threshold")
+  fuelEwmaAlpha      Float        @default(0.3) @map("fuel_ewma_alpha")
+  odoGpsTolerancePct Float        @default(10.0) @map("odo_gps_tolerance_pct")
+  docAlertDays       Int[]        @default([30, 7, 1]) @map("doc_alert_days")
+  driverPayRule      Json         @default("{\"kind\":\"none\",\"allowanceToDriver\":true}") @map("driver_pay_rule")
+  org                Organization @relation(fields: [orgId], references: [id])
+
+  @@map("org_settings")
+}
+
+model Membership {
+  id        String           @id @db.Uuid
+  orgId     String           @map("org_id") @db.Uuid
+  userId    String           @map("user_id") @db.Uuid
+  roles     MembershipRole[]
+  status    String           @default("active")
+  createdAt DateTime         @default(now()) @map("created_at") @db.Timestamptz
+
+  org    Organization @relation(fields: [orgId], references: [id])
+  user   User         @relation(fields: [userId], references: [id])
+  driver Driver?
+
+  @@unique([orgId, userId])
+  @@map("memberships")
+}
+
+model Device {
+  id         String   @id @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  platform   String
+  appVersion String?  @map("app_version")
+  lastSeenAt DateTime @default(now()) @map("last_seen_at") @db.Timestamptz
+
+  user          User           @relation(fields: [userId], references: [id])
+  refreshTokens RefreshToken[]
+
+  @@map("devices")
+}
+
+model RefreshToken {
+  id         String    @id @db.Uuid
+  userId     String    @map("user_id") @db.Uuid
+  orgId      String    @map("org_id") @db.Uuid
+  familyId   String    @map("family_id") @db.Uuid
+  tokenHash  String    @unique @map("token_hash")
+  deviceId   String?   @map("device_id") @db.Uuid
+  expiresAt  DateTime  @map("expires_at") @db.Timestamptz
+  revokedAt  DateTime? @map("revoked_at") @db.Timestamptz
+  replacedBy String?   @map("replaced_by") @db.Uuid
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  user         User           @relation(fields: [userId], references: [id])
+  org          Organization   @relation(fields: [orgId], references: [id])
+  device       Device?        @relation(fields: [deviceId], references: [id])
+  replacement  RefreshToken?  @relation("TokenRotation", fields: [replacedBy], references: [id])
+  replacedFrom RefreshToken[] @relation("TokenRotation")
+
+  @@index([familyId])
+  @@map("refresh_tokens")
+}
+
+// ───────── media / evidence ─────────
+
+model MediaObject {
+  id               String                                 @id @db.Uuid
+  orgId            String                                 @map("org_id") @db.Uuid
+  uploadedBy       String                                 @map("uploaded_by") @db.Uuid
+  kind             MediaKind
+  storageKey       String                                 @unique @map("storage_key")
+  contentType      String                                 @map("content_type")
+  byteSize         Int?                                   @map("byte_size")
+  sha256           String
+  status           String                                 @default("pending")
+  capturedAt       DateTime                               @map("captured_at") @db.Timestamptz
+  captureLocation  Unsupported("geography(Point, 4326)")? @map("capture_location")
+  captureAccuracyM Float?                                 @map("capture_accuracy_m") @db.Real
+  isMockLocation   Boolean?                               @map("is_mock_location")
+  deviceId         String?                                @map("device_id") @db.Uuid
+  receivedAt       DateTime                               @default(now()) @map("received_at") @db.Timestamptz
+  uploadedAt       DateTime?                              @map("uploaded_at") @db.Timestamptz
+
+  ocrResults OcrResult[]
+  odometers  OdometerReading[]
+
+  @@index([orgId])
+  @@map("media_objects")
+}
+
+model OcrResult {
+  id           String   @id @db.Uuid
+  orgId        String   @map("org_id") @db.Uuid
+  mediaId      String   @map("media_id") @db.Uuid
+  provider     String
+  status       String
+  valueNumeric Float?   @map("value_numeric")
+  valueText    String?  @map("value_text")
+  confidence   Float?   @db.Real
+  raw          Json?
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  media MediaObject @relation(fields: [mediaId], references: [id])
+
+  @@index([mediaId])
+  @@map("ocr_results")
+}
+
+// ───────── fleet ─────────
+
+model VehicleModel {
+  id       String   @id @db.Uuid
+  orgId    String?  @map("org_id") @db.Uuid
+  make     String
+  model    String
+  fuelType FuelType @map("fuel_type")
+
+  vehicles Vehicle[]
+
+  @@map("vehicle_models")
+}
+
+model FuelBaselineDefault {
+  id             String     @id @db.Uuid
+  orgId          String?    @map("org_id") @db.Uuid
+  vehicleModelId String?    @map("vehicle_model_id") @db.Uuid
+  track          AuditTrack
+  meanValue      Float      @map("mean_value")
+  stdValue       Float      @map("std_value")
+
+  // Created as UNIQUE NULLS NOT DISTINCT in the constraints migration.
+  @@unique([orgId, vehicleModelId, track], map: "fuel_baseline_defaults_scope")
+  @@map("fuel_baseline_defaults")
+}
+
+model Vehicle {
+  id             String   @id @db.Uuid
+  orgId          String   @map("org_id") @db.Uuid
+  registrationNo String   @map("registration_no")
+  vehicleModelId String?  @map("vehicle_model_id") @db.Uuid
+  make           String
+  model          String
+  year           Int?     @db.SmallInt
+  fuelType       FuelType @map("fuel_type")
+  lastOdometerKm Int?     @map("last_odometer_km")
+  status         String   @default("active")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  vehicleModel VehicleModel?     @relation(fields: [vehicleModelId], references: [id])
+  trips        Trip[]
+  fuelFills    FuelFill[]
+  odometers    OdometerReading[]
+
+  @@unique([orgId, registrationNo])
+  @@map("vehicles")
+}
+
+model Driver {
+  id           String   @id @db.Uuid
+  orgId        String   @map("org_id") @db.Uuid
+  membershipId String   @unique @map("membership_id") @db.Uuid
+  userId       String   @map("user_id") @db.Uuid
+  name         String
+  payRule      Json?    @map("pay_rule")
+  status       String   @default("active")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  membership  Membership       @relation(fields: [membershipId], references: [id])
+  trips       Trip[]
+  fuelFills   FuelFill[]
+  collections TripCollection[]
+
+  @@index([orgId])
+  @@map("drivers")
+}
+
+model Document {
+  id           String    @id @db.Uuid
+  orgId        String    @map("org_id") @db.Uuid
+  docType      DocType   @map("doc_type")
+  vehicleId    String?   @map("vehicle_id") @db.Uuid
+  driverId     String?   @map("driver_id") @db.Uuid
+  number       String?
+  validFrom    DateTime? @map("valid_from") @db.Date
+  expiresOn    DateTime  @map("expires_on") @db.Date
+  mediaId      String?   @map("media_id") @db.Uuid
+  supersededBy String?   @map("superseded_by") @db.Uuid
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  @@map("documents")
+}
+
+model OdometerReading {
+  id         String   @id @db.Uuid
+  orgId      String   @map("org_id") @db.Uuid
+  vehicleId  String   @map("vehicle_id") @db.Uuid
+  context    String
+  typedKm    Int      @map("typed_km")
+  ocrKm      Int?     @map("ocr_km")
+  mediaId    String   @map("media_id") @db.Uuid
+  capturedAt DateTime @map("captured_at") @db.Timestamptz
+  createdBy  String   @map("created_by") @db.Uuid
+
+  vehicle   Vehicle     @relation(fields: [vehicleId], references: [id])
+  media     MediaObject @relation(fields: [mediaId], references: [id])
+  fuelFills FuelFill[]
+
+  @@index([vehicleId, capturedAt])
+  @@map("odometer_readings")
+}
+
+// ───────── trips ─────────
+
+model Customer {
+  id        String  @id @db.Uuid
+  orgId     String  @map("org_id") @db.Uuid
+  name      String
+  phoneE164 String? @map("phone_e164")
+  userId    String? @map("user_id") @db.Uuid
+
+  @@map("customers")
+}
+
+model Trip {
+  id                    String                                 @id @db.Uuid
+  orgId                 String                                 @map("org_id") @db.Uuid
+  tripType              TripType                               @map("trip_type")
+  status                TripStatus                             @default(created)
+  channel               BookingChannel                         @default(direct)
+  customerId            String?                                @map("customer_id") @db.Uuid
+  fromText              String                                 @map("from_text")
+  fromPoint             Unsupported("geography(Point, 4326)")? @map("from_point")
+  toText                String?                                @map("to_text")
+  toPoint               Unsupported("geography(Point, 4326)")? @map("to_point")
+  scheduledStartAt      DateTime                               @map("scheduled_start_at") @db.Timestamptz
+  scheduledEndAt        DateTime                               @map("scheduled_end_at") @db.Timestamptz
+  // GENERATED ALWAYS AS (…) STORED, added in the constraints migration.
+  busyWindow            Unsupported("tstzrange")?              @default(dbgenerated("tstzrange(scheduled_start_at, scheduled_end_at, '[)'::text)")) @map("busy_window")
+  vehicleId             String?                                @map("vehicle_id") @db.Uuid
+  driverId              String?                                @map("driver_id") @db.Uuid
+  quotedFarePaise       BigInt                                 @map("quoted_fare_paise")
+  startOdometerId       String?                                @map("start_odometer_id") @db.Uuid
+  endOdometerId         String?                                @map("end_odometer_id") @db.Uuid
+  startedAt             DateTime?                              @map("started_at") @db.Timestamptz
+  endedAt               DateTime?                              @map("ended_at") @db.Timestamptz
+  cancelledAt           DateTime?                              @map("cancelled_at") @db.Timestamptz
+  cancelReason          String?                                @map("cancel_reason")
+  cancellationFarePaise BigInt?                                @map("cancellation_fare_paise")
+  version               Int                                    @default(0)
+  createdBy             String                                 @map("created_by") @db.Uuid
+  createdAt             DateTime                               @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt             DateTime                               @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  vehicle     Vehicle?         @relation(fields: [vehicleId], references: [id])
+  driver      Driver?          @relation(fields: [driverId], references: [id])
+  events      TripEvent[]
+  charges     TripCharge[]
+  collections TripCollection[]
+
+  @@index([orgId, status, scheduledStartAt])
+  @@index([driverId, scheduledStartAt])
+  @@map("trips")
+}
+
+model TripEvent {
+  id          String          @id @db.Uuid
+  orgId       String          @map("org_id") @db.Uuid
+  tripId      String          @map("trip_id") @db.Uuid
+  seq         Int
+  eventType   String          @map("event_type")
+  fromStatus  TripStatus?     @map("from_status")
+  toStatus    TripStatus?     @map("to_status")
+  actorUserId String?         @map("actor_user_id") @db.Uuid
+  actorRole   MembershipRole? @map("actor_role")
+  occurredAt  DateTime        @map("occurred_at") @db.Timestamptz
+  recordedAt  DateTime        @default(now()) @map("recorded_at") @db.Timestamptz
+  payload     Json            @default("{}")
+
+  trip Trip @relation(fields: [tripId], references: [id])
+
+  @@unique([tripId, seq])
+  @@map("trip_events")
+}
+
+model TripCancellationRequest {
+  id            String         @id @db.Uuid
+  orgId         String         @map("org_id") @db.Uuid
+  tripId        String         @map("trip_id") @db.Uuid
+  requestedBy   String         @map("requested_by") @db.Uuid
+  requestedRole MembershipRole @map("requested_role")
+  reason        String
+  endOdometerId String?        @map("end_odometer_id") @db.Uuid
+  status        String         @default("pending")
+  decidedBy     String?        @map("decided_by") @db.Uuid
+  decidedAt     DateTime?      @map("decided_at") @db.Timestamptz
+  decisionNote  String?        @map("decision_note")
+  createdAt     DateTime       @default(now()) @map("created_at") @db.Timestamptz
+
+  @@index([tripId])
+  @@map("trip_cancellation_requests")
+}
+
+model TripCharge {
+  id           String         @id @db.Uuid
+  orgId        String         @map("org_id") @db.Uuid
+  tripId       String         @map("trip_id") @db.Uuid
+  kind         String
+  amountPaise  BigInt         @map("amount_paise")
+  paidByDriver Boolean        @map("paid_by_driver")
+  mediaId      String?        @map("media_id") @db.Uuid
+  note         String?
+  enteredBy    String         @map("entered_by") @db.Uuid
+  enteredRole  MembershipRole @map("entered_role")
+  voidedAt     DateTime?      @map("voided_at") @db.Timestamptz
+  createdAt    DateTime       @default(now()) @map("created_at") @db.Timestamptz
+
+  trip Trip @relation(fields: [tripId], references: [id])
+
+  @@index([tripId])
+  @@map("trip_charges")
+}
+
+// ───────── fuel ─────────
+
+model FuelFill {
+  id               String    @id @db.Uuid
+  orgId            String    @map("org_id") @db.Uuid
+  vehicleId        String    @map("vehicle_id") @db.Uuid
+  driverId         String?   @map("driver_id") @db.Uuid
+  tripId           String?   @map("trip_id") @db.Uuid
+  fuel             FuelKind
+  quantityMilli    Int       @map("quantity_milli")
+  costPaise        BigInt    @map("cost_paise")
+  odometerId       String    @map("odometer_id") @db.Uuid
+  isFullTank       Boolean   @map("is_full_tank")
+  receiptMediaId   String?   @map("receipt_media_id") @db.Uuid
+  ocrCostPaise     BigInt?   @map("ocr_cost_paise")
+  ocrQuantityMilli Int?      @map("ocr_quantity_milli")
+  paidBy           String    @map("paid_by")
+  filledAt         DateTime  @map("filled_at") @db.Timestamptz
+  voidedAt         DateTime? @map("voided_at") @db.Timestamptz
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  vehicle  Vehicle         @relation(fields: [vehicleId], references: [id])
+  driver   Driver?         @relation(fields: [driverId], references: [id])
+  odometer OdometerReading @relation(fields: [odometerId], references: [id])
+
+  @@index([vehicleId, filledAt])
+  @@map("fuel_fills")
+}
+
+model FuelCycle {
+  id                 String     @id @db.Uuid
+  orgId              String     @map("org_id") @db.Uuid
+  vehicleId          String     @map("vehicle_id") @db.Uuid
+  track              AuditTrack
+  openingFillId      String     @map("opening_fill_id") @db.Uuid
+  closingFillId      String     @map("closing_fill_id") @db.Uuid
+  distanceKm         Int        @map("distance_km")
+  fuelMilli          Int?       @map("fuel_milli")
+  costPaise          BigInt     @map("cost_paise")
+  metric             String
+  metricValue        Float?     @map("metric_value")
+  baselineMean       Float?     @map("baseline_mean")
+  baselineStd        Float?     @map("baseline_std")
+  priorCycles        Int        @map("prior_cycles")
+  method             String
+  deviation          Float?
+  verdict            String
+  includedInBaseline Boolean    @map("included_in_baseline")
+  computedAt         DateTime   @default(now()) @map("computed_at") @db.Timestamptz
+  supersededAt       DateTime?  @map("superseded_at") @db.Timestamptz
+
+  @@index([vehicleId, track])
+  @@map("fuel_cycles")
+}
+
+model VehicleFuelBaseline {
+  vehicleId String     @map("vehicle_id") @db.Uuid
+  track     AuditTrack
+  orgId     String     @map("org_id") @db.Uuid
+  ewmaMean  Float      @map("ewma_mean")
+  ewmaVar   Float      @map("ewma_var")
+  nCycles   Int        @map("n_cycles")
+  updatedAt DateTime   @default(now()) @map("updated_at") @db.Timestamptz
+
+  @@id([vehicleId, track])
+  @@map("vehicle_fuel_baselines")
+}
+
+// ───────── telemetry ─────────
+
+// Monthly range-partitioned; created by hand-written migration (external table).
+model GpsPoint {
+  orgId         String                                @map("org_id") @db.Uuid
+  tripId        String                                @map("trip_id") @db.Uuid
+  driverId      String                                @map("driver_id") @db.Uuid
+  clientPointId String                                @map("client_point_id") @db.Uuid
+  recordedAt    DateTime                              @map("recorded_at") @db.Timestamptz
+  location      Unsupported("geography(Point, 4326)")
+  accuracyM     Float?                                @map("accuracy_m") @db.Real
+  speedMps      Float?                                @map("speed_mps") @db.Real
+  heading       Float?                                @db.Real
+  isMock        Boolean                               @default(false) @map("is_mock")
+  receivedAt    DateTime                              @default(now()) @map("received_at") @db.Timestamptz
+
+  @@id([recordedAt, clientPointId])
+  @@index([tripId, recordedAt])
+  @@map("gps_points")
+}
+
+model TripDistanceCheck {
+  tripId        String   @id @map("trip_id") @db.Uuid
+  orgId         String   @map("org_id") @db.Uuid
+  odometerKm    Int      @map("odometer_km")
+  gpsKm         Float?   @map("gps_km")
+  pointsTotal   Int?     @map("points_total")
+  pointsUsed    Int?     @map("points_used")
+  maxGapSeconds Int?     @map("max_gap_seconds")
+  coverageRatio Float?   @map("coverage_ratio") @db.Real
+  result        String
+  computedAt    DateTime @default(now()) @map("computed_at") @db.Timestamptz
+
+  @@map("trip_distance_checks")
+}
+
+// ───────── collections & settlement ─────────
+
+model TripCollection {
+  id          String   @id @db.Uuid
+  orgId       String   @map("org_id") @db.Uuid
+  tripId      String   @map("trip_id") @db.Uuid
+  driverId    String   @map("driver_id") @db.Uuid
+  method      String
+  amountPaise BigInt   @map("amount_paise")
+  reference   String?
+  collectedAt DateTime @map("collected_at") @db.Timestamptz
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  trip   Trip   @relation(fields: [tripId], references: [id])
+  driver Driver @relation(fields: [driverId], references: [id])
+
+  @@index([tripId])
+  @@map("trip_collections")
+}
+
+model Settlement {
+  id                     String    @id @db.Uuid
+  orgId                  String    @map("org_id") @db.Uuid
+  driverId               String    @map("driver_id") @db.Uuid
+  businessDate           DateTime  @map("business_date") @db.Date
+  expectedFarePaise      BigInt    @map("expected_fare_paise")
+  cashPaise              BigInt    @map("cash_paise")
+  onlinePaise            BigInt    @map("online_paise")
+  driverExpensesPaise    BigInt    @map("driver_expenses_paise")
+  driverEarningsPaise    BigInt    @map("driver_earnings_paise")
+  carriedAdjustmentPaise BigInt    @default(0) @map("carried_adjustment_paise")
+  netPayablePaise        BigInt    @map("net_payable_paise")
+  payRuleSnapshot        Json?     @map("pay_rule_snapshot")
+  status                 String    @default("draft")
+  settledBy              String?   @map("settled_by") @db.Uuid
+  settledAt              DateTime? @map("settled_at") @db.Timestamptz
+
+  lines SettlementLine[]
+
+  @@unique([orgId, driverId, businessDate])
+  @@map("settlements")
+}
+
+model SettlementLine {
+  id           String @id @db.Uuid
+  orgId        String @map("org_id") @db.Uuid
+  settlementId String @map("settlement_id") @db.Uuid
+  refType      String @map("ref_type")
+  refId        String @map("ref_id") @db.Uuid
+  amountPaise  BigInt @map("amount_paise")
+
+  settlement Settlement @relation(fields: [settlementId], references: [id])
+
+  @@unique([refType, refId])
+  @@map("settlement_lines")
+}
+
+// ───────── alerts & review ─────────
+
+model Alert {
+  id          String        @id @db.Uuid
+  orgId       String        @map("org_id") @db.Uuid
+  kind        String
+  severity    AlertSeverity
+  title       String
+  explanation String
+  vehicleId   String?       @map("vehicle_id") @db.Uuid
+  driverId    String?       @map("driver_id") @db.Uuid
+  tripId      String?       @map("trip_id") @db.Uuid
+  subjectType String        @map("subject_type")
+  subjectId   String        @map("subject_id") @db.Uuid
+  data        Json          @default("{}")
+  dedupeKey   String        @map("dedupe_key")
+  status      String        @default("open")
+  resolvedBy  String?       @map("resolved_by") @db.Uuid
+  resolvedAt  DateTime?     @map("resolved_at") @db.Timestamptz
+  createdAt   DateTime      @default(now()) @map("created_at") @db.Timestamptz
+
+  @@unique([orgId, dedupeKey])
+  @@index([orgId, status, createdAt])
+  @@map("alerts")
+}
+
+model ReviewItem {
+  id          String    @id @db.Uuid
+  orgId       String    @map("org_id") @db.Uuid
+  kind        String
+  subjectType String    @map("subject_type")
+  subjectId   String    @map("subject_id") @db.Uuid
+  mediaId     String?   @map("media_id") @db.Uuid
+  typedValue  String?   @map("typed_value")
+  ocrValue    String?   @map("ocr_value")
+  context     Json      @default("{}")
+  status      String    @default("open")
+  resolution  Json?
+  resolvedBy  String?   @map("resolved_by") @db.Uuid
+  resolvedAt  DateTime? @map("resolved_at") @db.Timestamptz
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  @@unique([kind, subjectType, subjectId])
+  @@index([orgId, status, createdAt])
+  @@map("review_items")
+}
+
+// ───────── infra ─────────
+
+model IdempotencyKey {
+  key            String   @id @db.Uuid
+  orgId          String   @map("org_id") @db.Uuid
+  userId         String   @map("user_id") @db.Uuid
+  route          String
+  requestHash    String   @map("request_hash")
+  responseStatus Int      @map("response_status")
+  responseBody   Json     @map("response_body")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  @@map("idempotency_keys")
+}
+
+model OutboxEvent {
+  id           BigInt    @id @default(autoincrement())
+  orgId        String?   @map("org_id") @db.Uuid
+  topic        String
+  payload      Json
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  dispatchedAt DateTime? @map("dispatched_at") @db.Timestamptz
+
+  @@map("outbox")
+}

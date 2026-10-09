@@ -1,0 +1,33 @@
+{
+  "name": "@taxcy/db",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Prisma schema, migrations and client shared by the API and workers",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "generate": "prisma generate",
+    "build": "prisma generate && tsc -p tsconfig.build.json",
+    "typecheck": "prisma generate && tsc -p tsconfig.json",
+    "lint": "eslint .",
+    "migrate": "node --env-file-if-exists=../../.env node_modules/.bin/prisma migrate deploy",
+    "migration": "node --env-file-if-exists=../../.env node_modules/.bin/prisma migrate dev --create-only --name",
+    "drift": "node --env-file-if-exists=../../.env scripts/check-drift.mjs",
+    "studio": "node --env-file-if-exists=../../.env node_modules/.bin/prisma studio"
+  },
+  "dependencies": {
+    "@prisma/adapter-pg": "7.10.0",
+    "@prisma/client": "7.10.0",
+    "pg": "^8.23.1"
+  },
+  "devDependencies": {
+    "@types/node": "~24.19.1",
+    "@types/pg": "^8.15.6",
+    "prisma": "7.10.0"
+  }
+}
