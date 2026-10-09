@@ -7,3 +7,4 @@ apps/driver-app
 docs/design/schema.sql
 **/generated/**
 libs/db/prisma/migrations
+libs/domain/fixtures

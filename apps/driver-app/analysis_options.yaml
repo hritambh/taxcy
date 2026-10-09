@@ -1,6 +1,8 @@
 include: package:flutter_lints/flutter.yaml
 
 analyzer:
+  exclude:
+    - lib/**/*.g.dart
   # The Dart equivalent of "no any": no implicit dynamic anywhere.
   language:
     strict-casts: true
