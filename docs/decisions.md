@@ -9,7 +9,7 @@
 | D3 | Driver pay / net payable | **Configurable** | Org-level `driver_pay_rule` with a per-driver override (`drivers.pay_rule`). Rules: `none`, `percent_of_fare`, `per_trip`, `per_km`, `fixed_daily`, plus `allowanceToDriver` (whether driver-allowance charges are paid out to the driver). See [settlement](domain/settlement.md). |
 | D4 | Fuel audit for `petrol_cng` | **Audit on cost per km** | Bi-fuel vehicles use the `bifuel_cost` track: cycles anchored on consecutive full CNG fills, metric = paise/km over all fills (both fuels) in the cycle; flags when cost/km is *above* baseline. Single-fuel vehicles still use km/L or km/kg. The planned `bifuel_petrol_share` alert is dropped. |
 | D5 | Trip state edges | **Yes to all; cancelling a started trip needs a reason and approval** | Cancel from `started` goes through `trip_cancellation_requests`: the driver requests it with a reason and end odometer, and an owner/manager approves (optionally setting a cancellation fare) or rejects. Reassign/unassign allowed while `assigned`. Trips move to `settled` when the driver's day is settled. Trips belong to the IST date they ended or were cancelled. *Interpretation; confirm before M1.3.* |
-| D6 | GitHub remote | **Local git only for now** | The CI workflow is committed but won't run until a remote is added. |
+| D6 | GitHub remote | **Local git only for now**, later updated: remote added 2026-10-09 | `origin` = https://github.com/hritambh/taxcy.git; CI runs on GitHub Actions once the workflow lands in M0.1. |
 
 ## Accepted defaults (change by editing this file and the code together)
 

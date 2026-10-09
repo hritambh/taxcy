@@ -141,4 +141,4 @@ To test offline behaviour, turn on airplane mode, start or end a trip, then turn
 
 ## CI
 
-No remote is configured yet (decision D6); the workflow is committed and will run once one is added. It runs GitHub Actions on every push and PR: install (cached pnpm store) → `pnpm verify` → `pnpm test:integration` (Docker is available on `ubuntu-latest`). Nx `affected` keeps PR runs fast.
+The repo is hosted at <https://github.com/hritambh/taxcy>. GitHub Actions runs on every push and PR: install (cached pnpm store) → `pnpm verify` → `pnpm test:integration` (Docker is available on `ubuntu-latest`). Nx `affected` keeps PR runs fast.

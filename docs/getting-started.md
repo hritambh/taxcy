@@ -47,7 +47,7 @@ docker info  # must not print "Cannot connect to the Docker daemon"
 ## Step 2: Get the code and install dependencies
 
 ```bash
-git clone <repo-url> taxcy      # no remote yet; for now, use the local folder
+git clone https://github.com/hritambh/taxcy.git
 cd taxcy
 pnpm install                    # also runs `prisma generate`
 ```
