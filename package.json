@@ -31,7 +31,9 @@
     "db:drift": "bun run --cwd libs/db drift",
     "db:studio": "bun run --cwd libs/db studio",
     "test:integration": "nx run-many -t test:integration",
-    "api:client": "nx run @taxcy/api-client:generate"
+    "api:client": "nx run @taxcy/api-client:generate",
+    "db:seed": "nx run @taxcy/api:seed --output-style=stream",
+    "db:reset": "bun run --cwd libs/db reset && bun run db:seed"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

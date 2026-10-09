@@ -45,6 +45,10 @@
     "generate": {
       "dependsOn": ["^build"],
       "cache": false
+    },
+    "seed": {
+      "dependsOn": ["build"],
+      "cache": false
     }
   },
   "analytics": false

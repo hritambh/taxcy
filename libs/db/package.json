@@ -18,7 +18,8 @@
     "migrate": "node --env-file-if-exists=../../.env node_modules/.bin/prisma migrate deploy",
     "migration": "node --env-file-if-exists=../../.env node_modules/.bin/prisma migrate dev --create-only --name",
     "drift": "node --env-file-if-exists=../../.env scripts/check-drift.mjs",
-    "studio": "node --env-file-if-exists=../../.env node_modules/.bin/prisma studio"
+    "studio": "node --env-file-if-exists=../../.env node_modules/.bin/prisma studio",
+    "reset": "node --env-file-if-exists=../../.env node_modules/.bin/prisma migrate reset --force"
   },
   "dependencies": {
     "@prisma/adapter-pg": "7.10.0",
