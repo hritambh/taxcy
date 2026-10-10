@@ -59,10 +59,16 @@ services:
       AWS_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY:-taxcy-dev-secret}
       AWS_DEFAULT_REGION: ${S3_REGION:-ap-south-1}
       BUCKET: ${S3_BUCKET:-taxcy-media}
+    volumes:
+      # Browser uploads (admin web, driver app in Chrome) PUT straight to presigned URLs,
+      # so the bucket must allow those origins.
+      - ./infra/s3:/s3:ro
     entrypoint: ['sh', '-c']
     command:
-      - aws --endpoint-url http://s3:9000 s3api head-bucket --bucket "$$BUCKET" 2>/dev/null
-        || aws --endpoint-url http://s3:9000 s3 mb "s3://$$BUCKET"
+      - (aws --endpoint-url http://s3:9000 s3api head-bucket --bucket "$$BUCKET" 2>/dev/null
+        || aws --endpoint-url http://s3:9000 s3 mb "s3://$$BUCKET")
+        && aws --endpoint-url http://s3:9000 s3api put-bucket-cors --bucket "$$BUCKET"
+        --cors-configuration file:///s3/cors.json
     restart: 'no'
 
 volumes:
