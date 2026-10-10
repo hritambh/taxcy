@@ -1,5 +1,6 @@
 import { AuditSettings as AuditSettingsSchema, PayRule as PayRuleSchema } from '@taxcy/contracts';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../auth/context.js';
 import { PayRuleEditor } from '../components/PayRuleEditor.js';
 import {
@@ -16,45 +17,23 @@ import type { AuditSettings, PayRule } from '../lib/api-types.js';
 import { keys, useAuditSettings, useDefaultPayRule } from '../lib/queries.js';
 import { useApiMutation } from '../lib/mutations.js';
 
+// Labels and hints are under `people.settings.field.<key>` and `<key>Hint`.
 const AUDIT_FIELDS: {
   key: Exclude<keyof AuditSettings, 'docAlertDays'>;
-  label: string;
-  hint: string;
   step: number;
 }[] = [
-  {
-    key: 'fuelKSigma',
-    label: 'Fuel alert sensitivity (k σ)',
-    hint: 'Flag a cycle this many standard deviations worse than usual. Lower = more alerts.',
-    step: 0.1,
-  },
-  {
-    key: 'fuelMinCycles',
-    label: 'Cycles before using σ',
-    hint: 'New vehicles use the percent rule until they have this many normal cycles.',
-    step: 1,
-  },
-  {
-    key: 'fuelPctThreshold',
-    label: 'New-vehicle threshold (%)',
-    hint: 'For new vehicles, flag a cycle this much worse than the usual figure.',
-    step: 1,
-  },
-  {
-    key: 'fuelEwmaAlpha',
-    label: 'Baseline responsiveness (α)',
-    hint: 'How quickly the usual figure follows recent cycles (0.05–0.9).',
-    step: 0.05,
-  },
-  {
-    key: 'odoGpsTolerancePct',
-    label: 'Odometer vs GPS tolerance (%)',
-    hint: 'Flag trips whose odometer distance exceeds the GPS route by more than this.',
-    step: 1,
-  },
+  { key: 'fuelKSigma', step: 0.1 },
+  { key: 'fuelMinCycles', step: 1 },
+  { key: 'fuelPctThreshold', step: 1 },
+  { key: 'fuelEwmaAlpha', step: 0.05 },
+  { key: 'odoGpsTolerancePct', step: 1 },
 ];
 
+const isAuditField = (key: unknown): key is keyof AuditSettings =>
+  key === 'docAlertDays' || AUDIT_FIELDS.some((f) => f.key === key);
+
 function AuditForm({ initial, editable }: { initial: AuditSettings; editable: boolean }) {
+  const { t } = useTranslation();
   const [values, setValues] = useState(initial);
   const [days, setDays] = useState(initial.docAlertDays.join(', '));
   const [problem, setProblem] = useState<string | null>(null);
@@ -73,7 +52,14 @@ function AuditForm({ initial, editable }: { initial: AuditSettings; editable: bo
         .map(Number),
     });
     if (!parsed.success) {
-      setProblem(parsed.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join('; '));
+      // Name the fields in the user's language rather than echoing the schema's English.
+      const fields = new Set(
+        parsed.error.issues.map((i) => {
+          const key = i.path[0];
+          return isAuditField(key) ? t(`people.settings.field.${key}`) : i.path.join('.');
+        }),
+      );
+      setProblem(t('people.settings.invalidFields', { fields: [...fields].join('; ') }));
       return;
     }
     setProblem(null);
@@ -84,7 +70,11 @@ function AuditForm({ initial, editable }: { initial: AuditSettings; editable: bo
     <div className="space-y-4">
       <div className="grid gap-4 sm:grid-cols-2">
         {AUDIT_FIELDS.map((f) => (
-          <Field key={f.key} label={f.label} hint={f.hint}>
+          <Field
+            key={f.key}
+            label={t(`people.settings.field.${f.key}`)}
+            hint={t(`people.settings.field.${f.key}Hint`)}
+          >
             {(props) => (
               <Input
                 {...props}
@@ -100,8 +90,8 @@ function AuditForm({ initial, editable }: { initial: AuditSettings; editable: bo
           </Field>
         ))}
         <Field
-          label="Document alert days"
-          hint="Comma-separated, e.g. 30, 7, 1. An alert is also raised on expiry."
+          label={t('people.settings.field.docAlertDays')}
+          hint={t('people.settings.field.docAlertDaysHint')}
         >
           {(props) => (
             <Input
@@ -118,14 +108,12 @@ function AuditForm({ initial, editable }: { initial: AuditSettings; editable: bo
       {problem && <p className="text-sm text-red-600">{problem}</p>}
       <InlineError error={save.error} />
       {save.isSuccess && (
-        <p className="text-sm text-emerald-700">
-          Saved. Fuel audits use the new thresholds from the next recompute.
-        </p>
+        <p className="text-sm text-emerald-700">{t('people.settings.auditSaved')}</p>
       )}
       {editable && (
         <div className="flex justify-end">
           <Button busy={save.isPending} onClick={submit}>
-            Save thresholds
+            {t('people.settings.saveThresholds')}
           </Button>
         </div>
       )}
@@ -134,6 +122,7 @@ function AuditForm({ initial, editable }: { initial: AuditSettings; editable: bo
 }
 
 function PayForm({ initial, editable }: { initial: PayRule; editable: boolean }) {
+  const { t } = useTranslation();
   const [rule, setRule] = useState(initial);
   const [problem, setProblem] = useState<string | null>(null);
   const save = useApiMutation(
@@ -146,9 +135,7 @@ function PayForm({ initial, editable }: { initial: PayRule; editable: boolean })
       {problem && <p className="text-sm text-red-600">{problem}</p>}
       <InlineError error={save.error} />
       {save.isSuccess && (
-        <p className="text-sm text-emerald-700">
-          Saved. Days that are already settled don’t change.
-        </p>
+        <p className="text-sm text-emerald-700">{t('people.settings.paySaved')}</p>
       )}
       {editable && (
         <div className="flex justify-end">
@@ -157,14 +144,14 @@ function PayForm({ initial, editable }: { initial: PayRule; editable: boolean })
             onClick={() => {
               const parsed = PayRuleSchema.safeParse(rule);
               if (!parsed.success) {
-                setProblem('Check the pay rule values');
+                setProblem(t('people.settings.checkPayRule'));
                 return;
               }
               setProblem(null);
               save.mutate(rule);
             }}
           >
-            Save default pay
+            {t('people.settings.saveDefaultPay')}
           </Button>
         </div>
       )}
@@ -173,25 +160,24 @@ function PayForm({ initial, editable }: { initial: PayRule; editable: boolean })
 }
 
 export function SettingsPage() {
+  const { t } = useTranslation();
   const auth = useAuth();
   const audit = useAuditSettings();
   const pay = useDefaultPayRule();
   return (
     <>
       <PageHeader
-        title="Settings"
-        description={auth.isOwner ? undefined : 'Only the owner can change settings.'}
+        title={t('people.settings.title')}
+        description={auth.isOwner ? undefined : t('people.settings.ownerOnly')}
       />
       <div className="space-y-4">
-        <Card title="Audit thresholds">
+        <Card title={t('people.settings.auditTitle')}>
           <QueryState query={audit}>
             {(a) => <AuditForm initial={a} editable={auth.isOwner} />}
           </QueryState>
         </Card>
-        <Card title="Default driver pay">
-          <p className="mb-4 text-sm text-slate-600">
-            Used in settlements for every driver without their own pay rule.
-          </p>
+        <Card title={t('people.settings.payTitle')}>
+          <p className="mb-4 text-sm text-slate-600">{t('people.settings.payHelp')}</p>
           <QueryState query={pay}>
             {(p) => <PayForm initial={p} editable={auth.isOwner} />}
           </QueryState>

@@ -1,5 +1,5 @@
+import { useTranslation } from 'react-i18next';
 import type { Alert, DocumentRow, TripStatus } from '../lib/api-types.js';
-import { humanize } from '../lib/format.js';
 import { Badge, type Tone } from './ui.js';
 
 const TRIP_TONES: Record<TripStatus, Tone> = {
@@ -12,7 +12,8 @@ const TRIP_TONES: Record<TripStatus, Tone> = {
 };
 
 export function TripStatusBadge({ status }: { status: TripStatus }) {
-  return <Badge tone={TRIP_TONES[status]}>{humanize(status)}</Badge>;
+  const { t } = useTranslation();
+  return <Badge tone={TRIP_TONES[status]}>{t(`enums.tripStatus.${status}`)}</Badge>;
 }
 
 const SEVERITY_TONES: Record<Alert['severity'], Tone> = {
@@ -22,7 +23,8 @@ const SEVERITY_TONES: Record<Alert['severity'], Tone> = {
 };
 
 export function SeverityBadge({ severity }: { severity: Alert['severity'] }) {
-  return <Badge tone={SEVERITY_TONES[severity]}>{humanize(severity)}</Badge>;
+  const { t } = useTranslation();
+  return <Badge tone={SEVERITY_TONES[severity]}>{t(`enums.severity.${severity}`)}</Badge>;
 }
 
 const DOC_TONES: Record<DocumentRow['status'], Tone> = {
@@ -33,13 +35,14 @@ const DOC_TONES: Record<DocumentRow['status'], Tone> = {
 };
 
 export function DocumentStatusBadge({ doc }: { doc: Pick<DocumentRow, 'status' | 'daysLeft'> }) {
+  const { t } = useTranslation();
   const text =
     doc.status === 'expired'
-      ? `Expired ${String(-doc.daysLeft)}d ago`
+      ? t('docStatus.expiredAgo', { count: -doc.daysLeft })
       : doc.status === 'expiring'
         ? doc.daysLeft === 0
-          ? 'Expires today'
-          : `Expires in ${String(doc.daysLeft)}d`
-        : humanize(doc.status);
+          ? t('docStatus.expiresToday')
+          : t('docStatus.expiresIn', { count: doc.daysLeft })
+        : t(`enums.docStatus.${doc.status}`);
   return <Badge tone={DOC_TONES[doc.status]}>{text}</Badge>;
 }

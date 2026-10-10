@@ -2,11 +2,13 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { api, call, sessionStore } from '../lib/api.js';
 import type { Session } from '../lib/api-types.js';
+import { ApiError } from '../lib/errors.js';
 import { AuthContext, type AuthState, type AuthStatus } from './context.js';
 
 function requireRefreshToken(): string {
   const token = sessionStore.refreshToken;
-  if (!token) throw new Error('Your session has ended; sign in again.');
+  // Shown through errorMessage(), which words UNAUTHENTICATED in the user's language.
+  if (!token) throw new ApiError(401, 'UNAUTHENTICATED', 'Your session has ended; sign in again.');
   return token;
 }
 

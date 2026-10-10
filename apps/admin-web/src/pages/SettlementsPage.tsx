@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Badge,
   Button,
@@ -15,11 +16,12 @@ import {
   Th,
 } from '../components/ui.js';
 import { api, call, idempotencyKey } from '../lib/api.js';
-import type { SettlementLine, SettlementSummary } from '../lib/api-types.js';
-import { fmtDate, fmtDateTime, fmtInr, humanize, istDaysAgo, istToday } from '../lib/format.js';
+import type { SettlementSummary } from '../lib/api-types.js';
+import { fmtDate, fmtDateTime, fmtInr, istDaysAgo, istToday } from '../lib/format.js';
 import { describePayRule, netPayableText } from '../lib/money.js';
 import { useApiMutation } from '../lib/mutations.js';
 import { keys, useSettlement, useSettlements } from '../lib/queries.js';
+import { settlementLineText } from '../lib/settlement-text.js';
 
 function NetPayable({ paise }: { paise: number }) {
   const { text, tone } = netPayableText(paise);
@@ -33,6 +35,7 @@ function NetPayable({ paise }: { paise: number }) {
 }
 
 export function SettlementRow({ s, onOpen }: { s: SettlementSummary; onOpen: () => void }) {
+  const { t } = useTranslation();
   return (
     <tr className="hover:bg-slate-50">
       <Td>
@@ -44,7 +47,7 @@ export function SettlementRow({ s, onOpen }: { s: SettlementSummary; onOpen: () 
           {s.driverName}
         </button>
         <span className="block text-xs text-slate-500">
-          {s.tripCount === 1 ? '1 trip' : `${String(s.tripCount)} trips`}
+          {t('settlements.tripCount', { count: s.tripCount })}
         </span>
       </Td>
       <Td align="right">{fmtInr(s.expectedFarePaise)}</Td>
@@ -56,27 +59,19 @@ export function SettlementRow({ s, onOpen }: { s: SettlementSummary; onOpen: () 
       <Td align="right">
         <NetPayable paise={s.netPayablePaise} />
         {s.shortfallPaise !== 0 && (
-          <span className="block text-xs text-red-700">Shortfall {fmtInr(s.shortfallPaise)}</span>
+          <span className="block text-xs text-red-700">
+            {t('settlements.shortfallAmount', { amount: fmtInr(s.shortfallPaise) })}
+          </span>
         )}
       </Td>
       <Td>
-        {s.status === 'settled' ? (
-          <Badge tone="success">Settled</Badge>
-        ) : (
-          <Badge tone="warning">Draft</Badge>
-        )}
+        <Badge tone={s.status === 'settled' ? 'success' : 'warning'}>
+          {t(`enums.settlementStatus.${s.status}`)}
+        </Badge>
       </Td>
     </tr>
   );
 }
-
-const LINE_LABELS: Record<SettlementLine['refType'], string> = {
-  trip: 'Trip',
-  trip_charge: 'Charge',
-  collection: 'Payment',
-  fuel_fill: 'Fuel',
-  adjustment: 'Late item',
-};
 
 function SettlementDrawer({
   date,
@@ -87,6 +82,7 @@ function SettlementDrawer({
   driverId: string;
   onClose: () => void;
 }) {
+  const { t } = useTranslation();
   const detail = useSettlement(date, driverId);
   const settle = useApiMutation(
     () =>
@@ -102,53 +98,59 @@ function SettlementDrawer({
       open
       wide
       onClose={onClose}
-      title={detail.data ? `${detail.data.driverName} · ${fmtDate(date)}` : 'Settlement'}
+      title={
+        detail.data
+          ? t('settlements.drawerTitle', { driver: detail.data.driverName, date: fmtDate(date) })
+          : t('settlements.settlement')
+      }
     >
       <QueryState query={detail}>
         {(d) => (
           <div className="space-y-5">
             <dl className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-              <Stat label="Expected fare" value={fmtInr(d.expectedFarePaise)} />
-              <Stat label="Cash collected" value={fmtInr(d.cashPaise)} />
-              <Stat label="Online (to you)" value={fmtInr(d.onlinePaise)} />
-              <Stat label="Driver’s expenses" value={fmtInr(d.driverExpensesPaise)} />
+              <Stat label={t('settlements.expectedFare')} value={fmtInr(d.expectedFarePaise)} />
+              <Stat label={t('settlements.cashCollected')} value={fmtInr(d.cashPaise)} />
+              <Stat label={t('settlements.onlineToYou')} value={fmtInr(d.onlinePaise)} />
+              <Stat label={t('settlements.driverExpenses')} value={fmtInr(d.driverExpensesPaise)} />
               <Stat
-                label="Driver’s earnings"
+                label={t('settlements.driverEarnings')}
                 value={fmtInr(d.driverEarningsPaise)}
                 hint={describePayRule(d.payRule)}
               />
               <Stat
-                label="Late items"
+                label={t('settlements.lateItems')}
                 value={d.carriedAdjustmentPaise ? fmtInr(d.carriedAdjustmentPaise) : '—'}
               />
               <Stat
-                label="Shortfall"
+                label={t('settlements.shortfall')}
                 value={fmtInr(d.shortfallPaise)}
-                hint="Expected fare minus everything collected"
+                hint={t('settlements.shortfallHint')}
               />
-              <Stat label="Settlement" value={<NetPayable paise={d.netPayablePaise} />} />
+              <Stat
+                label={t('settlements.settlement')}
+                value={<NetPayable paise={d.netPayablePaise} />}
+              />
             </dl>
             <p className="rounded-md bg-slate-50 p-3 text-xs text-slate-600">
-              Net = cash collected − expenses the driver paid − driver’s earnings ± late items from
-              already-settled days.
+              {t('settlements.netFormula')}
             </p>
             <Table>
               <thead>
                 <tr>
-                  <Th>Item</Th>
-                  <Th>Details</Th>
-                  <Th align="right">Amount</Th>
+                  <Th>{t('settlements.col.item')}</Th>
+                  <Th>{t('settlements.col.details')}</Th>
+                  <Th align="right">{t('settlements.col.amount')}</Th>
                 </tr>
               </thead>
               <tbody>
                 {d.lines.map((line) => (
                   <tr key={`${line.refType}:${line.refId}`}>
-                    <Td>{LINE_LABELS[line.refType]}</Td>
+                    <Td>{t(`enums.settlementLine.${line.refType}`)}</Td>
                     <Td>
-                      {line.description || humanize(line.refType)}
+                      {settlementLineText(line)}
                       {line.originalDate && (
                         <span className="block text-xs text-amber-700">
-                          From {fmtDate(line.originalDate)}, synced after that day was settled
+                          {t('settlements.syncedLate', { date: fmtDate(line.originalDate) })}
                         </span>
                       )}
                     </Td>
@@ -161,12 +163,10 @@ function SettlementDrawer({
             <div className="flex items-center justify-between gap-3">
               {d.status === 'settled' ? (
                 <p className="text-sm text-slate-600">
-                  Settled {fmtDateTime(d.settledAt)}. Later changes carry into the next day.
+                  {t('settlements.settledAt', { when: fmtDateTime(d.settledAt) })}
                 </p>
               ) : (
-                <p className="text-sm text-slate-600">
-                  Mark settled once you’ve received the cash. This locks the day.
-                </p>
+                <p className="text-sm text-slate-600">{t('settlements.markSettledHint')}</p>
               )}
               {d.status === 'draft' && (
                 <Button
@@ -176,7 +176,7 @@ function SettlementDrawer({
                     settle.mutate();
                   }}
                 >
-                  Mark settled
+                  {t('settlements.markSettled')}
                 </Button>
               )}
             </div>
@@ -188,6 +188,7 @@ function SettlementDrawer({
 }
 
 export function SettlementsPage() {
+  const { t } = useTranslation();
   const [date, setDate] = useState(() => istDaysAgo(1));
   const [openDriver, setOpenDriver] = useState<string | null>(null);
   const settlements = useSettlements(date);
@@ -195,11 +196,11 @@ export function SettlementsPage() {
   return (
     <>
       <PageHeader
-        title="Settlements"
-        description="One row per driver for the day (IST). Drafts update as trips and payments sync."
+        title={t('settlements.title')}
+        description={t('settlements.description')}
         actions={
           <Input
-            aria-label="Day"
+            aria-label={t('settlements.day')}
             type="date"
             className="w-44"
             max={istToday()}
@@ -214,20 +215,20 @@ export function SettlementsPage() {
         <QueryState query={settlements}>
           {(list) =>
             list.length === 0 ? (
-              <EmptyState title={`No driver activity on ${fmtDate(date)}`} />
+              <EmptyState title={t('settlements.noActivity', { date: fmtDate(date) })} />
             ) : (
               <Table>
                 <thead>
                   <tr>
-                    <Th>Driver</Th>
-                    <Th align="right">Expected</Th>
-                    <Th align="right">Cash</Th>
-                    <Th align="right">Online</Th>
-                    <Th align="right">Expenses</Th>
-                    <Th align="right">Earnings</Th>
-                    <Th align="right">Late items</Th>
-                    <Th align="right">Net</Th>
-                    <Th>Status</Th>
+                    <Th>{t('settlements.col.driver')}</Th>
+                    <Th align="right">{t('settlements.col.expected')}</Th>
+                    <Th align="right">{t('settlements.col.cash')}</Th>
+                    <Th align="right">{t('settlements.col.online')}</Th>
+                    <Th align="right">{t('settlements.col.expenses')}</Th>
+                    <Th align="right">{t('settlements.col.earnings')}</Th>
+                    <Th align="right">{t('settlements.col.lateItems')}</Th>
+                    <Th align="right">{t('settlements.col.net')}</Th>
+                    <Th>{t('settlements.col.status')}</Th>
                   </tr>
                 </thead>
                 <tbody>

@@ -1,5 +1,7 @@
-import { Link } from 'react-router';
+import { AlertKind } from '@taxcy/contracts';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router';
 import { SeverityBadge } from '../components/status.js';
 import {
   Badge,
@@ -12,19 +14,10 @@ import {
 } from '../components/ui.js';
 import { api, call } from '../lib/api.js';
 import type { Alert } from '../lib/api-types.js';
-import { fmtDateTime, humanize } from '../lib/format.js';
+import { alertText } from '../lib/alert-text.js';
+import { fmtDateTime } from '../lib/format.js';
 import { keys, useAlerts } from '../lib/queries.js';
 import { useApiMutation } from '../lib/mutations.js';
-
-const KIND_LABELS: Record<Alert['kind'], string> = {
-  fuel_efficiency_low: 'Fuel use higher than usual',
-  fuel_cost_high: 'Running cost higher than usual',
-  odo_gps_mismatch: 'Odometer higher than GPS',
-  document_expiring: 'Document expiring',
-  document_expired: 'Document expired',
-  cancellation_requested: 'Cancellation requested',
-  gps_coverage_low: 'Poor GPS coverage',
-};
 
 const FUEL_KINDS: Alert['kind'][] = ['fuel_efficiency_low', 'fuel_cost_high'];
 
@@ -33,12 +26,14 @@ export interface AlertUpdate {
   falsePositive?: boolean;
 }
 
-function subjectLink(alert: Alert): { to: string; label: string } | null {
+function subjectLink(
+  alert: Alert,
+): { to: string; label: 'openFuelHistory' | 'openTrip' | 'openDocuments' | 'openVehicle' } | null {
   if (FUEL_KINDS.includes(alert.kind) && alert.vehicleId)
-    return { to: `/fuel/${alert.vehicleId}`, label: 'Open fuel history' };
-  if (alert.tripId) return { to: `/trips/${alert.tripId}`, label: 'Open trip' };
-  if (alert.subjectType === 'document') return { to: '/documents', label: 'Open documents' };
-  if (alert.vehicleId) return { to: `/vehicles/${alert.vehicleId}`, label: 'Open vehicle' };
+    return { to: `/fuel/${alert.vehicleId}`, label: 'openFuelHistory' };
+  if (alert.tripId) return { to: `/trips/${alert.tripId}`, label: 'openTrip' };
+  if (alert.subjectType === 'document') return { to: '/documents', label: 'openDocuments' };
+  if (alert.vehicleId) return { to: `/vehicles/${alert.vehicleId}`, label: 'openVehicle' };
   return null;
 }
 
@@ -52,7 +47,9 @@ export function AlertCard({
   onUpdate: (update: AlertUpdate) => void;
   busy: boolean;
 }) {
+  const { t } = useTranslation();
   const link = subjectLink(alert);
+  const text = alertText(alert);
   const isOpen = alert.status === 'open' || alert.status === 'acknowledged';
   return (
     <article
@@ -61,19 +58,23 @@ export function AlertCard({
     >
       <div className="mb-2 flex flex-wrap items-center gap-2">
         <SeverityBadge severity={alert.severity} />
-        <Badge>{KIND_LABELS[alert.kind]}</Badge>
-        {alert.status !== 'open' && <Badge tone="neutral">{humanize(alert.status)}</Badge>}
-        {alert.data['falsePositive'] === true && <Badge tone="info">False alarm</Badge>}
+        <Badge>{t(`enums.alertKind.${alert.kind}`)}</Badge>
+        {alert.status !== 'open' && (
+          <Badge tone="neutral">{t(`enums.alertStatus.${alert.status}`)}</Badge>
+        )}
+        {alert.data['falsePositive'] === true && (
+          <Badge tone="info">{t('alerts.falseAlarm')}</Badge>
+        )}
         <span className="ml-auto text-xs text-slate-500">{fmtDateTime(alert.createdAt)}</span>
       </div>
       <h2 id={`alert-${alert.id}`} className="font-medium text-slate-900">
-        {alert.title}
+        {text.title}
       </h2>
-      <p className="mt-1 text-sm text-slate-700">{alert.explanation}</p>
+      <p className="mt-1 text-sm text-slate-700">{text.explanation}</p>
       <div className="mt-3 flex flex-wrap items-center gap-2">
         {link && (
           <Link to={link.to} className="text-sm font-medium text-brand-700 hover:underline">
-            {link.label}
+            {t(`alerts.${link.label}`)}
           </Link>
         )}
         {isOpen && (
@@ -87,7 +88,7 @@ export function AlertCard({
                   onUpdate({ status: 'acknowledged' });
                 }}
               >
-                Acknowledge
+                {t('alerts.acknowledge')}
               </Button>
             )}
             {FUEL_KINDS.includes(alert.kind) && (
@@ -99,7 +100,7 @@ export function AlertCard({
                   onUpdate({ status: 'dismissed', falsePositive: true });
                 }}
               >
-                Dismiss as false alarm
+                {t('alerts.dismissFalseAlarm')}
               </Button>
             )}
             <Button
@@ -110,7 +111,7 @@ export function AlertCard({
                 onUpdate({ status: 'dismissed' });
               }}
             >
-              Dismiss
+              {t('common.dismiss')}
             </Button>
             <Button
               size="sm"
@@ -119,7 +120,7 @@ export function AlertCard({
                 onUpdate({ status: 'resolved' });
               }}
             >
-              Mark resolved
+              {t('alerts.markResolved')}
             </Button>
           </span>
         )}
@@ -129,6 +130,7 @@ export function AlertCard({
 }
 
 export function AlertsPage() {
+  const { t } = useTranslation();
   const [status, setStatus] = useState<Alert['status'] | ''>('open');
   const [kind, setKind] = useState<Alert['kind'] | ''>('');
   const alerts = useAlerts({
@@ -145,36 +147,37 @@ export function AlertsPage() {
   return (
     <>
       <PageHeader
-        title="Alerts"
-        description="Dismissing a fuel alert as a false alarm lets that cycle count towards the vehicle’s normal range."
+        title={t('alerts.title')}
+        description={t('alerts.description')}
         actions={
           <>
             <Select
-              aria-label="Status"
+              aria-label={t('common.status')}
               className="w-40"
               value={status}
               onChange={(e) => {
                 setStatus(e.target.value as typeof status);
               }}
             >
-              <option value="open">Open</option>
-              <option value="acknowledged">Acknowledged</option>
-              <option value="resolved">Resolved</option>
-              <option value="dismissed">Dismissed</option>
-              <option value="">All</option>
+              {(['open', 'acknowledged', 'resolved', 'dismissed'] as const).map((s) => (
+                <option key={s} value={s}>
+                  {t(`enums.alertStatus.${s}`)}
+                </option>
+              ))}
+              <option value="">{t('common.all')}</option>
             </Select>
             <Select
-              aria-label="Kind"
+              aria-label={t('alerts.kind')}
               className="w-64"
               value={kind}
               onChange={(e) => {
                 setKind(e.target.value as typeof kind);
               }}
             >
-              <option value="">All kinds</option>
-              {Object.entries(KIND_LABELS).map(([value, label]) => (
+              <option value="">{t('alerts.allKinds')}</option>
+              {AlertKind.options.map((value) => (
                 <option key={value} value={value}>
-                  {label}
+                  {t(`enums.alertKind.${value}`)}
                 </option>
               ))}
             </Select>
@@ -185,9 +188,7 @@ export function AlertsPage() {
       <QueryState query={alerts}>
         {(list) =>
           list.length === 0 ? (
-            <EmptyState
-              title={status === 'open' ? 'All clear: no open alerts' : 'No alerts match'}
-            />
+            <EmptyState title={status === 'open' ? t('alerts.allClear') : t('alerts.noneMatch')} />
           ) : (
             <div className="space-y-3">
               {list.map((a) => (

@@ -1,4 +1,5 @@
 import { lazy, Suspense } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Route, Routes } from 'react-router';
 import { useAuth } from './auth/context.js';
 import { LoginPage } from './auth/LoginPage.js';
@@ -32,8 +33,9 @@ const VehicleFuelPage = lazy(async () => ({
 }));
 
 export function App() {
+  const { t } = useTranslation();
   const auth = useAuth();
-  if (auth.status === 'restoring') return <Spinner label="Signing you in…" />;
+  if (auth.status === 'restoring') return <Spinner label={t('common.signingIn')} />;
   if (auth.status === 'signed_out') return <LoginPage />;
   if (!auth.session?.activeOrgId) return <CreateOrgPage />;
   if (!auth.isStaff) return <NotStaffPage />;
@@ -58,7 +60,7 @@ export function App() {
           <Route
             path="*"
             element={
-              <EmptyState title="Page not found">Check the address, or use the menu.</EmptyState>
+              <EmptyState title={t('app.pageNotFound')}>{t('app.pageNotFoundHint')}</EmptyState>
             }
           />
         </Route>

@@ -1,7 +1,10 @@
 import { PhoneE164 } from '@taxcy/contracts';
 import { Car } from 'lucide-react';
-import { useState, type SubmitEvent } from 'react';
+import { useEffect, useState, type SubmitEvent } from 'react';
+import { useTranslation } from 'react-i18next';
+import { LanguageSwitcher } from '../components/LanguageSwitcher.js';
 import { Button, Field, InlineError, Input } from '../components/ui.js';
+import { fmtPhone } from '../lib/format.js';
 import { normalizeIndianMobile } from '../lib/labels.js';
 import { useAuth } from './context.js';
 
@@ -14,6 +17,10 @@ export function AuthShell({
   subtitle?: string;
   children: React.ReactNode;
 }) {
+  const { t } = useTranslation();
+  useEffect(() => {
+    document.title = t('app.documentTitle', { page: title });
+  }, [t, title]);
   return (
     <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-brand-700 via-brand-800 to-brand-950 px-4">
       <div className="w-full max-w-sm">
@@ -21,7 +28,8 @@ export function AuthShell({
           <span className="flex size-10 items-center justify-center rounded-xl bg-white text-brand-700 shadow-md">
             <Car className="size-5" aria-hidden />
           </span>
-          <span className="text-2xl font-semibold tracking-tight">Taxcy</span>
+          <span className="text-2xl font-semibold tracking-tight">{t('app.name')}</span>
+          <LanguageSwitcher className="ml-auto text-brand-100" />
         </div>
         <div className="rounded-2xl bg-white p-6 shadow-2xl shadow-brand-950/30">
           <h1 className="text-lg font-semibold text-brand-950">{title}</h1>
@@ -34,22 +42,23 @@ export function AuthShell({
 }
 
 export function LoginPage() {
+  const { t } = useTranslation();
   const auth = useAuth();
   const [phoneInput, setPhoneInput] = useState('');
   const [phone, setPhone] = useState<string | null>(null);
   const [code, setCode] = useState('');
   const [error, setError] = useState<unknown>(null);
   const [busy, setBusy] = useState(false);
-  const [phoneError, setPhoneError] = useState<string | null>(null);
+  const [phoneInvalid, setPhoneInvalid] = useState(false);
 
   async function sendCode(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
     const candidate = normalizeIndianMobile(phoneInput);
     if (!PhoneE164.safeParse(candidate).success) {
-      setPhoneError('Enter a 10-digit Indian mobile number');
+      setPhoneInvalid(true);
       return;
     }
-    setPhoneError(null);
+    setPhoneInvalid(false);
     setBusy(true);
     setError(null);
     try {
@@ -78,12 +87,12 @@ export function LoginPage() {
 
   if (!phone) {
     return (
-      <AuthShell
-        title="Sign in"
-        subtitle="Fleet owners and managers sign in with their mobile number."
-      >
+      <AuthShell title={t('auth.signIn')} subtitle={t('auth.signInSubtitle')}>
         <form onSubmit={(e) => void sendCode(e)} className="space-y-4" noValidate>
-          <Field label="Mobile number" error={phoneError}>
+          <Field
+            label={t('auth.mobileNumber')}
+            error={phoneInvalid ? t('auth.invalidMobile') : null}
+          >
             {(props) => (
               <div className="flex">
                 <span className="inline-flex items-center rounded-l-md border border-r-0 border-slate-300 bg-brand-50 px-3 text-sm font-medium text-brand-700">
@@ -106,7 +115,7 @@ export function LoginPage() {
           </Field>
           <InlineError error={error} />
           <Button type="submit" busy={busy} className="w-full">
-            Send code
+            {t('auth.sendCode')}
           </Button>
         </form>
       </AuthShell>
@@ -114,15 +123,14 @@ export function LoginPage() {
   }
 
   return (
-    <AuthShell title="Enter the code" subtitle={`We sent a 6-digit code to ${phone}.`}>
+    <AuthShell
+      title={t('auth.enterCode')}
+      subtitle={t('auth.codeSent', { phone: fmtPhone(phone) })}
+    >
       <form onSubmit={(e) => void verify(e)} className="space-y-4" noValidate>
         <Field
-          label="One-time code"
-          hint={
-            import.meta.env.DEV
-              ? 'Local development: the code is printed in the API log (otp.issued … code=…).'
-              : undefined
-          }
+          label={t('auth.oneTimeCode')}
+          hint={import.meta.env.DEV ? t('auth.devCodeHint') : undefined}
         >
           {(props) => (
             <Input
@@ -141,7 +149,7 @@ export function LoginPage() {
         </Field>
         <InlineError error={error} />
         <Button type="submit" busy={busy} disabled={code.length !== 6} className="w-full">
-          Verify and sign in
+          {t('auth.verify')}
         </Button>
         <Button
           variant="ghost"
@@ -152,7 +160,7 @@ export function LoginPage() {
             setError(null);
           }}
         >
-          Use a different number
+          {t('auth.differentNumber')}
         </Button>
       </form>
     </AuthShell>

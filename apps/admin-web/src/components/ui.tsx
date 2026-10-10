@@ -11,6 +11,7 @@ import {
   type SelectHTMLAttributes,
   type TextareaHTMLAttributes,
 } from 'react';
+import { useTranslation } from 'react-i18next';
 import { errorMessage } from '../lib/errors.js';
 
 type Variant = 'primary' | 'secondary' | 'danger' | 'ghost';
@@ -187,6 +188,10 @@ export function PageHeader({
   description?: ReactNode;
   actions?: ReactNode;
 }) {
+  const { t } = useTranslation();
+  useEffect(() => {
+    document.title = t('app.documentTitle', { page: title });
+  }, [t, title]);
   return (
     <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
       <div>
@@ -198,14 +203,15 @@ export function PageHeader({
   );
 }
 
-export function Spinner({ label = 'Loading…' }: { label?: string }) {
+export function Spinner({ label }: { label?: string }) {
+  const { t } = useTranslation();
   return (
     <div
       role="status"
       className="flex items-center justify-center gap-2 py-10 text-sm text-brand-600"
     >
       <Loader2 className="size-4 animate-spin" aria-hidden />
-      {label}
+      {label ?? t('common.loading')}
     </div>
   );
 }
@@ -223,6 +229,7 @@ export function EmptyState({ title, children }: { title: string; children?: Reac
 }
 
 export function ErrorState({ error, onRetry }: { error: unknown; onRetry?: () => void }) {
+  const { t } = useTranslation();
   return (
     <div
       role="alert"
@@ -232,7 +239,7 @@ export function ErrorState({ error, onRetry }: { error: unknown; onRetry?: () =>
       <p>{errorMessage(error)}</p>
       {onRetry && (
         <Button variant="secondary" size="sm" onClick={onRetry}>
-          Try again
+          {t('common.tryAgain')}
         </Button>
       )}
     </div>
@@ -292,6 +299,7 @@ export function Modal({
   footer?: ReactNode;
   wide?: boolean;
 }) {
+  const { t } = useTranslation();
   const ref = useRef<HTMLDialogElement>(null);
   const titleId = useId();
   useEffect(() => {
@@ -320,7 +328,7 @@ export function Modal({
             <h2 id={titleId} className="text-base font-semibold text-brand-900">
               {title}
             </h2>
-            <Button variant="ghost" size="sm" aria-label="Close" onClick={onClose}>
+            <Button variant="ghost" size="sm" aria-label={t('common.close')} onClick={onClose}>
               <X className="size-4" aria-hidden />
             </Button>
           </header>

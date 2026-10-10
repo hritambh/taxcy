@@ -1,6 +1,7 @@
 import { PayRule as PayRuleSchema, PhoneE164 } from '@taxcy/contracts';
 import { UserPlus } from 'lucide-react';
 import { useState, type SubmitEvent } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../auth/context.js';
 import { PayRuleEditor } from '../components/PayRuleEditor.js';
 import {
@@ -29,6 +30,7 @@ import { keys, useDefaultPayRule, useDrivers } from '../lib/queries.js';
 import { DocumentsTable } from './DocumentsPage.js';
 
 function InviteModal({ onClose }: { onClose: () => void }) {
+  const { t } = useTranslation();
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [phoneError, setPhoneError] = useState<string | null>(null);
@@ -41,7 +43,7 @@ function InviteModal({ onClose }: { onClose: () => void }) {
     event.preventDefault();
     const normalized = normalizeIndianMobile(phone);
     if (!PhoneE164.safeParse(normalized).success) {
-      setPhoneError('Enter a 10-digit Indian mobile number');
+      setPhoneError(t('people.drivers.invalidMobile'));
       return;
     }
     setPhoneError(null);
@@ -49,12 +51,10 @@ function InviteModal({ onClose }: { onClose: () => void }) {
   }
 
   return (
-    <Modal open onClose={onClose} title="Invite a driver">
+    <Modal open onClose={onClose} title={t('people.drivers.inviteTitle')}>
       <form onSubmit={submit} className="space-y-4">
-        <p className="text-sm text-slate-600">
-          The driver signs in to the Taxcy Driver app with this number; no password needed.
-        </p>
-        <Field label="Name">
+        <p className="text-sm text-slate-600">{t('people.drivers.inviteHelp')}</p>
+        <Field label={t('people.drivers.name')}>
           {(props) => (
             <Input
               {...props}
@@ -66,7 +66,7 @@ function InviteModal({ onClose }: { onClose: () => void }) {
             />
           )}
         </Field>
-        <Field label="Mobile number" error={phoneError}>
+        <Field label={t('people.drivers.mobileNumber')} error={phoneError}>
           {(props) => (
             <Input
               {...props}
@@ -83,10 +83,10 @@ function InviteModal({ onClose }: { onClose: () => void }) {
         <InlineError error={invite.error} />
         <div className="flex justify-end gap-2">
           <Button variant="secondary" onClick={onClose}>
-            Cancel
+            {t('common.cancel')}
           </Button>
           <Button type="submit" busy={invite.isPending} disabled={!name.trim()}>
-            Send invite
+            {t('people.drivers.sendInvite')}
           </Button>
         </div>
       </form>
@@ -95,6 +95,7 @@ function InviteModal({ onClose }: { onClose: () => void }) {
 }
 
 function DriverModal({ driver, onClose }: { driver: Driver; onClose: () => void }) {
+  const { t } = useTranslation();
   const auth = useAuth();
   const defaultRule = useDefaultPayRule();
   const [name, setName] = useState(driver.name);
@@ -130,7 +131,7 @@ function DriverModal({ driver, onClose }: { driver: Driver; onClose: () => void 
     if (override && auth.isOwner) {
       const parsed = PayRuleSchema.safeParse(rule);
       if (!parsed.success) {
-        setRuleError('Check the pay rule values');
+        setRuleError(t('people.drivers.checkPayRule'));
         return;
       }
     }
@@ -147,17 +148,17 @@ function DriverModal({ driver, onClose }: { driver: Driver; onClose: () => void 
       footer={
         <>
           <Button variant="secondary" onClick={onClose}>
-            Cancel
+            {t('common.cancel')}
           </Button>
           <Button busy={update.isPending} onClick={save}>
-            Save
+            {t('common.save')}
           </Button>
         </>
       }
     >
       <div className="space-y-6">
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Name">
+          <Field label={t('people.drivers.name')}>
             {(props) => (
               <Input
                 {...props}
@@ -168,7 +169,7 @@ function DriverModal({ driver, onClose }: { driver: Driver; onClose: () => void 
               />
             )}
           </Field>
-          <Field label="Status">
+          <Field label={t('people.drivers.status')}>
             {(props) => (
               <Select
                 {...props}
@@ -177,17 +178,17 @@ function DriverModal({ driver, onClose }: { driver: Driver; onClose: () => void 
                   setStatus(e.target.value as Driver['status']);
                 }}
               >
-                <option value="active">Active</option>
-                <option value="inactive">Inactive (can’t be assigned)</option>
+                <option value="active">{t('people.drivers.active')}</option>
+                <option value="inactive">{t('people.drivers.inactiveUnassignable')}</option>
               </Select>
             )}
           </Field>
         </div>
 
         <section>
-          <h3 className="mb-2 text-sm font-semibold">Pay</h3>
+          <h3 className="mb-2 text-sm font-semibold">{t('people.drivers.pay')}</h3>
           {!auth.isOwner && (
-            <p className="mb-2 text-sm text-slate-600">Only the owner can change pay.</p>
+            <p className="mb-2 text-sm text-slate-600">{t('people.drivers.ownerOnlyPay')}</p>
           )}
           <label className="mb-3 flex items-center gap-2 text-sm">
             <input
@@ -199,7 +200,7 @@ function DriverModal({ driver, onClose }: { driver: Driver; onClose: () => void 
                 if (e.target.checked && !rule && defaultRule.data) setRule(defaultRule.data);
               }}
             />
-            Pay this driver differently from the default
+            {t('people.drivers.payDifferently')}
             {defaultRule.data && (
               <span className="text-slate-500">({describePayRule(defaultRule.data)})</span>
             )}
@@ -218,6 +219,7 @@ function DriverModal({ driver, onClose }: { driver: Driver; onClose: () => void 
 }
 
 export function DriversPage() {
+  const { t } = useTranslation();
   const drivers = useDrivers();
   const defaultRule = useDefaultPayRule();
   const [inviting, setInviting] = useState(false);
@@ -226,7 +228,7 @@ export function DriversPage() {
   return (
     <>
       <PageHeader
-        title="Drivers"
+        title={t('people.drivers.title')}
         actions={
           <Button
             onClick={() => {
@@ -234,7 +236,7 @@ export function DriversPage() {
             }}
           >
             <UserPlus className="size-4" aria-hidden />
-            Invite driver
+            {t('people.drivers.invite')}
           </Button>
         }
       />
@@ -242,17 +244,17 @@ export function DriversPage() {
         <QueryState query={drivers}>
           {(list) =>
             list.length === 0 ? (
-              <EmptyState title="No drivers yet">
-                Invite drivers by phone; they sign in with an OTP.
+              <EmptyState title={t('people.drivers.empty')}>
+                {t('people.drivers.emptyHint')}
               </EmptyState>
             ) : (
               <Table>
                 <thead>
                   <tr>
-                    <Th>Name</Th>
-                    <Th>Phone</Th>
-                    <Th>Pay</Th>
-                    <Th>Status</Th>
+                    <Th>{t('people.drivers.colName')}</Th>
+                    <Th>{t('people.drivers.colPhone')}</Th>
+                    <Th>{t('people.drivers.colPay')}</Th>
+                    <Th>{t('people.drivers.colStatus')}</Th>
                     <Th />
                   </tr>
                 </thead>
@@ -266,20 +268,23 @@ export function DriversPage() {
                           describePayRule(d.payRule)
                         ) : (
                           <span className="text-slate-500">
-                            Default
-                            {defaultRule.data ? ` · ${describePayRule(defaultRule.data)}` : ''}
+                            {defaultRule.data
+                              ? t('people.drivers.defaultWithRule', {
+                                  rule: describePayRule(defaultRule.data),
+                                })
+                              : t('people.drivers.default')}
                           </span>
                         )}
                       </Td>
                       <Td>
                         <span className="flex flex-wrap gap-1">
                           {d.status === 'active' ? (
-                            <Badge tone="success">Active</Badge>
+                            <Badge tone="success">{t('enums.activeStatus.active')}</Badge>
                           ) : (
-                            <Badge>Inactive</Badge>
+                            <Badge>{t('enums.activeStatus.inactive')}</Badge>
                           )}
                           {d.membershipStatus === 'invited' && (
-                            <Badge tone="info">Hasn’t signed in yet</Badge>
+                            <Badge tone="info">{t('people.drivers.notSignedIn')}</Badge>
                           )}
                         </span>
                       </Td>
@@ -291,7 +296,7 @@ export function DriversPage() {
                             setEditing(d);
                           }}
                         >
-                          Manage
+                          {t('people.drivers.manage')}
                         </Button>
                       </Td>
                     </tr>

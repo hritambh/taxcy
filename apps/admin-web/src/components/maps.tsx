@@ -7,6 +7,7 @@ import {
   type StyleSpecification,
 } from 'maplibre-gl';
 import { useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 
 const TILE_URL: string =
   (import.meta.env['VITE_MAP_TILE_URL'] as string | undefined) ??
@@ -50,6 +51,9 @@ export function RouteMap({
   from: LatLng | null;
   to: LatLng | null;
 }) {
+  const { t } = useTranslation();
+  const pickupLabel = t('fleet.map.pickup');
+  const dropLabel = t('fleet.map.drop');
   const container = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!container.current) return;
@@ -81,11 +85,11 @@ export function RouteMap({
       }
       const all = [...points, ...(from ? [from] : []), ...(to ? [to] : [])];
       if (from)
-        new Marker({ element: pin('#0ca30c', 'Pickup') })
+        new Marker({ element: pin('#0ca30c', pickupLabel) })
           .setLngLat([from.lng, from.lat])
           .addTo(map);
       if (to)
-        new Marker({ element: pin('#d03b3b', 'Drop') }).setLngLat([to.lng, to.lat]).addTo(map);
+        new Marker({ element: pin('#d03b3b', dropLabel) }).setLngLat([to.lng, to.lat]).addTo(map);
       const first = all[0];
       if (first) {
         const bounds = all.reduce(
@@ -98,13 +102,13 @@ export function RouteMap({
     return () => {
       map.remove();
     };
-  }, [points, from, to]);
+  }, [points, from, to, pickupLabel, dropLabel]);
   return (
     <div
       ref={container}
       className="h-80 w-full overflow-hidden rounded-md border border-slate-200"
       role="img"
-      aria-label="Map of the trip route"
+      aria-label={t('fleet.map.routeMap')}
     />
   );
 }
@@ -119,6 +123,7 @@ export function PointPicker({
   onChange: (point: LatLng) => void;
   label: string;
 }) {
+  const { t } = useTranslation();
   const container = useRef<HTMLDivElement>(null);
   const marker = useRef<Marker | null>(null);
   const map = useRef<MapLibre | null>(null);
@@ -163,12 +168,10 @@ export function PointPicker({
         ref={container}
         className="h-48 w-full overflow-hidden rounded-md border border-slate-200"
         role="application"
-        aria-label={`${label}: click to place a pin`}
+        aria-label={t('fleet.map.pickerLabel', { label })}
       />
       <p className="mt-1 text-xs text-slate-500">
-        {value
-          ? `${value.lat.toFixed(5)}, ${value.lng.toFixed(5)}`
-          : 'Optional: click the map to pin the exact spot.'}
+        {value ? `${value.lat.toFixed(5)}, ${value.lng.toFixed(5)}` : t('fleet.map.pickerHint')}
       </p>
     </div>
   );
