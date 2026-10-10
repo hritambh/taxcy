@@ -15,13 +15,6 @@ final _vehiclesProvider = FutureProvider<List<Vehicle>>(
   (ref) => ref.watch(fuelRepositoryProvider).vehicles(),
 );
 
-const _fuelNames = {'petrol': 'Petrol', 'diesel': 'Diesel', 'cng': 'CNG'};
-const _paidByLabels = {
-  'driver_cash': 'Me (cash)',
-  'owner': 'Owner',
-  'fuel_card': 'Fuel card',
-};
-
 /// Receipt photo, odometer photo + km, quantity, amount, full-tank toggle, who paid.
 ///
 /// The vehicle comes from the driver's trips, never from the whole fleet: opened
@@ -188,13 +181,13 @@ class _FuelFillScreenState extends ConsumerState<FuelFillScreen> {
             SegmentedButton<String>(
               segments: [
                 for (final f in vehicle.allowedFuels)
-                  ButtonSegment(value: f, label: Text(_fuelNames[f] ?? f)),
+                  ButtonSegment(value: f, label: Text(fuelNames[f] ?? f)),
               ],
               selected: {fuel},
               onSelectionChanged: (s) => setState(() => _fuel = s.first),
             )
           else
-            Text('Fuel: ${_fuelNames[fuel] ?? fuel}'),
+            Text('Fuel: ${fuelNames[fuel] ?? fuel}'),
           const SizedBox(height: 12),
           PhotoField(
             kind: 'fuel_receipt',
@@ -259,7 +252,7 @@ class _FuelFillScreenState extends ConsumerState<FuelFillScreen> {
           const SizedBox(height: 4),
           SegmentedButton<String>(
             segments: [
-              for (final e in _paidByLabels.entries)
+              for (final e in paidByChoices.entries)
                 ButtonSegment(value: e.key, label: Text(e.value)),
             ],
             selected: {_paidBy},

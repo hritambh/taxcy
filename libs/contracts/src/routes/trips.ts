@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { DateTime, Id, Paise, PhoneE164 } from '../common.js';
+import { DateTime, FuelKind, Id, PaidBy, Paise, PhoneE164 } from '../common.js';
 import { access, defineRoute, MembershipRole } from '../http.js';
 import { GeoPoint } from './media.js';
 
@@ -94,6 +94,18 @@ export const TripCollection = z.object({
   collectedAt: DateTime,
 });
 
+/** A fuel fill logged during the trip (voided fills are left out). */
+export const TripFuelFill = z.object({
+  id: Id,
+  fuel: FuelKind,
+  /** Millilitres (petrol, diesel) or grams (CNG). */
+  quantityMilli: z.number().int(),
+  costPaise: Paise,
+  paidBy: PaidBy,
+  isFullTank: z.boolean(),
+  filledAt: DateTime,
+});
+
 export const CancellationRequest = z.object({
   id: Id,
   status: z.enum(['pending', 'approved', 'rejected', 'withdrawn']),
@@ -131,6 +143,7 @@ export const Trip = z.object({
   cancellationRequest: CancellationRequest.nullable(),
   charges: z.array(TripCharge),
   collections: z.array(TripCollection),
+  fuelFills: z.array(TripFuelFill),
   /** Commands valid right now, for showing the right buttons. */
   allowedCommands: z.array(TripCommand),
   version: z.number().int(),

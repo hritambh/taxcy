@@ -158,6 +158,57 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/members': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** People with access to the org, with their roles */
+    get: operations['getMembers'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/members/managers': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Give someone manager access by phone (managers run trips, alerts and settlements, but cannot change settings or pay rules) */
+    post: operations['postMembersManagers'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/members/{id}/manager': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    /** Take away manager access. Other roles (e.g. driver) stay; with none left the member is suspended */
+    delete: operations['deleteMembersIdManager'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/media': {
     parameters: {
       query?: never;
@@ -1662,6 +1713,237 @@ export interface operations {
               orgKind: 'fleet' | 'dco';
               roles: ('owner' | 'manager' | 'driver')[];
             }[];
+          };
+        };
+      };
+      /** @description Error */
+      default: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            error: {
+              /** @enum {string} */
+              code:
+                | 'VALIDATION_FAILED'
+                | 'UNAUTHENTICATED'
+                | 'TOKEN_EXPIRED'
+                | 'FORBIDDEN_ROLE'
+                | 'NO_ACTIVE_ORG'
+                | 'NOT_FOUND'
+                | 'ILLEGAL_TRANSITION'
+                | 'TRIP_CANCELLED'
+                | 'TRIP_REASSIGNED'
+                | 'VEHICLE_BUSY'
+                | 'DRIVER_BUSY'
+                | 'CANCELLATION_PENDING'
+                | 'ALREADY_SETTLED'
+                | 'IDEMPOTENCY_CONFLICT'
+                | 'IDEMPOTENCY_KEY_REQUIRED'
+                | 'VERSION_CONFLICT'
+                | 'CONFLICT'
+                | 'FUEL_TYPE_MISMATCH'
+                | 'ODOMETER_BEFORE_START'
+                | 'OTP_INVALID'
+                | 'OTP_EXPIRED'
+                | 'RATE_LIMITED'
+                | 'UPLOAD_NOT_FOUND'
+                | 'UPLOAD_MISMATCH'
+                | 'INTERNAL';
+              message: string;
+              details?: unknown;
+              requestId?: string;
+            };
+          };
+        };
+      };
+    };
+  };
+  getMembers: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            userId: string;
+            name: string | null;
+            phone: string;
+            roles: ('owner' | 'manager' | 'driver')[];
+            /** @enum {string} */
+            status: 'invited' | 'active' | 'suspended';
+            /** Format: date-time */
+            createdAt: string;
+          }[];
+        };
+      };
+      /** @description Error */
+      default: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            error: {
+              /** @enum {string} */
+              code:
+                | 'VALIDATION_FAILED'
+                | 'UNAUTHENTICATED'
+                | 'TOKEN_EXPIRED'
+                | 'FORBIDDEN_ROLE'
+                | 'NO_ACTIVE_ORG'
+                | 'NOT_FOUND'
+                | 'ILLEGAL_TRANSITION'
+                | 'TRIP_CANCELLED'
+                | 'TRIP_REASSIGNED'
+                | 'VEHICLE_BUSY'
+                | 'DRIVER_BUSY'
+                | 'CANCELLATION_PENDING'
+                | 'ALREADY_SETTLED'
+                | 'IDEMPOTENCY_CONFLICT'
+                | 'IDEMPOTENCY_KEY_REQUIRED'
+                | 'VERSION_CONFLICT'
+                | 'CONFLICT'
+                | 'FUEL_TYPE_MISMATCH'
+                | 'ODOMETER_BEFORE_START'
+                | 'OTP_INVALID'
+                | 'OTP_EXPIRED'
+                | 'RATE_LIMITED'
+                | 'UPLOAD_NOT_FOUND'
+                | 'UPLOAD_MISMATCH'
+                | 'INTERNAL';
+              message: string;
+              details?: unknown;
+              requestId?: string;
+            };
+          };
+        };
+      };
+    };
+  };
+  postMembersManagers: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': {
+          name: string;
+          phone: string;
+        };
+      };
+    };
+    responses: {
+      /** @description OK */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            userId: string;
+            name: string | null;
+            phone: string;
+            roles: ('owner' | 'manager' | 'driver')[];
+            /** @enum {string} */
+            status: 'invited' | 'active' | 'suspended';
+            /** Format: date-time */
+            createdAt: string;
+          };
+        };
+      };
+      /** @description Error */
+      default: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            error: {
+              /** @enum {string} */
+              code:
+                | 'VALIDATION_FAILED'
+                | 'UNAUTHENTICATED'
+                | 'TOKEN_EXPIRED'
+                | 'FORBIDDEN_ROLE'
+                | 'NO_ACTIVE_ORG'
+                | 'NOT_FOUND'
+                | 'ILLEGAL_TRANSITION'
+                | 'TRIP_CANCELLED'
+                | 'TRIP_REASSIGNED'
+                | 'VEHICLE_BUSY'
+                | 'DRIVER_BUSY'
+                | 'CANCELLATION_PENDING'
+                | 'ALREADY_SETTLED'
+                | 'IDEMPOTENCY_CONFLICT'
+                | 'IDEMPOTENCY_KEY_REQUIRED'
+                | 'VERSION_CONFLICT'
+                | 'CONFLICT'
+                | 'FUEL_TYPE_MISMATCH'
+                | 'ODOMETER_BEFORE_START'
+                | 'OTP_INVALID'
+                | 'OTP_EXPIRED'
+                | 'RATE_LIMITED'
+                | 'UPLOAD_NOT_FOUND'
+                | 'UPLOAD_MISMATCH'
+                | 'INTERNAL';
+              message: string;
+              details?: unknown;
+              requestId?: string;
+            };
+          };
+        };
+      };
+    };
+  };
+  deleteMembersIdManager: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            userId: string;
+            name: string | null;
+            phone: string;
+            roles: ('owner' | 'manager' | 'driver')[];
+            /** @enum {string} */
+            status: 'invited' | 'active' | 'suspended';
+            /** Format: date-time */
+            createdAt: string;
           };
         };
       };
@@ -3776,6 +4058,19 @@ export interface operations {
               /** Format: date-time */
               collectedAt: string;
             }[];
+            fuelFills: {
+              /** Format: uuid */
+              id: string;
+              /** @enum {string} */
+              fuel: 'petrol' | 'diesel' | 'cng';
+              quantityMilli: number;
+              costPaise: number;
+              /** @enum {string} */
+              paidBy: 'driver_cash' | 'owner' | 'fuel_card';
+              isFullTank: boolean;
+              /** Format: date-time */
+              filledAt: string;
+            }[];
             allowedCommands: (
               | 'assign'
               | 'reassign'
@@ -4017,6 +4312,19 @@ export interface operations {
               /** Format: date-time */
               collectedAt: string;
             }[];
+            fuelFills: {
+              /** Format: uuid */
+              id: string;
+              /** @enum {string} */
+              fuel: 'petrol' | 'diesel' | 'cng';
+              quantityMilli: number;
+              costPaise: number;
+              /** @enum {string} */
+              paidBy: 'driver_cash' | 'owner' | 'fuel_card';
+              isFullTank: boolean;
+              /** Format: date-time */
+              filledAt: string;
+            }[];
             allowedCommands: (
               | 'assign'
               | 'reassign'
@@ -4225,6 +4533,19 @@ export interface operations {
               reference: string | null;
               /** Format: date-time */
               collectedAt: string;
+            }[];
+            fuelFills: {
+              /** Format: uuid */
+              id: string;
+              /** @enum {string} */
+              fuel: 'petrol' | 'diesel' | 'cng';
+              quantityMilli: number;
+              costPaise: number;
+              /** @enum {string} */
+              paidBy: 'driver_cash' | 'owner' | 'fuel_card';
+              isFullTank: boolean;
+              /** Format: date-time */
+              filledAt: string;
             }[];
             allowedCommands: (
               | 'assign'
@@ -4464,6 +4785,19 @@ export interface operations {
               reference: string | null;
               /** Format: date-time */
               collectedAt: string;
+            }[];
+            fuelFills: {
+              /** Format: uuid */
+              id: string;
+              /** @enum {string} */
+              fuel: 'petrol' | 'diesel' | 'cng';
+              quantityMilli: number;
+              costPaise: number;
+              /** @enum {string} */
+              paidBy: 'driver_cash' | 'owner' | 'fuel_card';
+              isFullTank: boolean;
+              /** Format: date-time */
+              filledAt: string;
             }[];
             allowedCommands: (
               | 'assign'
@@ -4767,6 +5101,19 @@ export interface operations {
               /** Format: date-time */
               collectedAt: string;
             }[];
+            fuelFills: {
+              /** Format: uuid */
+              id: string;
+              /** @enum {string} */
+              fuel: 'petrol' | 'diesel' | 'cng';
+              quantityMilli: number;
+              costPaise: number;
+              /** @enum {string} */
+              paidBy: 'driver_cash' | 'owner' | 'fuel_card';
+              isFullTank: boolean;
+              /** Format: date-time */
+              filledAt: string;
+            }[];
             allowedCommands: (
               | 'assign'
               | 'reassign'
@@ -4977,6 +5324,19 @@ export interface operations {
               reference: string | null;
               /** Format: date-time */
               collectedAt: string;
+            }[];
+            fuelFills: {
+              /** Format: uuid */
+              id: string;
+              /** @enum {string} */
+              fuel: 'petrol' | 'diesel' | 'cng';
+              quantityMilli: number;
+              costPaise: number;
+              /** @enum {string} */
+              paidBy: 'driver_cash' | 'owner' | 'fuel_card';
+              isFullTank: boolean;
+              /** Format: date-time */
+              filledAt: string;
             }[];
             allowedCommands: (
               | 'assign'
@@ -5204,6 +5564,19 @@ export interface operations {
               reference: string | null;
               /** Format: date-time */
               collectedAt: string;
+            }[];
+            fuelFills: {
+              /** Format: uuid */
+              id: string;
+              /** @enum {string} */
+              fuel: 'petrol' | 'diesel' | 'cng';
+              quantityMilli: number;
+              costPaise: number;
+              /** @enum {string} */
+              paidBy: 'driver_cash' | 'owner' | 'fuel_card';
+              isFullTank: boolean;
+              /** Format: date-time */
+              filledAt: string;
             }[];
             allowedCommands: (
               | 'assign'
@@ -5461,6 +5834,19 @@ export interface operations {
               /** Format: date-time */
               collectedAt: string;
             }[];
+            fuelFills: {
+              /** Format: uuid */
+              id: string;
+              /** @enum {string} */
+              fuel: 'petrol' | 'diesel' | 'cng';
+              quantityMilli: number;
+              costPaise: number;
+              /** @enum {string} */
+              paidBy: 'driver_cash' | 'owner' | 'fuel_card';
+              isFullTank: boolean;
+              /** Format: date-time */
+              filledAt: string;
+            }[];
             allowedCommands: (
               | 'assign'
               | 'reassign'
@@ -5677,6 +6063,19 @@ export interface operations {
               reference: string | null;
               /** Format: date-time */
               collectedAt: string;
+            }[];
+            fuelFills: {
+              /** Format: uuid */
+              id: string;
+              /** @enum {string} */
+              fuel: 'petrol' | 'diesel' | 'cng';
+              quantityMilli: number;
+              costPaise: number;
+              /** @enum {string} */
+              paidBy: 'driver_cash' | 'owner' | 'fuel_card';
+              isFullTank: boolean;
+              /** Format: date-time */
+              filledAt: string;
             }[];
             allowedCommands: (
               | 'assign'
@@ -5908,6 +6307,19 @@ export interface operations {
               /** Format: date-time */
               collectedAt: string;
             }[];
+            fuelFills: {
+              /** Format: uuid */
+              id: string;
+              /** @enum {string} */
+              fuel: 'petrol' | 'diesel' | 'cng';
+              quantityMilli: number;
+              costPaise: number;
+              /** @enum {string} */
+              paidBy: 'driver_cash' | 'owner' | 'fuel_card';
+              isFullTank: boolean;
+              /** Format: date-time */
+              filledAt: string;
+            }[];
             allowedCommands: (
               | 'assign'
               | 'reassign'
@@ -6127,6 +6539,19 @@ export interface operations {
               /** Format: date-time */
               collectedAt: string;
             }[];
+            fuelFills: {
+              /** Format: uuid */
+              id: string;
+              /** @enum {string} */
+              fuel: 'petrol' | 'diesel' | 'cng';
+              quantityMilli: number;
+              costPaise: number;
+              /** @enum {string} */
+              paidBy: 'driver_cash' | 'owner' | 'fuel_card';
+              isFullTank: boolean;
+              /** Format: date-time */
+              filledAt: string;
+            }[];
             allowedCommands: (
               | 'assign'
               | 'reassign'
@@ -6344,6 +6769,19 @@ export interface operations {
               /** Format: date-time */
               collectedAt: string;
             }[];
+            fuelFills: {
+              /** Format: uuid */
+              id: string;
+              /** @enum {string} */
+              fuel: 'petrol' | 'diesel' | 'cng';
+              quantityMilli: number;
+              costPaise: number;
+              /** @enum {string} */
+              paidBy: 'driver_cash' | 'owner' | 'fuel_card';
+              isFullTank: boolean;
+              /** Format: date-time */
+              filledAt: string;
+            }[];
             allowedCommands: (
               | 'assign'
               | 'reassign'
@@ -6554,6 +6992,19 @@ export interface operations {
               reference: string | null;
               /** Format: date-time */
               collectedAt: string;
+            }[];
+            fuelFills: {
+              /** Format: uuid */
+              id: string;
+              /** @enum {string} */
+              fuel: 'petrol' | 'diesel' | 'cng';
+              quantityMilli: number;
+              costPaise: number;
+              /** @enum {string} */
+              paidBy: 'driver_cash' | 'owner' | 'fuel_card';
+              isFullTank: boolean;
+              /** Format: date-time */
+              filledAt: string;
             }[];
             allowedCommands: (
               | 'assign'
@@ -6785,6 +7236,19 @@ export interface operations {
               /** Format: date-time */
               collectedAt: string;
             }[];
+            fuelFills: {
+              /** Format: uuid */
+              id: string;
+              /** @enum {string} */
+              fuel: 'petrol' | 'diesel' | 'cng';
+              quantityMilli: number;
+              costPaise: number;
+              /** @enum {string} */
+              paidBy: 'driver_cash' | 'owner' | 'fuel_card';
+              isFullTank: boolean;
+              /** Format: date-time */
+              filledAt: string;
+            }[];
             allowedCommands: (
               | 'assign'
               | 'reassign'
@@ -6995,6 +7459,19 @@ export interface operations {
               /** Format: date-time */
               collectedAt: string;
             }[];
+            fuelFills: {
+              /** Format: uuid */
+              id: string;
+              /** @enum {string} */
+              fuel: 'petrol' | 'diesel' | 'cng';
+              quantityMilli: number;
+              costPaise: number;
+              /** @enum {string} */
+              paidBy: 'driver_cash' | 'owner' | 'fuel_card';
+              isFullTank: boolean;
+              /** Format: date-time */
+              filledAt: string;
+            }[];
             allowedCommands: (
               | 'assign'
               | 'reassign'
@@ -7203,6 +7680,19 @@ export interface operations {
               reference: string | null;
               /** Format: date-time */
               collectedAt: string;
+            }[];
+            fuelFills: {
+              /** Format: uuid */
+              id: string;
+              /** @enum {string} */
+              fuel: 'petrol' | 'diesel' | 'cng';
+              quantityMilli: number;
+              costPaise: number;
+              /** @enum {string} */
+              paidBy: 'driver_cash' | 'owner' | 'fuel_card';
+              isFullTank: boolean;
+              /** Format: date-time */
+              filledAt: string;
             }[];
             allowedCommands: (
               | 'assign'
@@ -8105,6 +8595,19 @@ export interface operations {
               /** Format: date-time */
               collectedAt: string;
             }[];
+            fuelFills: {
+              /** Format: uuid */
+              id: string;
+              /** @enum {string} */
+              fuel: 'petrol' | 'diesel' | 'cng';
+              quantityMilli: number;
+              costPaise: number;
+              /** @enum {string} */
+              paidBy: 'driver_cash' | 'owner' | 'fuel_card';
+              isFullTank: boolean;
+              /** Format: date-time */
+              filledAt: string;
+            }[];
             allowedCommands: (
               | 'assign'
               | 'reassign'
@@ -8329,6 +8832,63 @@ export interface operations {
               refId: string;
               amountPaise: number;
               description: string;
+              item:
+                | (
+                    | {
+                        /** @constant */
+                        kind: 'trip';
+                        trip: {
+                          from: string;
+                          to: string | null;
+                          registrationNo: string | null;
+                        };
+                        cancelled: boolean;
+                      }
+                    | {
+                        /** @constant */
+                        kind: 'charge';
+                        /** @enum {string} */
+                        chargeKind:
+                          | 'toll'
+                          | 'parking'
+                          | 'state_tax'
+                          | 'driver_allowance'
+                          | 'night_charge'
+                          | 'extra_km'
+                          | 'other';
+                        amountPaise: number;
+                        paidByDriver: boolean;
+                        trip: {
+                          from: string;
+                          to: string | null;
+                          registrationNo: string | null;
+                        } | null;
+                      }
+                    | {
+                        /** @constant */
+                        kind: 'collection';
+                        /** @enum {string} */
+                        method: 'cash' | 'upi' | 'card';
+                        amountPaise: number;
+                        reference: string | null;
+                        trip: {
+                          from: string;
+                          to: string | null;
+                          registrationNo: string | null;
+                        } | null;
+                      }
+                    | {
+                        /** @constant */
+                        kind: 'fuel_fill';
+                        /** @enum {string} */
+                        fuel: 'petrol' | 'diesel' | 'cng';
+                        quantityMilli: number;
+                        costPaise: number;
+                        /** @enum {string} */
+                        paidBy: 'driver_cash' | 'owner' | 'fuel_card';
+                      }
+                  )
+                | null;
               originalDate: string | null;
             }[];
           };
@@ -8456,6 +9016,63 @@ export interface operations {
               refId: string;
               amountPaise: number;
               description: string;
+              item:
+                | (
+                    | {
+                        /** @constant */
+                        kind: 'trip';
+                        trip: {
+                          from: string;
+                          to: string | null;
+                          registrationNo: string | null;
+                        };
+                        cancelled: boolean;
+                      }
+                    | {
+                        /** @constant */
+                        kind: 'charge';
+                        /** @enum {string} */
+                        chargeKind:
+                          | 'toll'
+                          | 'parking'
+                          | 'state_tax'
+                          | 'driver_allowance'
+                          | 'night_charge'
+                          | 'extra_km'
+                          | 'other';
+                        amountPaise: number;
+                        paidByDriver: boolean;
+                        trip: {
+                          from: string;
+                          to: string | null;
+                          registrationNo: string | null;
+                        } | null;
+                      }
+                    | {
+                        /** @constant */
+                        kind: 'collection';
+                        /** @enum {string} */
+                        method: 'cash' | 'upi' | 'card';
+                        amountPaise: number;
+                        reference: string | null;
+                        trip: {
+                          from: string;
+                          to: string | null;
+                          registrationNo: string | null;
+                        } | null;
+                      }
+                    | {
+                        /** @constant */
+                        kind: 'fuel_fill';
+                        /** @enum {string} */
+                        fuel: 'petrol' | 'diesel' | 'cng';
+                        quantityMilli: number;
+                        costPaise: number;
+                        /** @enum {string} */
+                        paidBy: 'driver_cash' | 'owner' | 'fuel_card';
+                      }
+                  )
+                | null;
               originalDate: string | null;
             }[];
           };
@@ -8549,6 +9166,105 @@ export interface operations {
             severity: 'info' | 'warning' | 'critical';
             title: string;
             explanation: string;
+            message:
+              | (
+                  | {
+                      /** @constant */
+                      key: 'fuel_efficiency_low';
+                      params: {
+                        vehicle: {
+                          registrationNo: string;
+                          model: string;
+                          /** @enum {string} */
+                          fuelType: 'petrol' | 'diesel' | 'cng' | 'petrol_cng';
+                        };
+                        from: string;
+                        to: string;
+                        distanceKm: number;
+                        percentWorse: number;
+                        drivers: string[];
+                        /** @enum {string} */
+                        fuel: 'petrol' | 'diesel' | 'cng';
+                        used: number;
+                        value: number;
+                        baseline: number;
+                        extraUnits: number;
+                        extraCostPaise: number;
+                      };
+                    }
+                  | {
+                      /** @constant */
+                      key: 'fuel_cost_high';
+                      params: {
+                        vehicle: {
+                          registrationNo: string;
+                          model: string;
+                          /** @enum {string} */
+                          fuelType: 'petrol' | 'diesel' | 'cng' | 'petrol_cng';
+                        };
+                        from: string;
+                        to: string;
+                        distanceKm: number;
+                        percentWorse: number;
+                        drivers: string[];
+                        costPaise: number;
+                        paisePerKm: number;
+                        baselinePaisePerKm: number;
+                        petrolCostPaise: number;
+                      };
+                    }
+                  | {
+                      /** @constant */
+                      key: 'odo_gps_mismatch';
+                      params: {
+                        tripStartedAt: string;
+                        from: string;
+                        to: string | null;
+                        registrationNo: string | null;
+                        odometerKm: number;
+                        gpsKm: number;
+                        excessPct: number;
+                        tolerancePct: number;
+                      };
+                    }
+                  | {
+                      /** @constant */
+                      key: 'document_expiring';
+                      params: {
+                        /** @enum {string} */
+                        docType: 'rc' | 'insurance' | 'permit' | 'puc' | 'driving_licence';
+                        /** @enum {string} */
+                        subjectKind: 'vehicle' | 'driver';
+                        subject: string;
+                        expiresOn: string;
+                        daysLeft: number;
+                      };
+                    }
+                  | {
+                      /** @constant */
+                      key: 'document_expired';
+                      params: {
+                        /** @enum {string} */
+                        docType: 'rc' | 'insurance' | 'permit' | 'puc' | 'driving_licence';
+                        /** @enum {string} */
+                        subjectKind: 'vehicle' | 'driver';
+                        subject: string;
+                        expiresOn: string;
+                        daysLeft: number;
+                      };
+                    }
+                  | {
+                      /** @constant */
+                      key: 'cancellation_requested';
+                      params: {
+                        from: string;
+                        driverName: string | null;
+                        reason: string;
+                        endKm: number;
+                      };
+                    }
+                )
+              | null;
             /** @enum {string} */
             status: 'open' | 'acknowledged' | 'resolved' | 'dismissed';
             subjectType: string;
@@ -8720,6 +9436,105 @@ export interface operations {
             severity: 'info' | 'warning' | 'critical';
             title: string;
             explanation: string;
+            message:
+              | (
+                  | {
+                      /** @constant */
+                      key: 'fuel_efficiency_low';
+                      params: {
+                        vehicle: {
+                          registrationNo: string;
+                          model: string;
+                          /** @enum {string} */
+                          fuelType: 'petrol' | 'diesel' | 'cng' | 'petrol_cng';
+                        };
+                        from: string;
+                        to: string;
+                        distanceKm: number;
+                        percentWorse: number;
+                        drivers: string[];
+                        /** @enum {string} */
+                        fuel: 'petrol' | 'diesel' | 'cng';
+                        used: number;
+                        value: number;
+                        baseline: number;
+                        extraUnits: number;
+                        extraCostPaise: number;
+                      };
+                    }
+                  | {
+                      /** @constant */
+                      key: 'fuel_cost_high';
+                      params: {
+                        vehicle: {
+                          registrationNo: string;
+                          model: string;
+                          /** @enum {string} */
+                          fuelType: 'petrol' | 'diesel' | 'cng' | 'petrol_cng';
+                        };
+                        from: string;
+                        to: string;
+                        distanceKm: number;
+                        percentWorse: number;
+                        drivers: string[];
+                        costPaise: number;
+                        paisePerKm: number;
+                        baselinePaisePerKm: number;
+                        petrolCostPaise: number;
+                      };
+                    }
+                  | {
+                      /** @constant */
+                      key: 'odo_gps_mismatch';
+                      params: {
+                        tripStartedAt: string;
+                        from: string;
+                        to: string | null;
+                        registrationNo: string | null;
+                        odometerKm: number;
+                        gpsKm: number;
+                        excessPct: number;
+                        tolerancePct: number;
+                      };
+                    }
+                  | {
+                      /** @constant */
+                      key: 'document_expiring';
+                      params: {
+                        /** @enum {string} */
+                        docType: 'rc' | 'insurance' | 'permit' | 'puc' | 'driving_licence';
+                        /** @enum {string} */
+                        subjectKind: 'vehicle' | 'driver';
+                        subject: string;
+                        expiresOn: string;
+                        daysLeft: number;
+                      };
+                    }
+                  | {
+                      /** @constant */
+                      key: 'document_expired';
+                      params: {
+                        /** @enum {string} */
+                        docType: 'rc' | 'insurance' | 'permit' | 'puc' | 'driving_licence';
+                        /** @enum {string} */
+                        subjectKind: 'vehicle' | 'driver';
+                        subject: string;
+                        expiresOn: string;
+                        daysLeft: number;
+                      };
+                    }
+                  | {
+                      /** @constant */
+                      key: 'cancellation_requested';
+                      params: {
+                        from: string;
+                        driverName: string | null;
+                        reason: string;
+                        endKm: number;
+                      };
+                    }
+                )
+              | null;
             /** @enum {string} */
             status: 'open' | 'acknowledged' | 'resolved' | 'dismissed';
             subjectType: string;

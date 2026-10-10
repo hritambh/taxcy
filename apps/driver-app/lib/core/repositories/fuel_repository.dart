@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:drift/drift.dart' show Value;
 import 'package:uuid/uuid.dart';
 
 import '../api/api.dart';
@@ -57,6 +58,7 @@ class FuelRepository {
       );
     }
     final id = const Uuid().v4();
+    final filledAt = _now();
     await db.transaction(() async {
       for (final photo in [input.receipt, input.odometerPhoto]) {
         await savePhoto(db, photo);
@@ -81,11 +83,45 @@ class FuelRepository {
           'isFullTank': input.isFullTank,
           'receiptMediaId': input.receipt.id,
           'paidBy': input.paidBy,
-          'filledAt': _now().toUtc().toIso8601String(),
+          'filledAt': filledAt.toUtc().toIso8601String(),
         },
-      });
+        // Tagged with the trip so a sync doesn't replace the trip's local view
+        // (which already shows this fill) until the fill has reached the server.
+      }, tripId: input.tripId);
+      final tripId = input.tripId;
+      if (tripId != null) {
+        await _showOnTrip(
+          tripId,
+          TripFuelFill(
+            id: id,
+            fuel: input.fuel,
+            quantityMilli: input.quantityMilli,
+            costPaise: input.costPaise,
+            paidBy: input.paidBy,
+            isFullTank: input.isFullTank,
+            filledAt: filledAt,
+          ),
+        );
+      }
     });
     return id;
+  }
+
+  Future<void> _showOnTrip(String tripId, TripFuelFill fill) async {
+    final row = await (db.select(
+      db.cachedTrips,
+    )..where((t) => t.id.equals(tripId))).getSingleOrNull();
+    if (row == null) return;
+    final trip = Trip.fromJson(asJsonMap(jsonDecode(row.json)));
+    await (db.update(db.cachedTrips)..where((t) => t.id.equals(tripId))).write(
+      CachedTripsCompanion(
+        json: Value(
+          jsonEncode(
+            trip.copyWith(fuelFills: [...trip.fuelFills, fill]).toJson(),
+          ),
+        ),
+      ),
+    );
   }
 
   /// Vehicles the driver can pick, cached for offline use.

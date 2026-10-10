@@ -395,6 +395,55 @@ describe('visibility and charges', () => {
     expect(theirs.body).toEqual([]);
   });
 
+  it('a running trip shows the fuel filled during it (voided fills drop out)', async () => {
+    const trip = await newTrip();
+    await start(trip, driver.session).expect(200);
+    const fill = async (km: number) =>
+      (
+        await request(h.http)
+          .post('/v1/fuel-fills')
+          .set(...bearer(driver.session))
+          .send({
+            id: randomUUID(),
+            vehicleId: trip.vehicleId,
+            tripId: trip.id,
+            fuel: 'diesel',
+            quantityMilli: 20_000,
+            costPaise: 180_000,
+            odometer: await odometer(h, driver.session, km),
+            isFullTank: false,
+            paidBy: 'driver_cash',
+            filledAt: new Date().toISOString(),
+          })
+          .expect(201)
+      ).body as { id: string };
+    const kept = await fill(48_300);
+    const voided = await fill(48_350);
+    await request(h.http)
+      .post(`/v1/fuel-fills/${voided.id}/void`)
+      .set(...bearer(owner))
+      .send({ reason: 'Logged twice' })
+      .expect(200);
+
+    const mine = (
+      await request(h.http)
+        .get('/v1/me/trips')
+        .set(...bearer(driver.session))
+        .expect(200)
+    ).body as Trip[];
+    expect(mine.find((t) => t.id === trip.id)?.fuelFills).toEqual([
+      {
+        id: kept.id,
+        fuel: 'diesel',
+        quantityMilli: 20_000,
+        costPaise: 180_000,
+        paidBy: 'driver_cash',
+        isFullTank: false,
+        filledAt: expect.any(String) as string,
+      },
+    ]);
+  });
+
   it('charges are idempotent on id; only staff can void them', async () => {
     const trip = await newTrip();
     await start(trip, driver.session).expect(200);

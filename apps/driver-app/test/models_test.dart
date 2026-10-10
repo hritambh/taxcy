@@ -26,6 +26,32 @@ void main() {
       expect(again.toJson(), original.toJson());
     });
 
+    test(
+      'parses fuel filled during the trip, and tolerates caches without it',
+      () {
+        final trip = Trip.fromJson({
+          ...tripJson(status: 'started'),
+          'fuelFills': [
+            {
+              'id': 'f1',
+              'fuel': 'cng',
+              'quantityMilli': 8500,
+              'costPaise': 76500,
+              'paidBy': 'driver_cash',
+              'isFullTank': true,
+              'filledAt': '2026-10-10T06:00:00.000Z',
+            },
+          ],
+        });
+        expect(trip.fuelFills.single.unit, 'kg');
+        expect(Trip.fromJson(trip.toJson()).fuelFills.single.costPaise, 76500);
+        expect(
+          Trip.fromJson(tripJson()..remove('fuelFills')).fuelFills,
+          isEmpty,
+        );
+      },
+    );
+
     test('reports the field that has the wrong shape', () {
       final broken = tripJson()..['quotedFarePaise'] = 'lots';
       expect(

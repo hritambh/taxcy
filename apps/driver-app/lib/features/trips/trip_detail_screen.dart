@@ -106,6 +106,17 @@ class TripDetailScreen extends ConsumerWidget {
                       trailing: Text(formatInr(c.amountPaise)),
                     ),
                 ],
+                if (t.fuelFills.isNotEmpty) ...[
+                  const SizedBox(height: 16),
+                  Text('Fuel', style: Theme.of(context).textTheme.titleSmall),
+                  for (final f in t.fuelFills)
+                    ListTile(
+                      dense: true,
+                      title: Text(fuelFillLabel(f)),
+                      subtitle: Text(paidByLabels[f.paidBy] ?? f.paidBy),
+                      trailing: Text(formatInr(f.costPaise)),
+                    ),
+                ],
                 if (t.collections.isNotEmpty) ...[
                   const SizedBox(height: 8),
                   Text(

@@ -77,7 +77,7 @@ export class TripsRepository {
       .flatMap((r) => [r.startOdometerId, r.endOdometerId])
       .filter((x): x is string => !!x);
     const customerIds = rows.map((r) => r.customerId).filter((x): x is string => !!x);
-    const [points, requests, customers] = await Promise.all([
+    const [points, requests, customers, fills] = await Promise.all([
       tx.$queryRaw<
         {
           id: string;
@@ -96,6 +96,10 @@ export class TripsRepository {
         orderBy: { createdAt: 'desc' },
       }),
       tx.customer.findMany({ where: { id: { in: customerIds } } }),
+      tx.fuelFill.findMany({
+        where: { tripId: { in: ids }, voidedAt: null },
+        orderBy: { filledAt: 'asc' },
+      }),
     ]);
     const customerById = new Map(customers.map((c) => [c.id, c]));
     const requestOdometerIds = requests.map((r) => r.endOdometerId).filter((x): x is string => !!x);
@@ -181,6 +185,17 @@ export class TripsRepository {
           reference: c.reference,
           collectedAt: c.collectedAt,
         })),
+        fuelFills: fills
+          .filter((f) => f.tripId === row.id)
+          .map((f) => ({
+            id: f.id,
+            fuel: f.fuel,
+            quantityMilli: f.quantityMilli,
+            costPaise: toNumber(f.costPaise),
+            paidBy: f.paidBy as Trip['fuelFills'][number]['paidBy'],
+            isFullTank: f.isFullTank,
+            filledAt: f.filledAt,
+          })),
         allowedCommands: allowedCommands({ status: row.status, cancellationPending: pending }),
         version: row.version,
         createdAt: row.createdAt,

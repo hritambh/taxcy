@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:taxcy_driver/core/api/api.dart';
 import 'package:taxcy_driver/core/api/models.dart';
 import 'package:taxcy_driver/core/db/database.dart';
+import 'package:taxcy_driver/core/repositories/fuel_repository.dart';
 import 'package:taxcy_driver/core/repositories/trips_repository.dart';
 import 'package:taxcy_driver/core/sync/outbox.dart';
 import 'package:taxcy_driver/core/sync/sync_engine.dart';
@@ -60,6 +61,20 @@ void main() {
       },
     );
 
+    test('dropping a trip’s writes keeps its fuel fills', () async {
+      final outbox = Outbox(db, now: () => now);
+      await outbox.enqueue(OutboxKind.fuelFill, {
+        'body': <String, Object?>{},
+      }, tripId: tripId);
+      await outbox.enqueue(OutboxKind.tripCharge, {
+        'tripId': tripId,
+      }, tripId: tripId);
+      expect(await outbox.dropTripWrites(tripId), 1);
+      expect((await outbox.pending()).map((i) => i.kind), [
+        OutboxKind.fuelFill,
+      ]);
+    });
+
     test('dropping a trip’s writes keeps its photo uploads', () async {
       final outbox = Outbox(db, now: () => now);
       await outbox.enqueue(OutboxKind.media, {'photoId': 'p1'}, tripId: tripId);
@@ -72,6 +87,44 @@ void main() {
       expect(await outbox.dropTripWrites(tripId), 2);
       expect((await outbox.pending()).map((i) => i.kind), [OutboxKind.media]);
     });
+  });
+
+  group('fuel during a trip', () {
+    const vehicle = Vehicle(
+      id: '0199c7a2-0000-7000-8000-0000000000aa',
+      registrationNo: 'MH12AB1234',
+      model: 'Innova Crysta',
+      fuelType: 'diesel',
+    );
+
+    test(
+      'a fill shows on the trip at once and survives a pull until it has synced',
+      () async {
+        await engine.cacheTrip(Trip.fromJson(tripJson(status: 'started')));
+        final fuel = FuelRepository(db, api, now: () => now);
+        final id = await fuel.record(
+          FuelFillInput(
+            vehicle: vehicle,
+            fuel: 'diesel',
+            quantityMilli: 20000,
+            costPaise: 180000,
+            isFullTank: false,
+            paidBy: 'driver_cash',
+            odometerKm: 48300,
+            odometerPhoto: fakePhoto('odo'),
+            receipt: fakePhoto('receipt', kind: 'fuel_receipt'),
+            tripId: tripId,
+          ),
+        );
+        expect((await cached()).fuelFills.map((f) => f.id), [id]);
+
+        // The server doesn't know the fill yet; its copy of the trip must not
+        // replace the local one while the fill is queued.
+        api.trips[tripId] = tripJson(status: 'started');
+        await engine.pullTrips();
+        expect((await cached()).fuelFills.map((f) => f.id), [id]);
+      },
+    );
   });
 
   group('local-first trip actions', () {

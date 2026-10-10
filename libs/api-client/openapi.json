@@ -1420,6 +1420,383 @@
         }
       }
     },
+    "/members": {
+      "get": {
+        "operationId": "getMembers",
+        "summary": "People with access to the org, with their roles",
+        "tags": ["members"],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      "userId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      "name": {
+                        "type": ["string", "null"]
+                      },
+                      "phone": {
+                        "type": "string",
+                        "pattern": "^\\+91[6-9]\\d{9}$"
+                      },
+                      "roles": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": ["owner", "manager", "driver"]
+                        }
+                      },
+                      "status": {
+                        "type": "string",
+                        "enum": ["invited", "active", "suspended"]
+                      },
+                      "createdAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                      }
+                    },
+                    "required": ["id", "userId", "name", "phone", "roles", "status", "createdAt"]
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "VALIDATION_FAILED",
+                            "UNAUTHENTICATED",
+                            "TOKEN_EXPIRED",
+                            "FORBIDDEN_ROLE",
+                            "NO_ACTIVE_ORG",
+                            "NOT_FOUND",
+                            "ILLEGAL_TRANSITION",
+                            "TRIP_CANCELLED",
+                            "TRIP_REASSIGNED",
+                            "VEHICLE_BUSY",
+                            "DRIVER_BUSY",
+                            "CANCELLATION_PENDING",
+                            "ALREADY_SETTLED",
+                            "IDEMPOTENCY_CONFLICT",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "VERSION_CONFLICT",
+                            "CONFLICT",
+                            "FUEL_TYPE_MISMATCH",
+                            "ODOMETER_BEFORE_START",
+                            "OTP_INVALID",
+                            "OTP_EXPIRED",
+                            "RATE_LIMITED",
+                            "UPLOAD_NOT_FOUND",
+                            "UPLOAD_MISMATCH",
+                            "INTERNAL"
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {},
+                        "requestId": {
+                          "type": "string"
+                        }
+                      },
+                      "required": ["code", "message"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/members/managers": {
+      "post": {
+        "operationId": "postMembersManagers",
+        "summary": "Give someone manager access by phone (managers run trips, alerts and settlements, but cannot change settings or pay rules)",
+        "tags": ["members"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "phone": {
+                    "type": "string",
+                    "pattern": "^\\+91[6-9]\\d{9}$"
+                  }
+                },
+                "required": ["name", "phone"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "userId": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "name": {
+                      "type": ["string", "null"]
+                    },
+                    "phone": {
+                      "type": "string",
+                      "pattern": "^\\+91[6-9]\\d{9}$"
+                    },
+                    "roles": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "enum": ["owner", "manager", "driver"]
+                      }
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": ["invited", "active", "suspended"]
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                    }
+                  },
+                  "required": ["id", "userId", "name", "phone", "roles", "status", "createdAt"]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "VALIDATION_FAILED",
+                            "UNAUTHENTICATED",
+                            "TOKEN_EXPIRED",
+                            "FORBIDDEN_ROLE",
+                            "NO_ACTIVE_ORG",
+                            "NOT_FOUND",
+                            "ILLEGAL_TRANSITION",
+                            "TRIP_CANCELLED",
+                            "TRIP_REASSIGNED",
+                            "VEHICLE_BUSY",
+                            "DRIVER_BUSY",
+                            "CANCELLATION_PENDING",
+                            "ALREADY_SETTLED",
+                            "IDEMPOTENCY_CONFLICT",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "VERSION_CONFLICT",
+                            "CONFLICT",
+                            "FUEL_TYPE_MISMATCH",
+                            "ODOMETER_BEFORE_START",
+                            "OTP_INVALID",
+                            "OTP_EXPIRED",
+                            "RATE_LIMITED",
+                            "UPLOAD_NOT_FOUND",
+                            "UPLOAD_MISMATCH",
+                            "INTERNAL"
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {},
+                        "requestId": {
+                          "type": "string"
+                        }
+                      },
+                      "required": ["code", "message"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/members/{id}/manager": {
+      "delete": {
+        "operationId": "deleteMembersIdManager",
+        "summary": "Take away manager access. Other roles (e.g. driver) stay; with none left the member is suspended",
+        "tags": ["members"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "userId": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "name": {
+                      "type": ["string", "null"]
+                    },
+                    "phone": {
+                      "type": "string",
+                      "pattern": "^\\+91[6-9]\\d{9}$"
+                    },
+                    "roles": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "enum": ["owner", "manager", "driver"]
+                      }
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": ["invited", "active", "suspended"]
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                    }
+                  },
+                  "required": ["id", "userId", "name", "phone", "roles", "status", "createdAt"]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "VALIDATION_FAILED",
+                            "UNAUTHENTICATED",
+                            "TOKEN_EXPIRED",
+                            "FORBIDDEN_ROLE",
+                            "NO_ACTIVE_ORG",
+                            "NOT_FOUND",
+                            "ILLEGAL_TRANSITION",
+                            "TRIP_CANCELLED",
+                            "TRIP_REASSIGNED",
+                            "VEHICLE_BUSY",
+                            "DRIVER_BUSY",
+                            "CANCELLATION_PENDING",
+                            "ALREADY_SETTLED",
+                            "IDEMPOTENCY_CONFLICT",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "VERSION_CONFLICT",
+                            "CONFLICT",
+                            "FUEL_TYPE_MISMATCH",
+                            "ODOMETER_BEFORE_START",
+                            "OTP_INVALID",
+                            "OTP_EXPIRED",
+                            "RATE_LIMITED",
+                            "UPLOAD_NOT_FOUND",
+                            "UPLOAD_MISMATCH",
+                            "INTERNAL"
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {},
+                        "requestId": {
+                          "type": "string"
+                        }
+                      },
+                      "required": ["code", "message"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/media": {
       "post": {
         "operationId": "postMedia",
@@ -6045,6 +6422,54 @@
                           "required": ["id", "method", "amountPaise", "reference", "collectedAt"]
                         }
                       },
+                      "fuelFills": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "format": "uuid",
+                              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                            },
+                            "fuel": {
+                              "type": "string",
+                              "enum": ["petrol", "diesel", "cng"]
+                            },
+                            "quantityMilli": {
+                              "type": "integer",
+                              "minimum": -9007199254740991,
+                              "maximum": 9007199254740991
+                            },
+                            "costPaise": {
+                              "type": "integer",
+                              "minimum": 0,
+                              "maximum": 9007199254740991
+                            },
+                            "paidBy": {
+                              "type": "string",
+                              "enum": ["driver_cash", "owner", "fuel_card"]
+                            },
+                            "isFullTank": {
+                              "type": "boolean"
+                            },
+                            "filledAt": {
+                              "type": "string",
+                              "format": "date-time",
+                              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "fuel",
+                            "quantityMilli",
+                            "costPaise",
+                            "paidBy",
+                            "isFullTank",
+                            "filledAt"
+                          ]
+                        }
+                      },
                       "allowedCommands": {
                         "type": "array",
                         "items": {
@@ -6103,6 +6528,7 @@
                       "cancellationRequest",
                       "charges",
                       "collections",
+                      "fuelFills",
                       "allowedCommands",
                       "version",
                       "createdAt",
@@ -6863,6 +7289,54 @@
                         "required": ["id", "method", "amountPaise", "reference", "collectedAt"]
                       }
                     },
+                    "fuelFills": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "fuel": {
+                            "type": "string",
+                            "enum": ["petrol", "diesel", "cng"]
+                          },
+                          "quantityMilli": {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991
+                          },
+                          "costPaise": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 9007199254740991
+                          },
+                          "paidBy": {
+                            "type": "string",
+                            "enum": ["driver_cash", "owner", "fuel_card"]
+                          },
+                          "isFullTank": {
+                            "type": "boolean"
+                          },
+                          "filledAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "fuel",
+                          "quantityMilli",
+                          "costPaise",
+                          "paidBy",
+                          "isFullTank",
+                          "filledAt"
+                        ]
+                      }
+                    },
                     "allowedCommands": {
                       "type": "array",
                       "items": {
@@ -6921,6 +7395,7 @@
                     "cancellationRequest",
                     "charges",
                     "collections",
+                    "fuelFills",
                     "allowedCommands",
                     "version",
                     "createdAt",
@@ -7562,6 +8037,54 @@
                         "required": ["id", "method", "amountPaise", "reference", "collectedAt"]
                       }
                     },
+                    "fuelFills": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "fuel": {
+                            "type": "string",
+                            "enum": ["petrol", "diesel", "cng"]
+                          },
+                          "quantityMilli": {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991
+                          },
+                          "costPaise": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 9007199254740991
+                          },
+                          "paidBy": {
+                            "type": "string",
+                            "enum": ["driver_cash", "owner", "fuel_card"]
+                          },
+                          "isFullTank": {
+                            "type": "boolean"
+                          },
+                          "filledAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "fuel",
+                          "quantityMilli",
+                          "costPaise",
+                          "paidBy",
+                          "isFullTank",
+                          "filledAt"
+                        ]
+                      }
+                    },
                     "allowedCommands": {
                       "type": "array",
                       "items": {
@@ -7620,6 +8143,7 @@
                     "cancellationRequest",
                     "charges",
                     "collections",
+                    "fuelFills",
                     "allowedCommands",
                     "version",
                     "createdAt",
@@ -8374,6 +8898,54 @@
                         "required": ["id", "method", "amountPaise", "reference", "collectedAt"]
                       }
                     },
+                    "fuelFills": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "fuel": {
+                            "type": "string",
+                            "enum": ["petrol", "diesel", "cng"]
+                          },
+                          "quantityMilli": {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991
+                          },
+                          "costPaise": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 9007199254740991
+                          },
+                          "paidBy": {
+                            "type": "string",
+                            "enum": ["driver_cash", "owner", "fuel_card"]
+                          },
+                          "isFullTank": {
+                            "type": "boolean"
+                          },
+                          "filledAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "fuel",
+                          "quantityMilli",
+                          "costPaise",
+                          "paidBy",
+                          "isFullTank",
+                          "filledAt"
+                        ]
+                      }
+                    },
                     "allowedCommands": {
                       "type": "array",
                       "items": {
@@ -8432,6 +9004,7 @@
                     "cancellationRequest",
                     "charges",
                     "collections",
+                    "fuelFills",
                     "allowedCommands",
                     "version",
                     "createdAt",
@@ -9301,6 +9874,54 @@
                         "required": ["id", "method", "amountPaise", "reference", "collectedAt"]
                       }
                     },
+                    "fuelFills": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "fuel": {
+                            "type": "string",
+                            "enum": ["petrol", "diesel", "cng"]
+                          },
+                          "quantityMilli": {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991
+                          },
+                          "costPaise": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 9007199254740991
+                          },
+                          "paidBy": {
+                            "type": "string",
+                            "enum": ["driver_cash", "owner", "fuel_card"]
+                          },
+                          "isFullTank": {
+                            "type": "boolean"
+                          },
+                          "filledAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "fuel",
+                          "quantityMilli",
+                          "costPaise",
+                          "paidBy",
+                          "isFullTank",
+                          "filledAt"
+                        ]
+                      }
+                    },
                     "allowedCommands": {
                       "type": "array",
                       "items": {
@@ -9359,6 +9980,7 @@
                     "cancellationRequest",
                     "charges",
                     "collections",
+                    "fuelFills",
                     "allowedCommands",
                     "version",
                     "createdAt",
@@ -10009,6 +10631,54 @@
                         "required": ["id", "method", "amountPaise", "reference", "collectedAt"]
                       }
                     },
+                    "fuelFills": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "fuel": {
+                            "type": "string",
+                            "enum": ["petrol", "diesel", "cng"]
+                          },
+                          "quantityMilli": {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991
+                          },
+                          "costPaise": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 9007199254740991
+                          },
+                          "paidBy": {
+                            "type": "string",
+                            "enum": ["driver_cash", "owner", "fuel_card"]
+                          },
+                          "isFullTank": {
+                            "type": "boolean"
+                          },
+                          "filledAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "fuel",
+                          "quantityMilli",
+                          "costPaise",
+                          "paidBy",
+                          "isFullTank",
+                          "filledAt"
+                        ]
+                      }
+                    },
                     "allowedCommands": {
                       "type": "array",
                       "items": {
@@ -10067,6 +10737,7 @@
                     "cancellationRequest",
                     "charges",
                     "collections",
+                    "fuelFills",
                     "allowedCommands",
                     "version",
                     "createdAt",
@@ -10762,6 +11433,54 @@
                         "required": ["id", "method", "amountPaise", "reference", "collectedAt"]
                       }
                     },
+                    "fuelFills": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "fuel": {
+                            "type": "string",
+                            "enum": ["petrol", "diesel", "cng"]
+                          },
+                          "quantityMilli": {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991
+                          },
+                          "costPaise": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 9007199254740991
+                          },
+                          "paidBy": {
+                            "type": "string",
+                            "enum": ["driver_cash", "owner", "fuel_card"]
+                          },
+                          "isFullTank": {
+                            "type": "boolean"
+                          },
+                          "filledAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "fuel",
+                          "quantityMilli",
+                          "costPaise",
+                          "paidBy",
+                          "isFullTank",
+                          "filledAt"
+                        ]
+                      }
+                    },
                     "allowedCommands": {
                       "type": "array",
                       "items": {
@@ -10820,6 +11539,7 @@
                     "cancellationRequest",
                     "charges",
                     "collections",
+                    "fuelFills",
                     "allowedCommands",
                     "version",
                     "createdAt",
@@ -11593,6 +12313,54 @@
                         "required": ["id", "method", "amountPaise", "reference", "collectedAt"]
                       }
                     },
+                    "fuelFills": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "fuel": {
+                            "type": "string",
+                            "enum": ["petrol", "diesel", "cng"]
+                          },
+                          "quantityMilli": {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991
+                          },
+                          "costPaise": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 9007199254740991
+                          },
+                          "paidBy": {
+                            "type": "string",
+                            "enum": ["driver_cash", "owner", "fuel_card"]
+                          },
+                          "isFullTank": {
+                            "type": "boolean"
+                          },
+                          "filledAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "fuel",
+                          "quantityMilli",
+                          "costPaise",
+                          "paidBy",
+                          "isFullTank",
+                          "filledAt"
+                        ]
+                      }
+                    },
                     "allowedCommands": {
                       "type": "array",
                       "items": {
@@ -11651,6 +12419,7 @@
                     "cancellationRequest",
                     "charges",
                     "collections",
+                    "fuelFills",
                     "allowedCommands",
                     "version",
                     "createdAt",
@@ -12320,6 +13089,54 @@
                         "required": ["id", "method", "amountPaise", "reference", "collectedAt"]
                       }
                     },
+                    "fuelFills": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "fuel": {
+                            "type": "string",
+                            "enum": ["petrol", "diesel", "cng"]
+                          },
+                          "quantityMilli": {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991
+                          },
+                          "costPaise": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 9007199254740991
+                          },
+                          "paidBy": {
+                            "type": "string",
+                            "enum": ["driver_cash", "owner", "fuel_card"]
+                          },
+                          "isFullTank": {
+                            "type": "boolean"
+                          },
+                          "filledAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "fuel",
+                          "quantityMilli",
+                          "costPaise",
+                          "paidBy",
+                          "isFullTank",
+                          "filledAt"
+                        ]
+                      }
+                    },
                     "allowedCommands": {
                       "type": "array",
                       "items": {
@@ -12378,6 +13195,7 @@
                     "cancellationRequest",
                     "charges",
                     "collections",
+                    "fuelFills",
                     "allowedCommands",
                     "version",
                     "createdAt",
@@ -13083,6 +13901,54 @@
                         "required": ["id", "method", "amountPaise", "reference", "collectedAt"]
                       }
                     },
+                    "fuelFills": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "fuel": {
+                            "type": "string",
+                            "enum": ["petrol", "diesel", "cng"]
+                          },
+                          "quantityMilli": {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991
+                          },
+                          "costPaise": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 9007199254740991
+                          },
+                          "paidBy": {
+                            "type": "string",
+                            "enum": ["driver_cash", "owner", "fuel_card"]
+                          },
+                          "isFullTank": {
+                            "type": "boolean"
+                          },
+                          "filledAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "fuel",
+                          "quantityMilli",
+                          "costPaise",
+                          "paidBy",
+                          "isFullTank",
+                          "filledAt"
+                        ]
+                      }
+                    },
                     "allowedCommands": {
                       "type": "array",
                       "items": {
@@ -13141,6 +14007,7 @@
                     "cancellationRequest",
                     "charges",
                     "collections",
+                    "fuelFills",
                     "allowedCommands",
                     "version",
                     "createdAt",
@@ -13814,6 +14681,54 @@
                         "required": ["id", "method", "amountPaise", "reference", "collectedAt"]
                       }
                     },
+                    "fuelFills": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "fuel": {
+                            "type": "string",
+                            "enum": ["petrol", "diesel", "cng"]
+                          },
+                          "quantityMilli": {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991
+                          },
+                          "costPaise": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 9007199254740991
+                          },
+                          "paidBy": {
+                            "type": "string",
+                            "enum": ["driver_cash", "owner", "fuel_card"]
+                          },
+                          "isFullTank": {
+                            "type": "boolean"
+                          },
+                          "filledAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "fuel",
+                          "quantityMilli",
+                          "costPaise",
+                          "paidBy",
+                          "isFullTank",
+                          "filledAt"
+                        ]
+                      }
+                    },
                     "allowedCommands": {
                       "type": "array",
                       "items": {
@@ -13872,6 +14787,7 @@
                     "cancellationRequest",
                     "charges",
                     "collections",
+                    "fuelFills",
                     "allowedCommands",
                     "version",
                     "createdAt",
@@ -14541,6 +15457,54 @@
                         "required": ["id", "method", "amountPaise", "reference", "collectedAt"]
                       }
                     },
+                    "fuelFills": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "fuel": {
+                            "type": "string",
+                            "enum": ["petrol", "diesel", "cng"]
+                          },
+                          "quantityMilli": {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991
+                          },
+                          "costPaise": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 9007199254740991
+                          },
+                          "paidBy": {
+                            "type": "string",
+                            "enum": ["driver_cash", "owner", "fuel_card"]
+                          },
+                          "isFullTank": {
+                            "type": "boolean"
+                          },
+                          "filledAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "fuel",
+                          "quantityMilli",
+                          "costPaise",
+                          "paidBy",
+                          "isFullTank",
+                          "filledAt"
+                        ]
+                      }
+                    },
                     "allowedCommands": {
                       "type": "array",
                       "items": {
@@ -14599,6 +15563,7 @@
                     "cancellationRequest",
                     "charges",
                     "collections",
+                    "fuelFills",
                     "allowedCommands",
                     "version",
                     "createdAt",
@@ -15249,6 +16214,54 @@
                         "required": ["id", "method", "amountPaise", "reference", "collectedAt"]
                       }
                     },
+                    "fuelFills": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "fuel": {
+                            "type": "string",
+                            "enum": ["petrol", "diesel", "cng"]
+                          },
+                          "quantityMilli": {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991
+                          },
+                          "costPaise": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 9007199254740991
+                          },
+                          "paidBy": {
+                            "type": "string",
+                            "enum": ["driver_cash", "owner", "fuel_card"]
+                          },
+                          "isFullTank": {
+                            "type": "boolean"
+                          },
+                          "filledAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "fuel",
+                          "quantityMilli",
+                          "costPaise",
+                          "paidBy",
+                          "isFullTank",
+                          "filledAt"
+                        ]
+                      }
+                    },
                     "allowedCommands": {
                       "type": "array",
                       "items": {
@@ -15307,6 +16320,7 @@
                     "cancellationRequest",
                     "charges",
                     "collections",
+                    "fuelFills",
                     "allowedCommands",
                     "version",
                     "createdAt",
@@ -15996,6 +17010,54 @@
                         "required": ["id", "method", "amountPaise", "reference", "collectedAt"]
                       }
                     },
+                    "fuelFills": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "fuel": {
+                            "type": "string",
+                            "enum": ["petrol", "diesel", "cng"]
+                          },
+                          "quantityMilli": {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991
+                          },
+                          "costPaise": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 9007199254740991
+                          },
+                          "paidBy": {
+                            "type": "string",
+                            "enum": ["driver_cash", "owner", "fuel_card"]
+                          },
+                          "isFullTank": {
+                            "type": "boolean"
+                          },
+                          "filledAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "fuel",
+                          "quantityMilli",
+                          "costPaise",
+                          "paidBy",
+                          "isFullTank",
+                          "filledAt"
+                        ]
+                      }
+                    },
                     "allowedCommands": {
                       "type": "array",
                       "items": {
@@ -16054,6 +17116,7 @@
                     "cancellationRequest",
                     "charges",
                     "collections",
+                    "fuelFills",
                     "allowedCommands",
                     "version",
                     "createdAt",
@@ -16705,6 +17768,54 @@
                         "required": ["id", "method", "amountPaise", "reference", "collectedAt"]
                       }
                     },
+                    "fuelFills": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "fuel": {
+                            "type": "string",
+                            "enum": ["petrol", "diesel", "cng"]
+                          },
+                          "quantityMilli": {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991
+                          },
+                          "costPaise": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 9007199254740991
+                          },
+                          "paidBy": {
+                            "type": "string",
+                            "enum": ["driver_cash", "owner", "fuel_card"]
+                          },
+                          "isFullTank": {
+                            "type": "boolean"
+                          },
+                          "filledAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "fuel",
+                          "quantityMilli",
+                          "costPaise",
+                          "paidBy",
+                          "isFullTank",
+                          "filledAt"
+                        ]
+                      }
+                    },
                     "allowedCommands": {
                       "type": "array",
                       "items": {
@@ -16763,6 +17874,7 @@
                     "cancellationRequest",
                     "charges",
                     "collections",
+                    "fuelFills",
                     "allowedCommands",
                     "version",
                     "createdAt",
@@ -17406,6 +18518,54 @@
                           "required": ["id", "method", "amountPaise", "reference", "collectedAt"]
                         }
                       },
+                      "fuelFills": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "format": "uuid",
+                              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                            },
+                            "fuel": {
+                              "type": "string",
+                              "enum": ["petrol", "diesel", "cng"]
+                            },
+                            "quantityMilli": {
+                              "type": "integer",
+                              "minimum": -9007199254740991,
+                              "maximum": 9007199254740991
+                            },
+                            "costPaise": {
+                              "type": "integer",
+                              "minimum": 0,
+                              "maximum": 9007199254740991
+                            },
+                            "paidBy": {
+                              "type": "string",
+                              "enum": ["driver_cash", "owner", "fuel_card"]
+                            },
+                            "isFullTank": {
+                              "type": "boolean"
+                            },
+                            "filledAt": {
+                              "type": "string",
+                              "format": "date-time",
+                              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "fuel",
+                            "quantityMilli",
+                            "costPaise",
+                            "paidBy",
+                            "isFullTank",
+                            "filledAt"
+                          ]
+                        }
+                      },
                       "allowedCommands": {
                         "type": "array",
                         "items": {
@@ -17464,6 +18624,7 @@
                       "cancellationRequest",
                       "charges",
                       "collections",
+                      "fuelFills",
                       "allowedCommands",
                       "version",
                       "createdAt",
@@ -19783,6 +20944,54 @@
                         "required": ["id", "method", "amountPaise", "reference", "collectedAt"]
                       }
                     },
+                    "fuelFills": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "fuel": {
+                            "type": "string",
+                            "enum": ["petrol", "diesel", "cng"]
+                          },
+                          "quantityMilli": {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991
+                          },
+                          "costPaise": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 9007199254740991
+                          },
+                          "paidBy": {
+                            "type": "string",
+                            "enum": ["driver_cash", "owner", "fuel_card"]
+                          },
+                          "isFullTank": {
+                            "type": "boolean"
+                          },
+                          "filledAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "fuel",
+                          "quantityMilli",
+                          "costPaise",
+                          "paidBy",
+                          "isFullTank",
+                          "filledAt"
+                        ]
+                      }
+                    },
                     "allowedCommands": {
                       "type": "array",
                       "items": {
@@ -19841,6 +21050,7 @@
                     "cancellationRequest",
                     "charges",
                     "collections",
+                    "fuelFills",
                     "allowedCommands",
                     "version",
                     "createdAt",
@@ -20344,6 +21554,187 @@
                           "description": {
                             "type": "string"
                           },
+                          "item": {
+                            "anyOf": [
+                              {
+                                "oneOf": [
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "kind": {
+                                        "type": "string",
+                                        "const": "trip"
+                                      },
+                                      "trip": {
+                                        "type": "object",
+                                        "properties": {
+                                          "from": {
+                                            "type": "string"
+                                          },
+                                          "to": {
+                                            "type": ["string", "null"]
+                                          },
+                                          "registrationNo": {
+                                            "type": ["string", "null"]
+                                          }
+                                        },
+                                        "required": ["from", "to", "registrationNo"]
+                                      },
+                                      "cancelled": {
+                                        "type": "boolean"
+                                      }
+                                    },
+                                    "required": ["kind", "trip", "cancelled"]
+                                  },
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "kind": {
+                                        "type": "string",
+                                        "const": "charge"
+                                      },
+                                      "chargeKind": {
+                                        "type": "string",
+                                        "enum": [
+                                          "toll",
+                                          "parking",
+                                          "state_tax",
+                                          "driver_allowance",
+                                          "night_charge",
+                                          "extra_km",
+                                          "other"
+                                        ]
+                                      },
+                                      "amountPaise": {
+                                        "type": "integer",
+                                        "minimum": 0,
+                                        "maximum": 9007199254740991
+                                      },
+                                      "paidByDriver": {
+                                        "type": "boolean"
+                                      },
+                                      "trip": {
+                                        "anyOf": [
+                                          {
+                                            "type": "object",
+                                            "properties": {
+                                              "from": {
+                                                "type": "string"
+                                              },
+                                              "to": {
+                                                "type": ["string", "null"]
+                                              },
+                                              "registrationNo": {
+                                                "type": ["string", "null"]
+                                              }
+                                            },
+                                            "required": ["from", "to", "registrationNo"]
+                                          },
+                                          {
+                                            "type": "null"
+                                          }
+                                        ]
+                                      }
+                                    },
+                                    "required": [
+                                      "kind",
+                                      "chargeKind",
+                                      "amountPaise",
+                                      "paidByDriver",
+                                      "trip"
+                                    ]
+                                  },
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "kind": {
+                                        "type": "string",
+                                        "const": "collection"
+                                      },
+                                      "method": {
+                                        "type": "string",
+                                        "enum": ["cash", "upi", "card"]
+                                      },
+                                      "amountPaise": {
+                                        "type": "integer",
+                                        "minimum": 0,
+                                        "maximum": 9007199254740991
+                                      },
+                                      "reference": {
+                                        "type": ["string", "null"]
+                                      },
+                                      "trip": {
+                                        "anyOf": [
+                                          {
+                                            "type": "object",
+                                            "properties": {
+                                              "from": {
+                                                "type": "string"
+                                              },
+                                              "to": {
+                                                "type": ["string", "null"]
+                                              },
+                                              "registrationNo": {
+                                                "type": ["string", "null"]
+                                              }
+                                            },
+                                            "required": ["from", "to", "registrationNo"]
+                                          },
+                                          {
+                                            "type": "null"
+                                          }
+                                        ]
+                                      }
+                                    },
+                                    "required": [
+                                      "kind",
+                                      "method",
+                                      "amountPaise",
+                                      "reference",
+                                      "trip"
+                                    ]
+                                  },
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "kind": {
+                                        "type": "string",
+                                        "const": "fuel_fill"
+                                      },
+                                      "fuel": {
+                                        "type": "string",
+                                        "enum": ["petrol", "diesel", "cng"]
+                                      },
+                                      "quantityMilli": {
+                                        "type": "integer",
+                                        "minimum": 0,
+                                        "maximum": 9007199254740991
+                                      },
+                                      "costPaise": {
+                                        "type": "integer",
+                                        "minimum": 0,
+                                        "maximum": 9007199254740991
+                                      },
+                                      "paidBy": {
+                                        "type": "string",
+                                        "enum": ["driver_cash", "owner", "fuel_card"]
+                                      }
+                                    },
+                                    "required": [
+                                      "kind",
+                                      "fuel",
+                                      "quantityMilli",
+                                      "costPaise",
+                                      "paidBy"
+                                    ]
+                                  }
+                                ]
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
                           "originalDate": {
                             "type": ["string", "null"]
                           }
@@ -20353,6 +21744,7 @@
                           "refId",
                           "amountPaise",
                           "description",
+                          "item",
                           "originalDate"
                         ]
                       }
@@ -20687,6 +22079,187 @@
                           "description": {
                             "type": "string"
                           },
+                          "item": {
+                            "anyOf": [
+                              {
+                                "oneOf": [
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "kind": {
+                                        "type": "string",
+                                        "const": "trip"
+                                      },
+                                      "trip": {
+                                        "type": "object",
+                                        "properties": {
+                                          "from": {
+                                            "type": "string"
+                                          },
+                                          "to": {
+                                            "type": ["string", "null"]
+                                          },
+                                          "registrationNo": {
+                                            "type": ["string", "null"]
+                                          }
+                                        },
+                                        "required": ["from", "to", "registrationNo"]
+                                      },
+                                      "cancelled": {
+                                        "type": "boolean"
+                                      }
+                                    },
+                                    "required": ["kind", "trip", "cancelled"]
+                                  },
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "kind": {
+                                        "type": "string",
+                                        "const": "charge"
+                                      },
+                                      "chargeKind": {
+                                        "type": "string",
+                                        "enum": [
+                                          "toll",
+                                          "parking",
+                                          "state_tax",
+                                          "driver_allowance",
+                                          "night_charge",
+                                          "extra_km",
+                                          "other"
+                                        ]
+                                      },
+                                      "amountPaise": {
+                                        "type": "integer",
+                                        "minimum": 0,
+                                        "maximum": 9007199254740991
+                                      },
+                                      "paidByDriver": {
+                                        "type": "boolean"
+                                      },
+                                      "trip": {
+                                        "anyOf": [
+                                          {
+                                            "type": "object",
+                                            "properties": {
+                                              "from": {
+                                                "type": "string"
+                                              },
+                                              "to": {
+                                                "type": ["string", "null"]
+                                              },
+                                              "registrationNo": {
+                                                "type": ["string", "null"]
+                                              }
+                                            },
+                                            "required": ["from", "to", "registrationNo"]
+                                          },
+                                          {
+                                            "type": "null"
+                                          }
+                                        ]
+                                      }
+                                    },
+                                    "required": [
+                                      "kind",
+                                      "chargeKind",
+                                      "amountPaise",
+                                      "paidByDriver",
+                                      "trip"
+                                    ]
+                                  },
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "kind": {
+                                        "type": "string",
+                                        "const": "collection"
+                                      },
+                                      "method": {
+                                        "type": "string",
+                                        "enum": ["cash", "upi", "card"]
+                                      },
+                                      "amountPaise": {
+                                        "type": "integer",
+                                        "minimum": 0,
+                                        "maximum": 9007199254740991
+                                      },
+                                      "reference": {
+                                        "type": ["string", "null"]
+                                      },
+                                      "trip": {
+                                        "anyOf": [
+                                          {
+                                            "type": "object",
+                                            "properties": {
+                                              "from": {
+                                                "type": "string"
+                                              },
+                                              "to": {
+                                                "type": ["string", "null"]
+                                              },
+                                              "registrationNo": {
+                                                "type": ["string", "null"]
+                                              }
+                                            },
+                                            "required": ["from", "to", "registrationNo"]
+                                          },
+                                          {
+                                            "type": "null"
+                                          }
+                                        ]
+                                      }
+                                    },
+                                    "required": [
+                                      "kind",
+                                      "method",
+                                      "amountPaise",
+                                      "reference",
+                                      "trip"
+                                    ]
+                                  },
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "kind": {
+                                        "type": "string",
+                                        "const": "fuel_fill"
+                                      },
+                                      "fuel": {
+                                        "type": "string",
+                                        "enum": ["petrol", "diesel", "cng"]
+                                      },
+                                      "quantityMilli": {
+                                        "type": "integer",
+                                        "minimum": 0,
+                                        "maximum": 9007199254740991
+                                      },
+                                      "costPaise": {
+                                        "type": "integer",
+                                        "minimum": 0,
+                                        "maximum": 9007199254740991
+                                      },
+                                      "paidBy": {
+                                        "type": "string",
+                                        "enum": ["driver_cash", "owner", "fuel_card"]
+                                      }
+                                    },
+                                    "required": [
+                                      "kind",
+                                      "fuel",
+                                      "quantityMilli",
+                                      "costPaise",
+                                      "paidBy"
+                                    ]
+                                  }
+                                ]
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
                           "originalDate": {
                             "type": ["string", "null"]
                           }
@@ -20696,6 +22269,7 @@
                           "refId",
                           "amountPaise",
                           "description",
+                          "item",
                           "originalDate"
                         ]
                       }
@@ -20886,6 +22460,349 @@
                       "explanation": {
                         "type": "string"
                       },
+                      "message": {
+                        "anyOf": [
+                          {
+                            "oneOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "key": {
+                                    "type": "string",
+                                    "const": "fuel_efficiency_low"
+                                  },
+                                  "params": {
+                                    "type": "object",
+                                    "properties": {
+                                      "vehicle": {
+                                        "type": "object",
+                                        "properties": {
+                                          "registrationNo": {
+                                            "type": "string"
+                                          },
+                                          "model": {
+                                            "type": "string"
+                                          },
+                                          "fuelType": {
+                                            "type": "string",
+                                            "enum": ["petrol", "diesel", "cng", "petrol_cng"]
+                                          }
+                                        },
+                                        "required": ["registrationNo", "model", "fuelType"]
+                                      },
+                                      "from": {
+                                        "type": "string",
+                                        "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                                      },
+                                      "to": {
+                                        "type": "string",
+                                        "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                                      },
+                                      "distanceKm": {
+                                        "type": "number"
+                                      },
+                                      "percentWorse": {
+                                        "type": "number"
+                                      },
+                                      "drivers": {
+                                        "type": "array",
+                                        "items": {
+                                          "type": "string"
+                                        }
+                                      },
+                                      "fuel": {
+                                        "type": "string",
+                                        "enum": ["petrol", "diesel", "cng"]
+                                      },
+                                      "used": {
+                                        "type": "number"
+                                      },
+                                      "value": {
+                                        "type": "number"
+                                      },
+                                      "baseline": {
+                                        "type": "number"
+                                      },
+                                      "extraUnits": {
+                                        "type": "number"
+                                      },
+                                      "extraCostPaise": {
+                                        "type": "number"
+                                      }
+                                    },
+                                    "required": [
+                                      "vehicle",
+                                      "from",
+                                      "to",
+                                      "distanceKm",
+                                      "percentWorse",
+                                      "drivers",
+                                      "fuel",
+                                      "used",
+                                      "value",
+                                      "baseline",
+                                      "extraUnits",
+                                      "extraCostPaise"
+                                    ]
+                                  }
+                                },
+                                "required": ["key", "params"]
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "key": {
+                                    "type": "string",
+                                    "const": "fuel_cost_high"
+                                  },
+                                  "params": {
+                                    "type": "object",
+                                    "properties": {
+                                      "vehicle": {
+                                        "type": "object",
+                                        "properties": {
+                                          "registrationNo": {
+                                            "type": "string"
+                                          },
+                                          "model": {
+                                            "type": "string"
+                                          },
+                                          "fuelType": {
+                                            "type": "string",
+                                            "enum": ["petrol", "diesel", "cng", "petrol_cng"]
+                                          }
+                                        },
+                                        "required": ["registrationNo", "model", "fuelType"]
+                                      },
+                                      "from": {
+                                        "type": "string",
+                                        "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                                      },
+                                      "to": {
+                                        "type": "string",
+                                        "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                                      },
+                                      "distanceKm": {
+                                        "type": "number"
+                                      },
+                                      "percentWorse": {
+                                        "type": "number"
+                                      },
+                                      "drivers": {
+                                        "type": "array",
+                                        "items": {
+                                          "type": "string"
+                                        }
+                                      },
+                                      "costPaise": {
+                                        "type": "number"
+                                      },
+                                      "paisePerKm": {
+                                        "type": "number"
+                                      },
+                                      "baselinePaisePerKm": {
+                                        "type": "number"
+                                      },
+                                      "petrolCostPaise": {
+                                        "type": "number"
+                                      }
+                                    },
+                                    "required": [
+                                      "vehicle",
+                                      "from",
+                                      "to",
+                                      "distanceKm",
+                                      "percentWorse",
+                                      "drivers",
+                                      "costPaise",
+                                      "paisePerKm",
+                                      "baselinePaisePerKm",
+                                      "petrolCostPaise"
+                                    ]
+                                  }
+                                },
+                                "required": ["key", "params"]
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "key": {
+                                    "type": "string",
+                                    "const": "odo_gps_mismatch"
+                                  },
+                                  "params": {
+                                    "type": "object",
+                                    "properties": {
+                                      "tripStartedAt": {
+                                        "type": "string"
+                                      },
+                                      "from": {
+                                        "type": "string"
+                                      },
+                                      "to": {
+                                        "type": ["string", "null"]
+                                      },
+                                      "registrationNo": {
+                                        "type": ["string", "null"]
+                                      },
+                                      "odometerKm": {
+                                        "type": "number"
+                                      },
+                                      "gpsKm": {
+                                        "type": "number"
+                                      },
+                                      "excessPct": {
+                                        "type": "number"
+                                      },
+                                      "tolerancePct": {
+                                        "type": "number"
+                                      }
+                                    },
+                                    "required": [
+                                      "tripStartedAt",
+                                      "from",
+                                      "to",
+                                      "registrationNo",
+                                      "odometerKm",
+                                      "gpsKm",
+                                      "excessPct",
+                                      "tolerancePct"
+                                    ]
+                                  }
+                                },
+                                "required": ["key", "params"]
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "key": {
+                                    "type": "string",
+                                    "const": "document_expiring"
+                                  },
+                                  "params": {
+                                    "type": "object",
+                                    "properties": {
+                                      "docType": {
+                                        "type": "string",
+                                        "enum": [
+                                          "rc",
+                                          "insurance",
+                                          "permit",
+                                          "puc",
+                                          "driving_licence"
+                                        ]
+                                      },
+                                      "subjectKind": {
+                                        "type": "string",
+                                        "enum": ["vehicle", "driver"]
+                                      },
+                                      "subject": {
+                                        "type": "string"
+                                      },
+                                      "expiresOn": {
+                                        "type": "string",
+                                        "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                                      },
+                                      "daysLeft": {
+                                        "type": "integer",
+                                        "minimum": -9007199254740991,
+                                        "maximum": 9007199254740991
+                                      }
+                                    },
+                                    "required": [
+                                      "docType",
+                                      "subjectKind",
+                                      "subject",
+                                      "expiresOn",
+                                      "daysLeft"
+                                    ]
+                                  }
+                                },
+                                "required": ["key", "params"]
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "key": {
+                                    "type": "string",
+                                    "const": "document_expired"
+                                  },
+                                  "params": {
+                                    "type": "object",
+                                    "properties": {
+                                      "docType": {
+                                        "type": "string",
+                                        "enum": [
+                                          "rc",
+                                          "insurance",
+                                          "permit",
+                                          "puc",
+                                          "driving_licence"
+                                        ]
+                                      },
+                                      "subjectKind": {
+                                        "type": "string",
+                                        "enum": ["vehicle", "driver"]
+                                      },
+                                      "subject": {
+                                        "type": "string"
+                                      },
+                                      "expiresOn": {
+                                        "type": "string",
+                                        "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                                      },
+                                      "daysLeft": {
+                                        "type": "integer",
+                                        "minimum": -9007199254740991,
+                                        "maximum": 9007199254740991
+                                      }
+                                    },
+                                    "required": [
+                                      "docType",
+                                      "subjectKind",
+                                      "subject",
+                                      "expiresOn",
+                                      "daysLeft"
+                                    ]
+                                  }
+                                },
+                                "required": ["key", "params"]
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "key": {
+                                    "type": "string",
+                                    "const": "cancellation_requested"
+                                  },
+                                  "params": {
+                                    "type": "object",
+                                    "properties": {
+                                      "from": {
+                                        "type": "string"
+                                      },
+                                      "driverName": {
+                                        "type": ["string", "null"]
+                                      },
+                                      "reason": {
+                                        "type": "string"
+                                      },
+                                      "endKm": {
+                                        "type": "number"
+                                      }
+                                    },
+                                    "required": ["from", "driverName", "reason", "endKm"]
+                                  }
+                                },
+                                "required": ["key", "params"]
+                              }
+                            ]
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
                       "status": {
                         "type": "string",
                         "enum": ["open", "acknowledged", "resolved", "dismissed"]
@@ -20965,6 +22882,7 @@
                       "severity",
                       "title",
                       "explanation",
+                      "message",
                       "status",
                       "subjectType",
                       "subjectId",
@@ -21220,6 +23138,349 @@
                     "explanation": {
                       "type": "string"
                     },
+                    "message": {
+                      "anyOf": [
+                        {
+                          "oneOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "key": {
+                                  "type": "string",
+                                  "const": "fuel_efficiency_low"
+                                },
+                                "params": {
+                                  "type": "object",
+                                  "properties": {
+                                    "vehicle": {
+                                      "type": "object",
+                                      "properties": {
+                                        "registrationNo": {
+                                          "type": "string"
+                                        },
+                                        "model": {
+                                          "type": "string"
+                                        },
+                                        "fuelType": {
+                                          "type": "string",
+                                          "enum": ["petrol", "diesel", "cng", "petrol_cng"]
+                                        }
+                                      },
+                                      "required": ["registrationNo", "model", "fuelType"]
+                                    },
+                                    "from": {
+                                      "type": "string",
+                                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                                    },
+                                    "to": {
+                                      "type": "string",
+                                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                                    },
+                                    "distanceKm": {
+                                      "type": "number"
+                                    },
+                                    "percentWorse": {
+                                      "type": "number"
+                                    },
+                                    "drivers": {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "fuel": {
+                                      "type": "string",
+                                      "enum": ["petrol", "diesel", "cng"]
+                                    },
+                                    "used": {
+                                      "type": "number"
+                                    },
+                                    "value": {
+                                      "type": "number"
+                                    },
+                                    "baseline": {
+                                      "type": "number"
+                                    },
+                                    "extraUnits": {
+                                      "type": "number"
+                                    },
+                                    "extraCostPaise": {
+                                      "type": "number"
+                                    }
+                                  },
+                                  "required": [
+                                    "vehicle",
+                                    "from",
+                                    "to",
+                                    "distanceKm",
+                                    "percentWorse",
+                                    "drivers",
+                                    "fuel",
+                                    "used",
+                                    "value",
+                                    "baseline",
+                                    "extraUnits",
+                                    "extraCostPaise"
+                                  ]
+                                }
+                              },
+                              "required": ["key", "params"]
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "key": {
+                                  "type": "string",
+                                  "const": "fuel_cost_high"
+                                },
+                                "params": {
+                                  "type": "object",
+                                  "properties": {
+                                    "vehicle": {
+                                      "type": "object",
+                                      "properties": {
+                                        "registrationNo": {
+                                          "type": "string"
+                                        },
+                                        "model": {
+                                          "type": "string"
+                                        },
+                                        "fuelType": {
+                                          "type": "string",
+                                          "enum": ["petrol", "diesel", "cng", "petrol_cng"]
+                                        }
+                                      },
+                                      "required": ["registrationNo", "model", "fuelType"]
+                                    },
+                                    "from": {
+                                      "type": "string",
+                                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                                    },
+                                    "to": {
+                                      "type": "string",
+                                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                                    },
+                                    "distanceKm": {
+                                      "type": "number"
+                                    },
+                                    "percentWorse": {
+                                      "type": "number"
+                                    },
+                                    "drivers": {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "costPaise": {
+                                      "type": "number"
+                                    },
+                                    "paisePerKm": {
+                                      "type": "number"
+                                    },
+                                    "baselinePaisePerKm": {
+                                      "type": "number"
+                                    },
+                                    "petrolCostPaise": {
+                                      "type": "number"
+                                    }
+                                  },
+                                  "required": [
+                                    "vehicle",
+                                    "from",
+                                    "to",
+                                    "distanceKm",
+                                    "percentWorse",
+                                    "drivers",
+                                    "costPaise",
+                                    "paisePerKm",
+                                    "baselinePaisePerKm",
+                                    "petrolCostPaise"
+                                  ]
+                                }
+                              },
+                              "required": ["key", "params"]
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "key": {
+                                  "type": "string",
+                                  "const": "odo_gps_mismatch"
+                                },
+                                "params": {
+                                  "type": "object",
+                                  "properties": {
+                                    "tripStartedAt": {
+                                      "type": "string"
+                                    },
+                                    "from": {
+                                      "type": "string"
+                                    },
+                                    "to": {
+                                      "type": ["string", "null"]
+                                    },
+                                    "registrationNo": {
+                                      "type": ["string", "null"]
+                                    },
+                                    "odometerKm": {
+                                      "type": "number"
+                                    },
+                                    "gpsKm": {
+                                      "type": "number"
+                                    },
+                                    "excessPct": {
+                                      "type": "number"
+                                    },
+                                    "tolerancePct": {
+                                      "type": "number"
+                                    }
+                                  },
+                                  "required": [
+                                    "tripStartedAt",
+                                    "from",
+                                    "to",
+                                    "registrationNo",
+                                    "odometerKm",
+                                    "gpsKm",
+                                    "excessPct",
+                                    "tolerancePct"
+                                  ]
+                                }
+                              },
+                              "required": ["key", "params"]
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "key": {
+                                  "type": "string",
+                                  "const": "document_expiring"
+                                },
+                                "params": {
+                                  "type": "object",
+                                  "properties": {
+                                    "docType": {
+                                      "type": "string",
+                                      "enum": [
+                                        "rc",
+                                        "insurance",
+                                        "permit",
+                                        "puc",
+                                        "driving_licence"
+                                      ]
+                                    },
+                                    "subjectKind": {
+                                      "type": "string",
+                                      "enum": ["vehicle", "driver"]
+                                    },
+                                    "subject": {
+                                      "type": "string"
+                                    },
+                                    "expiresOn": {
+                                      "type": "string",
+                                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                                    },
+                                    "daysLeft": {
+                                      "type": "integer",
+                                      "minimum": -9007199254740991,
+                                      "maximum": 9007199254740991
+                                    }
+                                  },
+                                  "required": [
+                                    "docType",
+                                    "subjectKind",
+                                    "subject",
+                                    "expiresOn",
+                                    "daysLeft"
+                                  ]
+                                }
+                              },
+                              "required": ["key", "params"]
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "key": {
+                                  "type": "string",
+                                  "const": "document_expired"
+                                },
+                                "params": {
+                                  "type": "object",
+                                  "properties": {
+                                    "docType": {
+                                      "type": "string",
+                                      "enum": [
+                                        "rc",
+                                        "insurance",
+                                        "permit",
+                                        "puc",
+                                        "driving_licence"
+                                      ]
+                                    },
+                                    "subjectKind": {
+                                      "type": "string",
+                                      "enum": ["vehicle", "driver"]
+                                    },
+                                    "subject": {
+                                      "type": "string"
+                                    },
+                                    "expiresOn": {
+                                      "type": "string",
+                                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                                    },
+                                    "daysLeft": {
+                                      "type": "integer",
+                                      "minimum": -9007199254740991,
+                                      "maximum": 9007199254740991
+                                    }
+                                  },
+                                  "required": [
+                                    "docType",
+                                    "subjectKind",
+                                    "subject",
+                                    "expiresOn",
+                                    "daysLeft"
+                                  ]
+                                }
+                              },
+                              "required": ["key", "params"]
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "key": {
+                                  "type": "string",
+                                  "const": "cancellation_requested"
+                                },
+                                "params": {
+                                  "type": "object",
+                                  "properties": {
+                                    "from": {
+                                      "type": "string"
+                                    },
+                                    "driverName": {
+                                      "type": ["string", "null"]
+                                    },
+                                    "reason": {
+                                      "type": "string"
+                                    },
+                                    "endKm": {
+                                      "type": "number"
+                                    }
+                                  },
+                                  "required": ["from", "driverName", "reason", "endKm"]
+                                }
+                              },
+                              "required": ["key", "params"]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
                     "status": {
                       "type": "string",
                       "enum": ["open", "acknowledged", "resolved", "dismissed"]
@@ -21299,6 +23560,7 @@
                     "severity",
                     "title",
                     "explanation",
+                    "message",
                     "status",
                     "subjectType",
                     "subjectId",

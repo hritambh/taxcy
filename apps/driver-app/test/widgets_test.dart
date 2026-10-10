@@ -184,7 +184,7 @@ void main() {
   });
 
   testWidgets(
-    'end trip lists charges added during the trip and counts them in the expected amount',
+    'end trip lists the charges and fuel added during the trip; charges count towards the fare',
     (tester) async {
       final h = Harness();
       addTearDown(h.dispose);
@@ -201,6 +201,17 @@ void main() {
             'voidedAt': null,
           },
         ],
+        'fuelFills': [
+          {
+            'id': '0199c7a2-0000-7000-8000-0000000000f9',
+            'fuel': 'diesel',
+            'quantityMilli': 20000,
+            'costPaise': 180000,
+            'paidBy': 'driver_cash',
+            'isFullTank': false,
+            'filledAt': '2026-10-10T06:00:00.000Z',
+          },
+        ],
       });
 
       await tester.pumpWidget(
@@ -209,8 +220,10 @@ void main() {
       await settle(tester);
       expect(find.text('Toll'), findsOneWidget);
       expect(find.text('Added during the trip · paid by you'), findsOneWidget);
-      // ₹3,500 quoted + ₹250 toll.
+      // ₹3,500 quoted + ₹250 toll; fuel is the owner's cost, not the customer's.
       expect(find.text('Customer paid · expected ₹3,750'), findsOneWidget);
+      expect(find.text('Diesel 20.0 L'), findsOneWidget);
+      expect(find.textContaining('₹1,800 of fuel paid by you'), findsOneWidget);
     },
   );
 

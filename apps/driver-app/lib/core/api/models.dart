@@ -195,6 +195,53 @@ class TripCollection {
   };
 }
 
+/// Fuel filled during a trip (voided fills are left out by the server).
+class TripFuelFill {
+  const TripFuelFill({
+    required this.id,
+    required this.fuel,
+    required this.quantityMilli,
+    required this.costPaise,
+    required this.paidBy,
+    required this.isFullTank,
+    required this.filledAt,
+  });
+
+  factory TripFuelFill.fromJson(JsonMap json) => TripFuelFill(
+    id: json.str('id'),
+    fuel: json.str('fuel'),
+    quantityMilli: json.integer('quantityMilli'),
+    costPaise: json.integer('costPaise'),
+    paidBy: json.str('paidBy'),
+    isFullTank: json.boolean('isFullTank'),
+    filledAt: json.date('filledAt'),
+  );
+
+  final String id;
+  final String fuel;
+
+  /// Millilitres (petrol, diesel) or grams (CNG).
+  final int quantityMilli;
+  final int costPaise;
+
+  /// driver_cash, owner or fuel_card.
+  final String paidBy;
+  final bool isFullTank;
+  final DateTime filledAt;
+
+  String get unit => fuel == 'cng' ? 'kg' : 'L';
+
+  JsonMap toJson() => {
+    'id': id,
+    'fuel': fuel,
+    'quantityMilli': quantityMilli,
+    'costPaise': costPaise,
+    'paidBy': paidBy,
+    'isFullTank': isFullTank,
+    'filledAt': filledAt.toUtc().toIso8601String(),
+  };
+}
+
 class CancellationRequest {
   const CancellationRequest({
     required this.id,
@@ -264,6 +311,7 @@ class Trip {
     this.cancellationRequest,
     this.charges = const [],
     this.collections = const [],
+    this.fuelFills = const [],
   });
 
   factory Trip.fromJson(JsonMap json) {
@@ -301,6 +349,10 @@ class Trip {
           .objects('collections')
           .map(TripCollection.fromJson)
           .toList(),
+      // Absent in trips cached before fuel fills were part of a trip.
+      fuelFills: json['fuelFills'] == null
+          ? const []
+          : json.objects('fuelFills').map(TripFuelFill.fromJson).toList(),
       allowedCommands: json.strings('allowedCommands'),
       updatedAt: json.date('updatedAt'),
     );
@@ -327,6 +379,7 @@ class Trip {
   final CancellationRequest? cancellationRequest;
   final List<TripCharge> charges;
   final List<TripCollection> collections;
+  final List<TripFuelFill> fuelFills;
   final List<String> allowedCommands;
   final DateTime updatedAt;
 
@@ -343,6 +396,7 @@ class Trip {
     CancellationRequest? cancellationRequest,
     List<TripCharge>? charges,
     List<TripCollection>? collections,
+    List<TripFuelFill>? fuelFills,
     List<String>? allowedCommands,
   }) => Trip(
     id: id,
@@ -366,6 +420,7 @@ class Trip {
     cancellationRequest: cancellationRequest ?? this.cancellationRequest,
     charges: charges ?? this.charges,
     collections: collections ?? this.collections,
+    fuelFills: fuelFills ?? this.fuelFills,
     allowedCommands: allowedCommands ?? this.allowedCommands,
     updatedAt: updatedAt,
   );
@@ -393,6 +448,7 @@ class Trip {
     'cancellationRequest': cancellationRequest?.toJson(),
     'charges': charges.map((c) => c.toJson()).toList(),
     'collections': collections.map((c) => c.toInput()).toList(),
+    'fuelFills': fuelFills.map((f) => f.toJson()).toList(),
     'allowedCommands': allowedCommands,
     'updatedAt': updatedAt.toUtc().toIso8601String(),
   };

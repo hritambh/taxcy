@@ -81,6 +81,7 @@ JsonMap tripJson({
           }
         : null,
     'charges': <Object?>[],
+    'fuelFills': <Object?>[],
     'collections': <Object?>[],
     'allowedCommands':
         allowed ??

@@ -175,6 +175,10 @@ class _EndTripScreenState extends ConsumerState<EndTripScreen> {
       _addedCharges.fold<int>(0, (sum, c) => sum + c.amountPaise) +
       _charges.fold(0, (sum, c) => sum + (parseRupees(c.amount.text) ?? 0));
 
+  int get _fuelPaidByDriver => widget.trip.fuelFills
+      .where((f) => f.paidBy == 'driver_cash')
+      .fold<int>(0, (sum, f) => sum + f.costPaise);
+
   int get _alreadyCollected =>
       widget.trip.collections.fold<int>(0, (sum, c) => sum + c.amountPaise);
 
@@ -309,6 +313,29 @@ class _EndTripScreenState extends ConsumerState<EndTripScreen> {
               label: const Text('Add toll, parking or other charge'),
             ),
             const SizedBox(height: 16),
+            if (widget.trip.fuelFills.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Text(
+                'Fuel filled on this trip',
+                style: Theme.of(context).textTheme.titleSmall,
+              ),
+              for (final f in widget.trip.fuelFills)
+                ListTile(
+                  key: ValueKey('trip-fuel-${f.id}'),
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(Icons.local_gas_station_outlined),
+                  title: Text(fuelFillLabel(f)),
+                  subtitle: Text(paidByLabels[f.paidBy] ?? f.paidBy),
+                  trailing: Text(formatInr(f.costPaise)),
+                ),
+              if (_fuelPaidByDriver > 0)
+                Text(
+                  '${formatInr(_fuelPaidByDriver)} of fuel paid by you is '
+                  'paid back in your settlement; the customer doesn’t pay for it.',
+                ),
+              const SizedBox(height: 8),
+            ],
             Text(
               'Customer paid · expected ${formatInr(_expected)}',
               style: Theme.of(context).textTheme.titleSmall,

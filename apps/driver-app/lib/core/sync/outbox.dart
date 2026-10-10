@@ -95,13 +95,14 @@ class Outbox {
         ),
       );
 
-  /// Drops queued non-photo writes for a trip the server no longer accepts writes for.
-  /// Photos still upload: the server keeps them as evidence.
+  /// Drops queued trip writes for a trip the server no longer accepts writes for.
+  /// Photos still upload (the server keeps them as evidence), and so do fuel
+  /// fills: the fuel was bought whatever happened to the trip.
   Future<int> dropTripWrites(String tripId) =>
       (db.delete(db.outboxItems)..where(
             (t) =>
                 t.tripId.equals(tripId) &
-                t.kind.isNotValue(OutboxKind.media) &
+                t.kind.isNotIn([OutboxKind.media, OutboxKind.fuelFill]) &
                 t.state.equals(OutboxState.pending),
           ))
           .go();

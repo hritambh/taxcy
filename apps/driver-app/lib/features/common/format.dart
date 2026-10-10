@@ -1,3 +1,5 @@
+import '../../core/api/models.dart';
+
 /// ₹ with Indian digit grouping: 12345678 paise → "₹1,23,456.78"; whole rupees drop ".00".
 String formatInr(int paise) {
   final negative = paise < 0;
@@ -92,3 +94,24 @@ const chargeKindLabels = {
   'extra_km': 'Extra km',
   'other': 'Other',
 };
+
+const fuelNames = {'petrol': 'Petrol', 'diesel': 'Diesel', 'cng': 'CNG'};
+
+/// Who paid for fuel, as the driver chooses it.
+const paidByChoices = {
+  'driver_cash': 'Me (cash)',
+  'owner': 'Owner',
+  'fuel_card': 'Fuel card',
+};
+
+/// Who paid for fuel, when listing a fill.
+const paidByLabels = {
+  'driver_cash': 'Paid by you',
+  'owner': 'Paid by owner',
+  'fuel_card': 'Fuel card',
+};
+
+/// "Diesel 20.0 L · full tank".
+String fuelFillLabel(TripFuelFill f) =>
+    '${fuelNames[f.fuel] ?? f.fuel} ${(f.quantityMilli / 1000).toStringAsFixed(1)} ${f.unit}'
+    '${f.isFullTank ? ' · full tank' : ''}';
