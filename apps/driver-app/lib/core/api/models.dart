@@ -139,6 +139,7 @@ class TripCharge {
     this.mediaId,
     this.note,
     this.voided = false,
+    this.enteredRole,
   });
 
   factory TripCharge.fromJson(JsonMap json) => TripCharge(
@@ -149,6 +150,7 @@ class TripCharge {
     mediaId: json.strOrNull('mediaId'),
     note: json.strOrNull('note'),
     voided: json['voidedAt'] != null,
+    enteredRole: json.strOrNull('enteredRole'),
   );
 
   final String id;
@@ -159,6 +161,9 @@ class TripCharge {
   final String? note;
   final bool voided;
 
+  /// owner, manager or driver; null for a charge added on this phone and not synced yet.
+  final String? enteredRole;
+
   JsonMap toInput() => {
     'id': id,
     'kind': kind,
@@ -168,7 +173,11 @@ class TripCharge {
     if (note != null) 'note': note,
   };
 
-  JsonMap toJson() => {...toInput(), 'voidedAt': voided ? 'voided' : null};
+  JsonMap toJson() => {
+    ...toInput(),
+    'voidedAt': voided ? 'voided' : null,
+    'enteredRole': enteredRole,
+  };
 }
 
 class TripCollection {
@@ -177,6 +186,7 @@ class TripCollection {
     required this.method,
     required this.amountPaise,
     this.reference,
+    this.collectedAt,
   });
 
   factory TripCollection.fromJson(JsonMap json) => TripCollection(
@@ -184,9 +194,11 @@ class TripCollection {
     method: json.str('method'),
     amountPaise: json.integer('amountPaise'),
     reference: json.strOrNull('reference'),
+    collectedAt: json.dateOrNull('collectedAt'),
   );
 
   final String id;
+  final DateTime? collectedAt;
 
   /// cash, upi or card.
   final String method;
@@ -198,6 +210,11 @@ class TripCollection {
     'method': method,
     'amountPaise': amountPaise,
     if (reference != null) 'reference': reference,
+  };
+
+  JsonMap toJson() => {
+    ...toInput(),
+    'collectedAt': collectedAt?.toUtc().toIso8601String(),
   };
 }
 
@@ -253,19 +270,56 @@ class CancellationRequest {
     required this.id,
     required this.status,
     required this.reason,
+    this.requestedRole,
+    this.endOdometer,
+    this.decisionNote,
+    this.createdAt,
   });
 
-  factory CancellationRequest.fromJson(JsonMap json) => CancellationRequest(
-    id: json.str('id'),
-    status: json.str('status'),
-    reason: json.str('reason'),
-  );
+  factory CancellationRequest.fromJson(JsonMap json) {
+    final end = json.objOrNull('endOdometer');
+    return CancellationRequest(
+      id: json.str('id'),
+      status: json.str('status'),
+      reason: json.str('reason'),
+      requestedRole: json.strOrNull('requestedRole'),
+      endOdometer: end == null ? null : OdometerReading.fromJson(end),
+      decisionNote: json.strOrNull('decisionNote'),
+      createdAt: json.dateOrNull('createdAt'),
+    );
+  }
 
   final String id;
+
+  /// pending, approved, rejected or withdrawn.
   final String status;
   final String reason;
+  final String? requestedRole;
+  final OdometerReading? endOdometer;
+  final String? decisionNote;
+  final DateTime? createdAt;
 
-  JsonMap toJson() => {'id': id, 'status': status, 'reason': reason};
+  JsonMap toJson() => {
+    'id': id,
+    'status': status,
+    'reason': reason,
+    'requestedRole': requestedRole,
+    'endOdometer': endOdometer?.toJson(),
+    'decisionNote': decisionNote,
+    'createdAt': createdAt?.toUtc().toIso8601String(),
+  };
+}
+
+class GeoPoint {
+  const GeoPoint(this.lat, this.lng);
+
+  factory GeoPoint.fromJson(JsonMap json) =>
+      GeoPoint(json.number('lat'), json.number('lng'));
+
+  final double lat;
+  final double lng;
+
+  JsonMap toJson() => {'lat': lat, 'lng': lng};
 }
 
 class TripVehicle {
@@ -308,7 +362,11 @@ class Trip {
     this.customerName,
     this.customerPhone,
     this.vehicle,
+    this.driverId,
     this.driverName,
+    this.fromPoint,
+    this.toPoint,
+    this.cancellationFarePaise,
     this.startOdometer,
     this.endOdometer,
     this.startedAt,
@@ -329,6 +387,8 @@ class Trip {
     final start = json.objOrNull('startOdometer');
     final end = json.objOrNull('endOdometer');
     final request = json.objOrNull('cancellationRequest');
+    final fromPoint = json.obj('from').objOrNull('point');
+    final toPoint = to?.objOrNull('point');
     return Trip(
       id: json.str('id'),
       tripType: json.str('tripType'),
@@ -337,11 +397,15 @@ class Trip {
       customerPhone: customer?.strOrNull('phone'),
       fromText: json.obj('from').str('text'),
       toText: to?.str('text'),
+      fromPoint: fromPoint == null ? null : GeoPoint.fromJson(fromPoint),
+      toPoint: toPoint == null ? null : GeoPoint.fromJson(toPoint),
       scheduledStartAt: json.date('scheduledStartAt'),
       scheduledEndAt: json.date('scheduledEndAt'),
       vehicle: vehicle == null ? null : TripVehicle.fromJson(vehicle),
+      driverId: driver?.strOrNull('id'),
       driverName: driver?.str('name'),
       quotedFarePaise: json.integer('quotedFarePaise'),
+      cancellationFarePaise: json.intOrNull('cancellationFarePaise'),
       includedKm: json.intOrNull('includedKm'),
       startOdometer: start == null ? null : OdometerReading.fromJson(start),
       endOdometer: end == null ? null : OdometerReading.fromJson(end),
@@ -376,8 +440,14 @@ class Trip {
   final DateTime scheduledStartAt;
   final DateTime scheduledEndAt;
   final TripVehicle? vehicle;
+  final String? driverId;
   final String? driverName;
+  final GeoPoint? fromPoint;
+  final GeoPoint? toPoint;
   final int quotedFarePaise;
+
+  /// Set when staff approved a cancellation with a fare.
+  final int? cancellationFarePaise;
 
   /// Km included in the fare (e.g. a 300 km package); null when not agreed.
   final int? includedKm;
@@ -397,6 +467,20 @@ class Trip {
   bool get cancellationPending => cancellationRequest?.status == 'pending';
 
   String get routeLabel => toText == null ? fromText : '$fromText → $toText';
+
+  /// Odometer km driven, once both readings are in.
+  int? get drivenKm => startOdometer == null || endOdometer == null
+      ? null
+      : endOdometer!.typedKm - startOdometer!.typedKm;
+
+  /// Km driven beyond [includedKm]; null when not over (or not known).
+  int? get kmOverIncluded {
+    final driven = drivenKm;
+    if (includedKm == null || driven == null || driven <= includedKm!) {
+      return null;
+    }
+    return driven - includedKm!;
+  }
 
   Trip copyWith({
     String? status,
@@ -420,8 +504,12 @@ class Trip {
     scheduledStartAt: scheduledStartAt,
     scheduledEndAt: scheduledEndAt,
     vehicle: vehicle,
+    driverId: driverId,
     driverName: driverName,
+    fromPoint: fromPoint,
+    toPoint: toPoint,
     quotedFarePaise: quotedFarePaise,
+    cancellationFarePaise: cancellationFarePaise,
     includedKm: includedKm,
     startOdometer: startOdometer ?? this.startOdometer,
     endOdometer: endOdometer ?? this.endOdometer,
@@ -444,13 +532,14 @@ class Trip {
     'customer': customerName == null
         ? null
         : {'name': customerName, 'phone': customerPhone},
-    'from': {'text': fromText},
-    'to': toText == null ? null : {'text': toText},
+    'from': {'text': fromText, 'point': fromPoint?.toJson()},
+    'to': toText == null ? null : {'text': toText, 'point': toPoint?.toJson()},
     'scheduledStartAt': scheduledStartAt.toUtc().toIso8601String(),
     'scheduledEndAt': scheduledEndAt.toUtc().toIso8601String(),
     'vehicle': vehicle?.toJson(),
-    'driver': driverName == null ? null : {'name': driverName},
+    'driver': driverName == null ? null : {'id': driverId, 'name': driverName},
     'quotedFarePaise': quotedFarePaise,
+    'cancellationFarePaise': cancellationFarePaise,
     'includedKm': includedKm,
     'startOdometer': startOdometer?.toJson(),
     'endOdometer': endOdometer?.toJson(),
@@ -460,7 +549,7 @@ class Trip {
     'cancelReason': cancelReason,
     'cancellationRequest': cancellationRequest?.toJson(),
     'charges': charges.map((c) => c.toJson()).toList(),
-    'collections': collections.map((c) => c.toInput()).toList(),
+    'collections': collections.map((c) => c.toJson()).toList(),
     'fuelFills': fuelFills.map((f) => f.toJson()).toList(),
     'allowedCommands': allowedCommands,
     'updatedAt': updatedAt.toUtc().toIso8601String(),
@@ -474,19 +563,36 @@ class Vehicle {
     required this.model,
     required this.fuelType,
     this.lastOdometerKm,
+    this.make = '',
+    this.year,
+    this.status = 'active',
+    this.vehicleModelId,
   });
 
+  /// Vehicles cached before the fleet fields were kept parse with defaults.
   factory Vehicle.fromJson(JsonMap json) => Vehicle(
     id: json.str('id'),
     registrationNo: json.str('registrationNo'),
     model: json.str('model'),
     fuelType: json.str('fuelType'),
     lastOdometerKm: json.intOrNull('lastOdometerKm'),
+    make: json.strOrNull('make') ?? '',
+    year: json.intOrNull('year'),
+    status: json.strOrNull('status') ?? 'active',
+    vehicleModelId: json.strOrNull('vehicleModelId'),
   );
 
   final String id;
   final String registrationNo;
+  final String make;
   final String model;
+  final int? year;
+
+  /// active or inactive (hidden from assignment).
+  final String status;
+  final String? vehicleModelId;
+
+  bool get isActive => status == 'active';
 
   /// petrol, diesel, cng or petrol_cng.
   final String fuelType;
@@ -502,6 +608,10 @@ class Vehicle {
     'model': model,
     'fuelType': fuelType,
     'lastOdometerKm': lastOdometerKm,
+    'make': make,
+    'year': year,
+    'status': status,
+    'vehicleModelId': vehicleModelId,
   };
 }
 
