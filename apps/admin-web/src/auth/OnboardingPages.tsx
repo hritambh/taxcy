@@ -99,7 +99,7 @@ export function NotStaffPage() {
   return (
     <AuthShell
       title="This console is for owners and managers"
-      subtitle={`You’re a driver at ${auth.activeMembership?.orgName ?? 'this organization'}. Use the Taxcy Driver app on your phone for your trips and fuel.`}
+      subtitle={`You’re a driver at ${auth.activeMembership?.orgName ?? 'this organization'}. Use the Taxcy app on your phone for your trips and fuel.`}
     >
       <div className="space-y-2">
         {staffOrgs.map((m) => (

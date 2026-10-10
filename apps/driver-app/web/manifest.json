@@ -1,11 +1,11 @@
 {
-    "name": "Taxcy Driver",
+    "name": "Taxcy",
     "short_name": "Taxcy",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "Taxcy driver app",
+    "description": "Taxcy app for drivers and fleet owners",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

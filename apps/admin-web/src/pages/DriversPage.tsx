@@ -52,7 +52,7 @@ function InviteModal({ onClose }: { onClose: () => void }) {
     <Modal open onClose={onClose} title="Invite a driver">
       <form onSubmit={submit} className="space-y-4">
         <p className="text-sm text-slate-600">
-          The driver signs in to the Taxcy Driver app with this number; no password needed.
+          The driver signs in to the Taxcy app with this number; no password needed.
         </p>
         <Field label="Name">
           {(props) => (
