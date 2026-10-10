@@ -204,6 +204,7 @@ class _NewTripScreenState extends ConsumerState<NewTripScreen> {
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
                   key: const Key('trip-vehicle'),
+                  isExpanded: true,
                   initialValue: vehicle.id,
                   decoration: InputDecoration(
                     labelText: l.vehicle,

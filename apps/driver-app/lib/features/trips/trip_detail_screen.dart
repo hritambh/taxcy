@@ -268,26 +268,25 @@ class _LiveTripState extends ConsumerState<_LiveTrip> {
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            Column(
-              children: [
-                Text(
-                  formatDuration(DateTime.now().difference(started)),
-                  style: theme.headlineSmall,
+            for (final (value, label) in [
+              (
+                formatDuration(DateTime.now().difference(started)),
+                context.l10n.elapsed,
+              ),
+              (context.fmt.number(km, decimals: 1), context.l10n.kmByGps),
+            ])
+              Expanded(
+                child: Column(
+                  children: [
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(value, style: theme.headlineSmall),
+                    ),
+                    Text(label, textAlign: TextAlign.center),
+                  ],
                 ),
-                Text(context.l10n.elapsed),
-              ],
-            ),
-            Column(
-              children: [
-                Text(
-                  context.fmt.number(km, decimals: 1),
-                  style: theme.headlineSmall,
-                ),
-                Text(context.l10n.kmByGps),
-              ],
-            ),
+              ),
           ],
         ),
       ),

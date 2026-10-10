@@ -323,50 +323,66 @@ class _EndTripScreenState extends ConsumerState<EndTripScreen> {
                 subtitle: Text(l.addedDuringTrip(note: chargeNote(l, c))),
                 trailing: Text(fmt.inr(c.amountPaise)),
               ),
+            // Two lines per charge, so it fits a small phone in any language.
             for (final (index, c) in _charges.indexed)
-              Row(
-                children: [
-                  DropdownButton<String>(
-                    value: c.kind,
-                    items: [
-                      for (final kind in chargeKinds)
-                        DropdownMenuItem(
-                          value: kind,
-                          child: Text(chargeKindLabel(l, kind)),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: DropdownButton<String>(
+                            value: c.kind,
+                            isExpanded: true,
+                            items: [
+                              for (final kind in chargeKinds)
+                                DropdownMenuItem(
+                                  value: kind,
+                                  child: Text(chargeKindLabel(l, kind)),
+                                ),
+                            ],
+                            onChanged: (v) =>
+                                setState(() => c.kind = v ?? c.kind),
+                          ),
                         ),
-                    ],
-                    onChanged: (v) => setState(() => c.kind = v ?? c.kind),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: TextFormField(
-                      controller: c.amount,
-                      keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true,
-                      ),
-                      decoration: const InputDecoration(prefixText: '₹ '),
-                      validator: (v) => validateRupees(l, v),
-                      onChanged: (_) => setState(() {}),
+                        IconButton(
+                          icon: const Icon(Icons.close),
+                          onPressed: () =>
+                              setState(() => _charges.removeAt(index)),
+                        ),
+                      ],
                     ),
-                  ),
-                  if (isExtraFare(c.kind))
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      child: Text(l.extraFare),
-                    )
-                  else ...[
-                    Checkbox(
-                      value: c.paidByDriver,
-                      onChanged: (v) =>
-                          setState(() => c.paidByDriver = v ?? true),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextFormField(
+                            controller: c.amount,
+                            keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
+                            decoration: const InputDecoration(prefixText: '₹ '),
+                            validator: (v) => validateRupees(l, v),
+                            onChanged: (_) => setState(() {}),
+                          ),
+                        ),
+                        if (isExtraFare(c.kind))
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                            child: Text(l.extraFare),
+                          )
+                        else ...[
+                          Checkbox(
+                            value: c.paidByDriver,
+                            onChanged: (v) =>
+                                setState(() => c.paidByDriver = v ?? true),
+                          ),
+                          Text(l.iPaid),
+                        ],
+                      ],
                     ),
-                    Text(l.iPaid),
                   ],
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => setState(() => _charges.removeAt(index)),
-                  ),
-                ],
+                ),
               ),
             TextButton.icon(
               onPressed: () => setState(() => _charges.add(_ChargeRow())),
@@ -406,39 +422,48 @@ class _EndTripScreenState extends ConsumerState<EndTripScreen> {
             if (_alreadyCollected > 0)
               Text(l.alreadyRecorded(amount: fmt.inr(_alreadyCollected))),
             for (final (index, c) in _collections.indexed)
-              Row(
-                children: [
-                  SegmentedButton<String>(
-                    segments: [
-                      for (final method in const ['cash', 'upi', 'card'])
-                        ButtonSegment(
-                          value: method,
-                          label: Text(methodLabel(l, method)),
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    SegmentedButton<String>(
+                      showSelectedIcon: false,
+                      segments: [
+                        for (final method in const ['cash', 'upi', 'card'])
+                          ButtonSegment(
+                            value: method,
+                            label: Text(methodLabel(l, method)),
+                          ),
+                      ],
+                      selected: {c.method},
+                      onSelectionChanged: (s) =>
+                          setState(() => c.method = s.first),
+                    ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextFormField(
+                            key: Key('collection-$index'),
+                            controller: c.amount,
+                            keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
+                            decoration: const InputDecoration(prefixText: '₹ '),
+                            validator: (v) =>
+                                validateRupees(l, v, allowZero: true),
+                          ),
                         ),
-                    ],
-                    selected: {c.method},
-                    onSelectionChanged: (s) =>
-                        setState(() => c.method = s.first),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: TextFormField(
-                      key: Key('collection-$index'),
-                      controller: c.amount,
-                      keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true,
-                      ),
-                      decoration: const InputDecoration(prefixText: '₹ '),
-                      validator: (v) => validateRupees(l, v, allowZero: true),
+                        if (_collections.length > 1)
+                          IconButton(
+                            icon: const Icon(Icons.close),
+                            onPressed: () =>
+                                setState(() => _collections.removeAt(index)),
+                          ),
+                      ],
                     ),
-                  ),
-                  if (_collections.length > 1)
-                    IconButton(
-                      icon: const Icon(Icons.close),
-                      onPressed: () =>
-                          setState(() => _collections.removeAt(index)),
-                    ),
-                ],
+                  ],
+                ),
               ),
             TextButton.icon(
               onPressed: () =>
