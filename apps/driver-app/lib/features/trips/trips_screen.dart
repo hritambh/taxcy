@@ -4,37 +4,47 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../app/providers.dart';
 import '../../app/theme.dart';
 import '../../core/repositories/trips_repository.dart';
+import '../../l10n/app_localizations.dart';
+import '../common/errors.dart';
 import '../common/format.dart';
+import '../common/language_picker.dart';
 import '../common/widgets.dart';
 import '../fuel/fuel_fill_screen.dart';
 import 'new_trip_screen.dart';
 import 'trip_detail_screen.dart';
 
+enum TripGroup { onTheRoad, today, upcoming, recent }
+
+String tripGroupLabel(AppLocalizations l, TripGroup group) => switch (group) {
+  TripGroup.onTheRoad => l.groupOnTheRoad,
+  TripGroup.today => l.groupToday,
+  TripGroup.upcoming => l.groupUpcoming,
+  TripGroup.recent => l.groupRecent,
+};
+
 /// Groups trips the way a driver thinks about them.
-Map<String, List<TripView>> groupTrips(List<TripView> trips, {DateTime? now}) {
+Map<TripGroup, List<TripView>> groupTrips(
+  List<TripView> trips, {
+  DateTime? now,
+}) {
   final today = (now ?? DateTime.now()).toLocal();
   final startOfToday = DateTime(today.year, today.month, today.day);
   final startOfTomorrow = startOfToday.add(const Duration(days: 1));
-  final groups = <String, List<TripView>>{
-    'On the road': [],
-    'Today': [],
-    'Upcoming': [],
-    'Recent': [],
-  };
+  final groups = {for (final g in TripGroup.values) g: <TripView>[]};
   for (final view in trips) {
     final t = view.trip;
     final at = t.scheduledStartAt.toLocal();
     if (t.status == 'started') {
-      groups['On the road']!.add(view);
+      groups[TripGroup.onTheRoad]!.add(view);
     } else if (t.status == 'assigned' && at.isBefore(startOfTomorrow)) {
-      groups['Today']!.add(view);
+      groups[TripGroup.today]!.add(view);
     } else if (t.status == 'assigned' || t.status == 'created') {
-      groups['Upcoming']!.add(view);
+      groups[TripGroup.upcoming]!.add(view);
     } else {
-      groups['Recent']!.add(view);
+      groups[TripGroup.recent]!.add(view);
     }
   }
-  groups['Recent']!.sort(
+  groups[TripGroup.recent]!.sort(
     (a, b) => b.trip.scheduledStartAt.compareTo(a.trip.scheduledStartAt),
   );
   groups.removeWhere((_, list) => list.isEmpty);
@@ -47,6 +57,7 @@ class TripsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final trips = ref.watch(tripsProvider);
+    final l = context.l10n;
     return Scaffold(
       floatingActionButton: FloatingActionButton.extended(
         key: const Key('new-trip'),
@@ -54,24 +65,28 @@ class TripsScreen extends ConsumerWidget {
           context,
         ).push(MaterialPageRoute<void>(builder: (_) => const NewTripScreen())),
         icon: const Icon(Icons.add),
-        label: const Text('New trip'),
+        label: Text(l.newTrip),
       ),
       appBar: AppBar(
-        title: const Text('My trips'),
+        title: Text(l.myTrips),
         actions: [
           IconButton(
-            tooltip: 'Log fuel',
+            tooltip: l.logFuel,
             icon: const Icon(Icons.local_gas_station),
             onPressed: () => Navigator.of(context).push(
               MaterialPageRoute<void>(builder: (_) => const FuelFillScreen()),
             ),
           ),
           PopupMenuButton<String>(
-            onSelected: (value) {
-              if (value == 'signout') ref.read(authProvider.notifier).signOut();
+            key: const Key('driver-menu'),
+            onSelected: (value) => switch (value) {
+              'language' => showLanguagePicker(context, ref),
+              'signout' => ref.read(authProvider.notifier).signOut(),
+              _ => null,
             },
-            itemBuilder: (_) => const [
-              PopupMenuItem(value: 'signout', child: Text('Sign out')),
+            itemBuilder: (_) => [
+              PopupMenuItem(value: 'language', child: Text(l.language)),
+              PopupMenuItem(value: 'signout', child: Text(l.signOut)),
             ],
           ),
         ],
@@ -88,7 +103,7 @@ class TripsScreen extends ConsumerWidget {
                   children: [
                     Padding(
                       padding: const EdgeInsets.all(24),
-                      child: Text('$error'),
+                      child: Text(errorText(l, error)),
                     ),
                   ],
                 ),
@@ -96,11 +111,11 @@ class TripsScreen extends ConsumerWidget {
                   final groups = groupTrips(list);
                   if (groups.isEmpty) {
                     return ListView(
-                      children: const [
+                      children: [
                         Padding(
-                          padding: EdgeInsets.all(32),
+                          padding: const EdgeInsets.all(32),
                           child: Text(
-                            'No trips yet. Pull down to refresh.',
+                            l.noTripsYet,
                             textAlign: TextAlign.center,
                           ),
                         ),
@@ -113,7 +128,7 @@ class TripsScreen extends ConsumerWidget {
                         Padding(
                           padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
                           child: Text(
-                            entry.key,
+                            tripGroupLabel(l, entry.key),
                             style: Theme.of(context).textTheme.titleSmall,
                           ),
                         ),
@@ -138,6 +153,7 @@ class _TripTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = view.trip;
+    final l = context.l10n;
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       child: ListTile(
@@ -159,10 +175,10 @@ class _TripTile extends StatelessWidget {
         ),
         subtitle: Text(
           [
-            '${formatDay(t.scheduledStartAt)}, ${formatTime(t.scheduledStartAt)}',
+            context.fmt.dayTime(t.scheduledStartAt),
             if (t.vehicle != null) t.vehicle!.registrationNo,
             if (view.conflict != null)
-              '⚠ ${view.conflict == 'TRIP_CANCELLED' ? 'Cancelled by owner' : 'Reassigned'}',
+              '⚠ ${view.conflict == 'TRIP_CANCELLED' ? l.conflictCancelledShort : l.conflictReassignedShort}',
           ].join(' · '),
         ),
         trailing: StatusChip(t.status),

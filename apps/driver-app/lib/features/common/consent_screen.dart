@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/location/gps.dart';
+import 'format.dart';
 
 const _consentKey = 'location_consent_v1';
 
@@ -23,6 +24,7 @@ class LocationConsentScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l = context.l10n;
     return Scaffold(
       body: SafeArea(
         child: ListView(
@@ -31,28 +33,15 @@ class LocationConsentScreen extends StatelessWidget {
             const SizedBox(height: 32),
             const Icon(Icons.location_on_outlined, size: 56),
             const SizedBox(height: 16),
-            Text('Location during trips', style: theme.textTheme.headlineSmall),
+            Text(l.consentTitle, style: theme.textTheme.headlineSmall),
             const SizedBox(height: 16),
-            const Text(
-              'Taxcy records your phone\'s location only while a trip is running '
-              '(between "Start trip" and "End trip"). A notification is shown the '
-              'whole time it is recording.',
-            ),
+            Text(l.consentWhen),
             const SizedBox(height: 12),
-            const Text(
-              'Your fleet owner uses it to see the route and to check the distance '
-              'against the odometer. It is also attached to odometer and receipt '
-              'photos. It is not collected when you are off duty.',
-            ),
+            Text(l.consentWhy),
             const SizedBox(height: 12),
-            const Text(
-              'Route data is kept for up to 12 months and then deleted.',
-            ),
+            Text(l.consentRetention),
             const SizedBox(height: 32),
-            FilledButton(
-              onPressed: _accept,
-              child: const Text('I understand, continue'),
-            ),
+            FilledButton(onPressed: _accept, child: Text(l.consentContinue)),
           ],
         ),
       ),

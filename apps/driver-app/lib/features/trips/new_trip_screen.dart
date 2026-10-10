@@ -5,14 +5,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../app/providers.dart';
 import '../../core/api/models.dart';
 import '../../core/repositories/trips_repository.dart';
+import '../common/errors.dart';
 import '../common/format.dart';
 import 'trip_detail_screen.dart';
 
-const _tripTypes = {
-  'one_way': 'One way',
-  'round_trip': 'Round trip',
-  'local_rental': 'Local',
-};
+const _tripTypes = ['one_way', 'round_trip', 'local_rental'];
 const _durations = [1, 2, 4, 8, 12, 24];
 
 /// A trip the driver books themselves (e.g. a walk-in customer). It's assigned
@@ -107,7 +104,7 @@ class _NewTripScreenState extends ConsumerState<NewTripScreen> {
         ),
       );
     } on LocalRejection catch (error) {
-      setState(() => _error = error.message);
+      setState(() => _error = rejectionText(context.l10n, error));
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -116,20 +113,18 @@ class _NewTripScreenState extends ConsumerState<NewTripScreen> {
   @override
   Widget build(BuildContext context) {
     final vehicles = ref.watch(vehiclesProvider);
+    final l = context.l10n;
     return Scaffold(
-      appBar: AppBar(title: const Text('New trip')),
+      appBar: AppBar(title: Text(l.newTrip)),
       body: vehicles.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => Center(child: Text('$error')),
+        error: (error, _) => Center(child: Text(errorText(l, error))),
         data: (list) {
           if (list.isEmpty) {
-            return const Center(
+            return Center(
               child: Padding(
-                padding: EdgeInsets.all(24),
-                child: Text(
-                  'No vehicles yet. Connect to the internet once to load them.',
-                  textAlign: TextAlign.center,
-                ),
+                padding: const EdgeInsets.all(24),
+                child: Text(l.noVehiclesOffline, textAlign: TextAlign.center),
               ),
             );
           }
@@ -145,8 +140,11 @@ class _NewTripScreenState extends ConsumerState<NewTripScreen> {
               children: [
                 SegmentedButton<String>(
                   segments: [
-                    for (final e in _tripTypes.entries)
-                      ButtonSegment(value: e.key, label: Text(e.value)),
+                    for (final type in _tripTypes)
+                      ButtonSegment(
+                        value: type,
+                        label: Text(tripTypeLabel(l, type)),
+                      ),
                   ],
                   selected: {_tripType},
                   onSelectionChanged: (s) =>
@@ -156,49 +154,49 @@ class _NewTripScreenState extends ConsumerState<NewTripScreen> {
                 TextFormField(
                   key: const Key('trip-from'),
                   controller: _from,
-                  decoration: const InputDecoration(
-                    labelText: 'Pickup',
-                    prefixIcon: Icon(Icons.trip_origin),
+                  decoration: InputDecoration(
+                    labelText: l.pickup,
+                    prefixIcon: const Icon(Icons.trip_origin),
                   ),
                   validator: (v) =>
-                      (v ?? '').trim().isEmpty ? 'Enter the pickup' : null,
+                      (v ?? '').trim().isEmpty ? l.enterPickup : null,
                 ),
                 if (!local) ...[
                   const SizedBox(height: 12),
                   TextFormField(
                     key: const Key('trip-to'),
                     controller: _to,
-                    decoration: const InputDecoration(
-                      labelText: 'Drop',
-                      prefixIcon: Icon(Icons.place),
+                    decoration: InputDecoration(
+                      labelText: l.drop,
+                      prefixIcon: const Icon(Icons.place),
                     ),
                     validator: (v) =>
-                        (v ?? '').trim().isEmpty ? 'Enter the drop' : null,
+                        (v ?? '').trim().isEmpty ? l.enterDrop : null,
                   ),
                 ],
                 const SizedBox(height: 12),
                 InkWell(
                   onTap: _pickStart,
                   child: InputDecorator(
-                    decoration: const InputDecoration(
-                      labelText: 'Starts',
-                      prefixIcon: Icon(Icons.schedule),
+                    decoration: InputDecoration(
+                      labelText: l.starts,
+                      prefixIcon: const Icon(Icons.schedule),
                     ),
-                    child: Text('${formatDay(_start)}, ${formatTime(_start)}'),
+                    child: Text(context.fmt.dayTime(_start)),
                   ),
                 ),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<int>(
                   initialValue: _hours,
-                  decoration: const InputDecoration(
-                    labelText: 'Expected duration',
-                    prefixIcon: Icon(Icons.timelapse),
+                  decoration: InputDecoration(
+                    labelText: l.expectedDuration,
+                    prefixIcon: const Icon(Icons.timelapse),
                   ),
                   items: [
                     for (final h in _durations)
                       DropdownMenuItem(
                         value: h,
-                        child: Text(h == 1 ? '1 hour' : '$h hours'),
+                        child: Text(l.hours(count: h)),
                       ),
                   ],
                   onChanged: (v) => setState(() => _hours = v ?? _hours),
@@ -207,9 +205,9 @@ class _NewTripScreenState extends ConsumerState<NewTripScreen> {
                 DropdownButtonFormField<String>(
                   key: const Key('trip-vehicle'),
                   initialValue: vehicle.id,
-                  decoration: const InputDecoration(
-                    labelText: 'Vehicle',
-                    prefixIcon: Icon(Icons.directions_car),
+                  decoration: InputDecoration(
+                    labelText: l.vehicle,
+                    prefixIcon: const Icon(Icons.directions_car),
                   ),
                   items: [
                     for (final v in list)
@@ -230,11 +228,11 @@ class _NewTripScreenState extends ConsumerState<NewTripScreen> {
                         keyboardType: const TextInputType.numberWithOptions(
                           decimal: true,
                         ),
-                        decoration: const InputDecoration(
-                          labelText: 'Fare',
+                        decoration: InputDecoration(
+                          labelText: l.fare,
                           prefixText: '₹ ',
                         ),
-                        validator: validateFare,
+                        validator: (v) => validateFare(l, v),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -246,19 +244,12 @@ class _NewTripScreenState extends ConsumerState<NewTripScreen> {
                         inputFormatters: [
                           FilteringTextInputFormatter.digitsOnly,
                         ],
-                        decoration: const InputDecoration(
-                          labelText: 'Included km',
-                          helperText: 'Optional',
-                          suffixText: 'km',
+                        decoration: InputDecoration(
+                          labelText: l.includedKm,
+                          helperText: l.optional,
+                          suffixText: l.unitKm,
                         ),
-                        validator: (v) {
-                          final text = (v ?? '').trim();
-                          if (text.isEmpty) return null;
-                          final km = int.tryParse(text);
-                          return km == null || km < 1 || km > 20000
-                              ? 'Enter km, or leave empty'
-                              : null;
-                        },
+                        validator: (v) => validateIncludedKm(l, v),
                       ),
                     ),
                   ],
@@ -266,9 +257,9 @@ class _NewTripScreenState extends ConsumerState<NewTripScreen> {
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: _customer,
-                  decoration: const InputDecoration(
-                    labelText: 'Customer name (optional)',
-                    prefixIcon: Icon(Icons.person),
+                  decoration: InputDecoration(
+                    labelText: l.customerNameOptional,
+                    prefixIcon: const Icon(Icons.person),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -279,10 +270,10 @@ class _NewTripScreenState extends ConsumerState<NewTripScreen> {
                     FilteringTextInputFormatter.digitsOnly,
                     LengthLimitingTextInputFormatter(10),
                   ],
-                  decoration: const InputDecoration(
-                    labelText: 'Customer mobile (optional)',
+                  decoration: InputDecoration(
+                    labelText: l.customerMobileOptional,
                     prefixText: '+91 ',
-                    prefixIcon: Icon(Icons.phone),
+                    prefixIcon: const Icon(Icons.phone),
                   ),
                 ),
                 if (_error != null) ...[
@@ -299,12 +290,11 @@ class _NewTripScreenState extends ConsumerState<NewTripScreen> {
                   key: const Key('create-trip'),
                   onPressed: _busy ? null : () => _save(vehicle),
                   icon: const Icon(Icons.add),
-                  label: const Text('Create trip'),
+                  label: Text(l.createTrip),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'The trip is assigned to you. Your fleet owner sees it '
-                  'once your phone is online.',
+                  l.newTripFootnote,
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.bodySmall,
                 ),

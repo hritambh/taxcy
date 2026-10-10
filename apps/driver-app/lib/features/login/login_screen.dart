@@ -5,6 +5,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../app/providers.dart';
 import '../../app/theme.dart';
 import '../../core/api/api.dart';
+import '../common/errors.dart';
+import '../common/format.dart';
+import '../common/language_picker.dart';
 
 /// Phone number → OTP → signed in.
 class LoginScreen extends ConsumerStatefulWidget {
@@ -40,24 +43,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     } on ApiException catch (error) {
       setState(() => _error = _friendly(error));
     } on Object catch (error) {
-      setState(() => _error = 'Something went wrong: $error');
+      setState(() => _error = errorText(context.l10n, error));
     } finally {
       if (mounted) setState(() => _busy = false);
     }
   }
 
-  String _friendly(ApiException error) => switch (error.code) {
-    'NETWORK' => 'No connection. Check your internet and try again.',
-    'RATE_LIMITED' => 'Too many attempts. Wait a few minutes and try again.',
-    'OTP_INVALID' => 'That code is not right. Check the SMS and try again.',
-    'OTP_EXPIRED' => 'The code expired. Request a new one.',
-    'VALIDATION_FAILED' => 'Check the number and try again.',
-    _ => error.message,
-  };
+  String _friendly(ApiException error) => error.code == 'VALIDATION_FAILED'
+      ? context.l10n.loginCheckNumber
+      : errorText(context.l10n, error);
 
   Future<void> _sendCode() async {
     if (!RegExp(r'^[6-9]\d{9}$').hasMatch(_phone.text.trim())) {
-      setState(() => _error = 'Enter your 10-digit mobile number');
+      setState(() => _error = context.l10n.enterTenDigitMobile);
       return;
     }
     await _run(() async {
@@ -68,7 +66,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   Future<void> _verify() async {
     if (!RegExp(r'^\d{6}$').hasMatch(_code.text.trim())) {
-      setState(() => _error = 'Enter the 6-digit code');
+      setState(() => _error = context.l10n.enterSixDigitCode);
       return;
     }
     await _run(
@@ -112,12 +110,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       ),
                       const SizedBox(width: 12),
                       Text(
-                        'Taxcy Driver',
+                        context.l10n.appTitle,
                         style: theme.textTheme.headlineSmall?.copyWith(
                           color: Colors.white,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
+                      const Spacer(),
+                      const LanguageButton(color: Colors.white),
                     ],
                   ),
                   const SizedBox(height: 24),
@@ -142,8 +142,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   List<Widget> _form(ThemeData theme) => [
     Text(
       _codeSent
-          ? 'Enter the code we sent to +91 ${_phone.text.trim()}'
-          : 'Sign in with the mobile number your fleet owner registered.',
+          ? context.l10n.loginCodeSent(phone: '+91 ${_phone.text.trim()}')
+          : context.l10n.loginIntro,
       style: theme.textTheme.bodyLarge,
     ),
     const SizedBox(height: 24),
@@ -156,10 +156,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         FilteringTextInputFormatter.digitsOnly,
         LengthLimitingTextInputFormatter(10),
       ],
-      decoration: const InputDecoration(
-        labelText: 'Mobile number',
+      decoration: InputDecoration(
+        labelText: context.l10n.mobileNumber,
         prefixText: '+91 ',
-        border: OutlineInputBorder(),
+        border: const OutlineInputBorder(),
       ),
     ),
     if (_codeSent) ...[
@@ -174,9 +174,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           FilteringTextInputFormatter.digitsOnly,
           LengthLimitingTextInputFormatter(6),
         ],
-        decoration: const InputDecoration(
-          labelText: '6-digit code',
-          border: OutlineInputBorder(),
+        decoration: InputDecoration(
+          labelText: context.l10n.sixDigitCode,
+          border: const OutlineInputBorder(),
         ),
       ),
     ],
@@ -197,7 +197,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               dimension: 20,
               child: CircularProgressIndicator(strokeWidth: 2),
             )
-          : Text(_codeSent ? 'Verify and sign in' : 'Send code'),
+          : Text(
+              _codeSent ? context.l10n.verifyAndSignIn : context.l10n.sendCode,
+            ),
     ),
     if (_codeSent)
       TextButton(
@@ -208,17 +210,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 _code.clear();
                 _error = null;
               }),
-        child: const Text('Use a different number'),
+        child: Text(context.l10n.useDifferentNumber),
       ),
   ];
 }
 
-/// Signed in, but this account isn't a driver in the active organization.
-class NotADriverScreen extends ConsumerWidget {
-  const NotADriverScreen({super.key});
+/// Signed in, but this number has no driver, owner or manager role in the
+/// active organization.
+class NoFleetScreen extends ConsumerWidget {
+  const NoFleetScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) => Scaffold(
+    appBar: AppBar(actions: const [LanguageButton()]),
     body: SafeArea(
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -228,20 +232,15 @@ class NotADriverScreen extends ConsumerWidget {
             const Icon(Icons.badge_outlined, size: 64),
             const SizedBox(height: 16),
             Text(
-              'This app is for drivers',
+              context.l10n.noFleetTitle,
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 8),
-            const Text(
-              'Your number is not registered as a driver in any fleet yet. '
-              'Ask your fleet owner to add you as a driver, or use the Taxcy admin '
-              'website if you manage the fleet.',
-              textAlign: TextAlign.center,
-            ),
+            Text(context.l10n.noFleetBody, textAlign: TextAlign.center),
             const SizedBox(height: 24),
             OutlinedButton(
               onPressed: () => ref.read(authProvider.notifier).signOut(),
-              child: const Text('Sign out'),
+              child: Text(context.l10n.signOut),
             ),
           ],
         ),

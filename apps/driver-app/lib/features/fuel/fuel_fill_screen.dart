@@ -7,6 +7,7 @@ import '../../core/api/models.dart';
 import '../../core/media/captured_photo.dart';
 import '../../core/repositories/fuel_repository.dart';
 import '../../core/repositories/trips_repository.dart';
+import '../common/errors.dart';
 import '../common/format.dart';
 import '../common/widgets.dart';
 import 'fuel_vehicle.dart';
@@ -75,18 +76,16 @@ class _FuelFillScreenState extends ConsumerState<FuelFillScreen> {
           ),
         );
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Fuel fill saved; it will sync automatically'),
-      ),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(context.l10n.fuelSaved)));
     Navigator.of(context).pop();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Log fuel')),
+      appBar: AppBar(title: Text(context.l10n.logFuel)),
       body: _body(),
     );
   }
@@ -97,8 +96,9 @@ class _FuelFillScreenState extends ConsumerState<FuelFillScreen> {
     if (vehicles.isLoading || trips.isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
+    final l = context.l10n;
     final error = vehicles.error ?? trips.error;
-    if (error != null) return Center(child: Text('$error'));
+    if (error != null) return Center(child: Text(errorText(l, error)));
 
     final fixedId = widget.vehicleId;
     final options = fixedId != null
@@ -107,10 +107,7 @@ class _FuelFillScreenState extends ConsumerState<FuelFillScreen> {
             for (final t in trips.value ?? const <TripView>[]) t.trip,
           ], DateTime.now());
     if (options != null && options.isEmpty) {
-      return const _Message(
-        'No vehicle is assigned to you right now. Fuel can be logged for '
-        'the vehicle on your trip; ask your fleet owner to assign one.',
-      );
+      return _Message(l.noVehicleAssigned);
     }
     final selectedId = fixedId ?? _vehicleId ?? options!.first.vehicle.id;
     final option = options?.firstWhere((o) => o.vehicle.id == selectedId);
@@ -123,15 +120,12 @@ class _FuelFillScreenState extends ConsumerState<FuelFillScreen> {
         .where((v) => v.id == selectedId)
         .firstOrNull;
     if (vehicle == null) {
-      return const _Message(
-        "This vehicle's details haven't been downloaded yet. "
-        'Connect to the internet once and try again.',
-      );
+      return _Message(l.vehicleNotDownloaded);
     }
     final fuel = vehicle.allowedFuels.contains(_fuel)
         ? _fuel!
         : vehicle.allowedFuels.first;
-    final unit = fuel == 'cng' ? 'kg' : 'L';
+    final unit = context.fmt.unitFor(fuel);
     return Form(
       key: _form,
       child: ListView(
@@ -141,10 +135,10 @@ class _FuelFillScreenState extends ConsumerState<FuelFillScreen> {
             InputDecorator(
               key: const Key('fuel-vehicle'),
               decoration: InputDecoration(
-                labelText: 'Vehicle',
+                labelText: l.vehicle,
                 helperText: option == null
-                    ? 'The vehicle on this trip'
-                    : 'From your trip: ${_route(option.trip)}',
+                    ? l.vehicleOnThisTrip
+                    : l.fromYourTrip(route: option.trip.routeLabel),
                 border: const OutlineInputBorder(),
               ),
               child: Text('${vehicle.registrationNo} · ${vehicle.model}'),
@@ -153,17 +147,17 @@ class _FuelFillScreenState extends ConsumerState<FuelFillScreen> {
             DropdownButtonFormField<String>(
               key: const Key('fuel-vehicle'),
               initialValue: selectedId,
-              decoration: const InputDecoration(
-                labelText: 'Vehicle',
-                helperText: 'Vehicles on your trips',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: l.vehicle,
+                helperText: l.vehiclesOnYourTrips,
+                border: const OutlineInputBorder(),
               ),
               items: [
                 for (final o in options)
                   DropdownMenuItem(
                     value: o.vehicle.id,
                     child: Text(
-                      '${o.vehicle.registrationNo} · ${_route(o.trip)}',
+                      '${o.vehicle.registrationNo} · ${o.trip.routeLabel}',
                     ),
                   ),
               ],
@@ -177,20 +171,20 @@ class _FuelFillScreenState extends ConsumerState<FuelFillScreen> {
             SegmentedButton<String>(
               segments: [
                 for (final f in vehicle.allowedFuels)
-                  ButtonSegment(value: f, label: Text(fuelNames[f] ?? f)),
+                  ButtonSegment(value: f, label: Text(fuelName(l, f))),
               ],
               selected: {fuel},
               onSelectionChanged: (s) => setState(() => _fuel = s.first),
             )
           else
-            Text('Fuel: ${fuelNames[fuel] ?? fuel}'),
+            Text(l.fuelKind(fuel: fuelName(l, fuel))),
           const SizedBox(height: 12),
           PhotoField(
             kind: 'fuel_receipt',
-            label: 'Receipt photo',
+            label: l.receiptPhoto,
             photo: _receipt,
             errorText: _showPhotoErrors && _receipt == null
-                ? 'Take a photo of the receipt'
+                ? l.takeReceiptPhoto
                 : null,
             onChanged: (p) => setState(() => _receipt = p),
           ),
@@ -207,14 +201,14 @@ class _FuelFillScreenState extends ConsumerState<FuelFillScreen> {
                     FilteringTextInputFormatter.allow(RegExp(r'[\d.]')),
                   ],
                   decoration: InputDecoration(
-                    labelText: 'Quantity',
+                    labelText: l.quantity,
                     suffixText: unit,
                     border: const OutlineInputBorder(),
                   ),
                   validator: (v) {
                     final q = double.tryParse((v ?? '').trim());
                     if (q == null || q <= 0 || q > 200) {
-                      return 'Enter the $unit filled';
+                      return l.enterQuantity(unit: unit);
                     }
                     return null;
                   },
@@ -227,28 +221,28 @@ class _FuelFillScreenState extends ConsumerState<FuelFillScreen> {
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
-                  decoration: const InputDecoration(
-                    labelText: 'Amount',
+                  decoration: InputDecoration(
+                    labelText: l.amount,
                     prefixText: '₹ ',
-                    border: OutlineInputBorder(),
+                    border: const OutlineInputBorder(),
                   ),
-                  validator: validateRupees,
+                  validator: (v) => validateRupees(l, v),
                 ),
               ),
             ],
           ),
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
-            title: const Text('Full tank'),
-            subtitle: const Text('Turn on when the tank was filled completely'),
+            title: Text(l.fullTank),
+            subtitle: Text(l.fullTankHint),
             value: _fullTank,
             onChanged: (v) => setState(() => _fullTank = v),
           ),
-          const Text('Who paid?'),
+          Text(l.whoPaid),
           const SizedBox(height: 4),
           SegmentedButton<String>(
             segments: [
-              for (final e in paidByChoices.entries)
+              for (final e in paidByChoices(l).entries)
                 ButtonSegment(value: e.key, label: Text(e.value)),
             ],
             selected: {_paidBy},
@@ -257,10 +251,10 @@ class _FuelFillScreenState extends ConsumerState<FuelFillScreen> {
           const SizedBox(height: 16),
           PhotoField(
             kind: 'odometer',
-            label: 'Odometer photo',
+            label: l.odometerPhoto,
             photo: _odometer,
             errorText: _showPhotoErrors && _odometer == null
-                ? 'Take a photo of the odometer'
+                ? l.takeOdometerPhoto
                 : null,
             onChanged: (p) => setState(() => _odometer = p),
           ),
@@ -269,25 +263,22 @@ class _FuelFillScreenState extends ConsumerState<FuelFillScreen> {
             controller: _km,
             keyboardType: TextInputType.number,
             inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-            decoration: const InputDecoration(
-              labelText: 'Odometer reading',
-              suffixText: 'km',
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              labelText: l.odometerReading,
+              suffixText: l.unitKm,
+              border: const OutlineInputBorder(),
             ),
-            validator: validateKm,
+            validator: (v) => validateKm(l, v),
           ),
           const SizedBox(height: 24),
           FilledButton(
             onPressed: () => _save(vehicle, tripId),
-            child: const Text('Save fuel fill'),
+            child: Text(l.saveFuelFill),
           ),
         ],
       ),
     );
   }
-
-  static String _route(Trip t) =>
-      t.toText == null ? t.fromText : '${t.fromText} → ${t.toText}';
 }
 
 class _Message extends StatelessWidget {

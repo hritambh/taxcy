@@ -49,21 +49,14 @@ class SyncStatus {
 }
 
 /// Something the driver must be told about, e.g. a trip cancelled while offline.
+/// The UI words it from [code] (TRIP_CANCELLED or TRIP_REASSIGNED).
 class SyncNotice {
-  const SyncNotice({
-    required this.tripId,
-    required this.code,
-    required this.message,
-  });
+  const SyncNotice({required this.tripId, required this.code});
   final String tripId;
   final String code;
-  final String message;
 }
 
-const _conflictMessages = {
-  'TRIP_CANCELLED': 'This trip was cancelled by the owner',
-  'TRIP_REASSIGNED': 'This trip has been reassigned to another driver',
-};
+const _conflictCodes = {'TRIP_CANCELLED', 'TRIP_REASSIGNED'};
 
 /// Retry delay after `attempts` failures: 2 s, 4 s, 8 s … capped at 5 minutes.
 Duration backoffFor(int attempts) {
@@ -164,7 +157,7 @@ class SyncEngine {
         await outbox.remove(item.seq);
         _emit(_current.copyWith(online: true, lastSyncedAt: _now()));
       } on ApiException catch (error) {
-        if (_conflictMessages.containsKey(error.code)) {
+        if (_conflictCodes.contains(error.code)) {
           await outbox.remove(item.seq);
           await _applyConflict(item.tripId, error.code);
           continue;
@@ -310,9 +303,7 @@ class SyncEngine {
           : trip.copyWith(allowedCommands: const []);
       await cacheTrip(updated, conflict: code);
     }
-    _notices.add(
-      SyncNotice(tripId: tripId, code: code, message: _conflictMessages[code]!),
-    );
+    _notices.add(SyncNotice(tripId: tripId, code: code));
   }
 
   /// Uploads recorded GPS points in batches, once the trip's start has reached the server.

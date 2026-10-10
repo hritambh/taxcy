@@ -1,0 +1,663 @@
+{
+  "@@locale": "en",
+  "appTitle": "Taxcy",
+  "@appTitle": {},
+  "signOut": "Sign out",
+  "@signOut": {},
+  "language": "Language",
+  "@language": {},
+  "languageDevice": "Phone's language",
+  "@languageDevice": {},
+  "retry": "Retry",
+  "@retry": {},
+  "cancel": "Cancel",
+  "@cancel": {},
+  "save": "Save",
+  "@save": {},
+  "back": "Back",
+  "@back": {},
+  "close": "Close",
+  "@close": {},
+  "optional": "Optional",
+  "@optional": {},
+  "notSet": "Not set",
+  "@notSet": {},
+  "noValue": "—",
+  "@noValue": {},
+  "somethingWentWrong": "Something went wrong: {error}",
+  "@somethingWentWrong": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "kmValue": "{km} km",
+  "@kmValue": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "unitLitres": "L",
+  "@unitLitres": {},
+  "unitKg": "kg",
+  "@unitKg": {},
+  "unitKm": "km",
+  "@unitKm": {},
+  "today": "Today",
+  "@today": {},
+  "tomorrow": "Tomorrow",
+  "@tomorrow": {},
+  "yesterday": "Yesterday",
+  "@yesterday": {},
+  "dayAndTime": "{day}, {time}",
+  "@dayAndTime": {
+    "placeholders": {
+      "day": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "loginIntro": "Sign in with your mobile number. Drivers use the number their fleet owner registered.",
+  "@loginIntro": {},
+  "loginCodeSent": "Enter the code we sent to {phone}",
+  "@loginCodeSent": {
+    "placeholders": {
+      "phone": {
+        "type": "String"
+      }
+    }
+  },
+  "mobileNumber": "Mobile number",
+  "@mobileNumber": {},
+  "sixDigitCode": "6-digit code",
+  "@sixDigitCode": {},
+  "sendCode": "Send code",
+  "@sendCode": {},
+  "verifyAndSignIn": "Verify and sign in",
+  "@verifyAndSignIn": {},
+  "useDifferentNumber": "Use a different number",
+  "@useDifferentNumber": {},
+  "enterTenDigitMobile": "Enter your 10-digit mobile number",
+  "@enterTenDigitMobile": {},
+  "enterSixDigitCode": "Enter the 6-digit code",
+  "@enterSixDigitCode": {},
+  "loginCheckNumber": "Check the number and try again.",
+  "@loginCheckNumber": {},
+  "noFleetTitle": "Not part of a fleet yet",
+  "@noFleetTitle": {},
+  "noFleetBody": "Your number isn't registered in any fleet yet. Ask your fleet owner to add you, or create your fleet on the Taxcy admin website.",
+  "@noFleetBody": {},
+  "ownerMode": "Owner mode",
+  "@ownerMode": {},
+  "driverMode": "Driver mode",
+  "@driverMode": {},
+  "errorNetwork": "No connection. Check your internet and try again.",
+  "@errorNetwork": {},
+  "errorValidationFailed": "Some details aren't right. Check them and try again.",
+  "@errorValidationFailed": {},
+  "errorUnauthenticated": "You've been signed out. Sign in again.",
+  "@errorUnauthenticated": {},
+  "errorTokenExpired": "Your session expired. Sign in again.",
+  "@errorTokenExpired": {},
+  "errorForbiddenRole": "You don't have permission to do this.",
+  "@errorForbiddenRole": {},
+  "errorNoActiveOrg": "Your number isn't part of a fleet yet.",
+  "@errorNoActiveOrg": {},
+  "errorNotFound": "Not found. It may have been removed.",
+  "@errorNotFound": {},
+  "errorIllegalTransition": "This can't be done in the trip's current state. Refresh and try again.",
+  "@errorIllegalTransition": {},
+  "errorTripCancelled": "This trip has been cancelled.",
+  "@errorTripCancelled": {},
+  "errorTripReassigned": "This trip has been reassigned to another driver.",
+  "@errorTripReassigned": {},
+  "errorVehicleBusy": "That vehicle is already booked for an overlapping time.",
+  "@errorVehicleBusy": {},
+  "errorDriverBusy": "That driver is already booked for an overlapping time.",
+  "@errorDriverBusy": {},
+  "errorCancellationPending": "A cancellation request is already waiting for a decision.",
+  "@errorCancellationPending": {},
+  "errorAlreadySettled": "That day is already settled.",
+  "@errorAlreadySettled": {},
+  "errorIdempotencyConflict": "This was already sent with different details.",
+  "@errorIdempotencyConflict": {},
+  "errorIdempotencyKeyRequired": "The request was incomplete. Try again.",
+  "@errorIdempotencyKeyRequired": {},
+  "errorVersionConflict": "Someone else changed this at the same time. Refresh and try again.",
+  "@errorVersionConflict": {},
+  "errorConflict": "This clashes with an existing record.",
+  "@errorConflict": {},
+  "errorFuelTypeMismatch": "That fuel doesn't match the vehicle's fuel type.",
+  "@errorFuelTypeMismatch": {},
+  "errorOdometerBeforeStart": "The odometer reading is lower than at the start of the trip.",
+  "@errorOdometerBeforeStart": {},
+  "errorOtpInvalid": "That code is not right. Check the SMS and try again.",
+  "@errorOtpInvalid": {},
+  "errorOtpExpired": "The code expired. Request a new one.",
+  "@errorOtpExpired": {},
+  "errorRateLimited": "Too many attempts. Wait a few minutes and try again.",
+  "@errorRateLimited": {},
+  "errorUploadNotFound": "The photo hasn't reached the server yet. Try again shortly.",
+  "@errorUploadNotFound": {},
+  "errorUploadMismatch": "The uploaded photo didn't match. Take it again.",
+  "@errorUploadMismatch": {},
+  "errorUploadFailed": "The photo upload failed. It will be retried.",
+  "@errorUploadFailed": {},
+  "errorInternal": "Something went wrong on the server. Try again.",
+  "@errorInternal": {},
+  "statusCreated": "Not assigned",
+  "@statusCreated": {},
+  "statusAssigned": "Assigned",
+  "@statusAssigned": {},
+  "statusStarted": "On the road",
+  "@statusStarted": {},
+  "statusEnded": "Ended",
+  "@statusEnded": {},
+  "statusSettled": "Settled",
+  "@statusSettled": {},
+  "statusCancelled": "Cancelled",
+  "@statusCancelled": {},
+  "myTrips": "My trips",
+  "@myTrips": {},
+  "newTrip": "New trip",
+  "@newTrip": {},
+  "logFuel": "Log fuel",
+  "@logFuel": {},
+  "groupOnTheRoad": "On the road",
+  "@groupOnTheRoad": {},
+  "groupToday": "Today",
+  "@groupToday": {},
+  "groupUpcoming": "Upcoming",
+  "@groupUpcoming": {},
+  "groupRecent": "Recent",
+  "@groupRecent": {},
+  "noTripsYet": "No trips yet. Pull down to refresh.",
+  "@noTripsYet": {},
+  "conflictCancelledShort": "Cancelled by owner",
+  "@conflictCancelledShort": {},
+  "conflictReassignedShort": "Reassigned",
+  "@conflictReassignedShort": {},
+  "tripNotFoundOnPhone": "Trip not found on this phone",
+  "@tripNotFoundOnPhone": {},
+  "includesKm": "Includes {km} km",
+  "@includesKm": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "startOdometerKm": "Start odometer: {km} km",
+  "@startOdometerKm": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "endOdometerKm": "End odometer: {km} km",
+  "@endOdometerKm": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "cancellationRequested": "Cancellation requested",
+  "@cancellationRequested": {},
+  "cancellationWaiting": "Waiting for your owner to approve or reject it.",
+  "@cancellationWaiting": {},
+  "charges": "Charges",
+  "@charges": {},
+  "fuel": "Fuel",
+  "@fuel": {},
+  "collected": "Collected",
+  "@collected": {},
+  "startTrip": "Start trip",
+  "@startTrip": {},
+  "chargeButton": "Charge",
+  "@chargeButton": {},
+  "requestCancellation": "Request cancellation",
+  "@requestCancellation": {},
+  "endTrip": "End trip",
+  "@endTrip": {},
+  "conflictCancelledBanner": "This trip was cancelled by the owner",
+  "@conflictCancelledBanner": {},
+  "conflictReassignedBanner": "This trip has been reassigned to another driver",
+  "@conflictReassignedBanner": {},
+  "conflictBannerDetail": "Anything you recorded offline for it was not applied. Your photos were still sent to the owner.",
+  "@conflictBannerDetail": {},
+  "elapsed": "elapsed",
+  "@elapsed": {},
+  "kmByGps": "km by GPS",
+  "@kmByGps": {},
+  "methodCash": "Cash",
+  "@methodCash": {},
+  "methodUpi": "UPI",
+  "@methodUpi": {},
+  "methodCard": "Card",
+  "@methodCard": {},
+  "chargeToll": "Toll",
+  "@chargeToll": {},
+  "chargeParking": "Parking",
+  "@chargeParking": {},
+  "chargeStateTax": "State tax",
+  "@chargeStateTax": {},
+  "chargeDriverAllowance": "Driver allowance",
+  "@chargeDriverAllowance": {},
+  "chargeNightCharge": "Night charge",
+  "@chargeNightCharge": {},
+  "chargeExtraKm": "Extra km",
+  "@chargeExtraKm": {},
+  "chargeOther": "Other",
+  "@chargeOther": {},
+  "chargeNoteExtraFare": "Extra fare · paid by the customer",
+  "@chargeNoteExtraFare": {},
+  "chargeNotePaidByYou": "Paid by you · paid back in settlement",
+  "@chargeNotePaidByYou": {},
+  "chargeNoteBilled": "Billed to the customer",
+  "@chargeNoteBilled": {},
+  "fuelPetrol": "Petrol",
+  "@fuelPetrol": {},
+  "fuelDiesel": "Diesel",
+  "@fuelDiesel": {},
+  "fuelCng": "CNG",
+  "@fuelCng": {},
+  "fuelPetrolCng": "Petrol + CNG",
+  "@fuelPetrolCng": {},
+  "paidByChoiceMe": "Me (cash)",
+  "@paidByChoiceMe": {},
+  "paidByOwner": "Owner",
+  "@paidByOwner": {},
+  "paidByFuelCard": "Fuel card",
+  "@paidByFuelCard": {},
+  "paidByLabelYou": "Paid by you",
+  "@paidByLabelYou": {},
+  "paidByLabelOwner": "Paid by owner",
+  "@paidByLabelOwner": {},
+  "paidByLabelDriverCash": "Driver paid cash",
+  "@paidByLabelDriverCash": {},
+  "fuelFillLabel": "{fuel} {quantity} {unit}",
+  "@fuelFillLabel": {
+    "placeholders": {
+      "fuel": {
+        "type": "String"
+      },
+      "quantity": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "fullTankSuffix": "{label} · full tank",
+  "@fullTankSuffix": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "addCharge": "Add charge",
+  "@addCharge": {},
+  "chargeType": "Type",
+  "@chargeType": {},
+  "amount": "Amount",
+  "@amount": {},
+  "extraFareTitle": "Added to the customer’s fare",
+  "@extraFareTitle": {},
+  "extraFareSubtitle": "Collect it from the customer with the fare.",
+  "@extraFareSubtitle": {},
+  "iPaidThis": "I paid this",
+  "@iPaidThis": {},
+  "paidBackInSettlement": "Paid back to you in your settlement",
+  "@paidBackInSettlement": {},
+  "receiptPhotoOptional": "Receipt photo (optional)",
+  "@receiptPhotoOptional": {},
+  "odometerPhoto": "Odometer photo",
+  "@odometerPhoto": {},
+  "takeOdometerPhoto": "Take a photo of the odometer",
+  "@takeOdometerPhoto": {},
+  "odometerReading": "Odometer reading",
+  "@odometerReading": {},
+  "typeExactly": "Type it exactly as shown",
+  "@typeExactly": {},
+  "startedAtKm": "Started at {km} km",
+  "@startedAtKm": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "kmOverIncluded": "{over} km over the {included} km included in the fare. Add an extra km charge below.",
+  "@kmOverIncluded": {
+    "placeholders": {
+      "over": {
+        "type": "String"
+      },
+      "included": {
+        "type": "String"
+      }
+    }
+  },
+  "chargesYouPaidOrAdded": "Charges you paid or added",
+  "@chargesYouPaidOrAdded": {},
+  "addedDuringTrip": "Added during the trip · {note}",
+  "@addedDuringTrip": {
+    "placeholders": {
+      "note": {
+        "type": "String"
+      }
+    }
+  },
+  "extraFare": "Extra fare",
+  "@extraFare": {},
+  "iPaid": "I paid",
+  "@iPaid": {},
+  "addChargeRow": "Add toll, night charge, extra km…",
+  "@addChargeRow": {},
+  "fuelFilledOnTrip": "Fuel filled on this trip",
+  "@fuelFilledOnTrip": {},
+  "fuelPaidByYouNote": "{amount} of fuel paid by you is paid back in your settlement; the customer doesn’t pay for it.",
+  "@fuelPaidByYouNote": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "customerPaidExpected": "Customer paid · expected {amount}",
+  "@customerPaidExpected": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "fareBreakdownFare": "Fare {amount}",
+  "@fareBreakdownFare": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "fareBreakdownExtra": "extra fare {amount}",
+  "@fareBreakdownExtra": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "fareBreakdownExpenses": "tolls & expenses {amount}",
+  "@fareBreakdownExpenses": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "alreadyRecorded": "{amount} already recorded during the trip",
+  "@alreadyRecorded": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "splitPayment": "Split payment",
+  "@splitPayment": {},
+  "cancelRequestIntro": "Your owner will approve or reject this. The trip keeps running until then.",
+  "@cancelRequestIntro": {},
+  "reason": "Reason",
+  "@reason": {},
+  "reasonHint": "e.g. Customer got off at Lonavala",
+  "@reasonHint": {},
+  "reasonRequired": "Tell your owner why",
+  "@reasonRequired": {},
+  "sendRequest": "Send request",
+  "@sendRequest": {},
+  "tripTypeOneWay": "One way",
+  "@tripTypeOneWay": {},
+  "tripTypeRoundTrip": "Round trip",
+  "@tripTypeRoundTrip": {},
+  "tripTypeLocal": "Local",
+  "@tripTypeLocal": {},
+  "hours": "{count, plural, =1{1 hour} other{{count} hours}}",
+  "@hours": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "noVehiclesOffline": "No vehicles yet. Connect to the internet once to load them.",
+  "@noVehiclesOffline": {},
+  "pickup": "Pickup",
+  "@pickup": {},
+  "enterPickup": "Enter the pickup",
+  "@enterPickup": {},
+  "drop": "Drop",
+  "@drop": {},
+  "enterDrop": "Enter the drop",
+  "@enterDrop": {},
+  "starts": "Starts",
+  "@starts": {},
+  "expectedDuration": "Expected duration",
+  "@expectedDuration": {},
+  "vehicle": "Vehicle",
+  "@vehicle": {},
+  "fare": "Fare",
+  "@fare": {},
+  "includedKm": "Included km",
+  "@includedKm": {},
+  "includedKmInvalid": "Enter km, or leave empty",
+  "@includedKmInvalid": {},
+  "customerNameOptional": "Customer name (optional)",
+  "@customerNameOptional": {},
+  "customerMobileOptional": "Customer mobile (optional)",
+  "@customerMobileOptional": {},
+  "createTrip": "Create trip",
+  "@createTrip": {},
+  "newTripFootnote": "The trip is assigned to you. Your fleet owner sees it once your phone is online.",
+  "@newTripFootnote": {},
+  "fuelSaved": "Fuel fill saved; it will sync automatically",
+  "@fuelSaved": {},
+  "noVehicleAssigned": "No vehicle is assigned to you right now. Fuel can be logged for the vehicle on your trip; ask your fleet owner to assign one.",
+  "@noVehicleAssigned": {},
+  "vehicleNotDownloaded": "This vehicle's details haven't been downloaded yet. Connect to the internet once and try again.",
+  "@vehicleNotDownloaded": {},
+  "vehicleOnThisTrip": "The vehicle on this trip",
+  "@vehicleOnThisTrip": {},
+  "fromYourTrip": "From your trip: {route}",
+  "@fromYourTrip": {
+    "placeholders": {
+      "route": {
+        "type": "String"
+      }
+    }
+  },
+  "vehiclesOnYourTrips": "Vehicles on your trips",
+  "@vehiclesOnYourTrips": {},
+  "fuelKind": "Fuel: {fuel}",
+  "@fuelKind": {
+    "placeholders": {
+      "fuel": {
+        "type": "String"
+      }
+    }
+  },
+  "receiptPhoto": "Receipt photo",
+  "@receiptPhoto": {},
+  "takeReceiptPhoto": "Take a photo of the receipt",
+  "@takeReceiptPhoto": {},
+  "quantity": "Quantity",
+  "@quantity": {},
+  "enterQuantity": "Enter the {unit} filled",
+  "@enterQuantity": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "fullTank": "Full tank",
+  "@fullTank": {},
+  "fullTankHint": "Turn on when the tank was filled completely",
+  "@fullTankHint": {},
+  "whoPaid": "Who paid?",
+  "@whoPaid": {},
+  "saveFuelFill": "Save fuel fill",
+  "@saveFuelFill": {},
+  "syncStatus": "Sync status",
+  "@syncStatus": {},
+  "syncOffline": "Offline",
+  "@syncOffline": {},
+  "syncOfflineSaved": "Offline · {count} saved on phone",
+  "@syncOfflineSaved": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "syncPending": "{count} pending",
+  "@syncPending": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "synced": "Synced",
+  "@synced": {},
+  "needAttention": "{count} need attention",
+  "@needAttention": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "attentionTitle": "These could not be sent",
+  "@attentionTitle": {},
+  "attentionSubtitle": "The server rejected them. Ask your owner, or retry.",
+  "@attentionSubtitle": {},
+  "retryAll": "Retry all",
+  "@retryAll": {},
+  "outboxMedia": "Photo",
+  "@outboxMedia": {},
+  "outboxTripCommand": "Trip update",
+  "@outboxTripCommand": {},
+  "outboxTripCreate": "New trip",
+  "@outboxTripCreate": {},
+  "outboxTripCharge": "Charge",
+  "@outboxTripCharge": {},
+  "outboxTripCollection": "Payment",
+  "@outboxTripCollection": {},
+  "outboxFuelFill": "Fuel fill",
+  "@outboxFuelFill": {},
+  "noPhotoYet": "No photo yet",
+  "@noPhotoYet": {},
+  "photoTaken": "Photo taken",
+  "@photoTaken": {},
+  "takePhoto": "Take photo",
+  "@takePhoto": {},
+  "retake": "Retake",
+  "@retake": {},
+  "enterOdometerKm": "Enter the odometer reading in km",
+  "@enterOdometerKm": {},
+  "mustBeAtLeastKm": "Must be at least {km} km",
+  "@mustBeAtLeastKm": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "enterAmount": "Enter an amount in ₹",
+  "@enterAmount": {},
+  "amountMoreThanZero": "Amount must be more than ₹0",
+  "@amountMoreThanZero": {},
+  "enterFare": "Enter the fare in ₹",
+  "@enterFare": {},
+  "consentTitle": "Location during trips",
+  "@consentTitle": {},
+  "consentWhen": "Taxcy records your phone's location only while a trip is running (between \"Start trip\" and \"End trip\"). A notification is shown the whole time it is recording.",
+  "@consentWhen": {},
+  "consentWhy": "Your fleet owner uses it to see the route and to check the distance against the odometer. It is also attached to odometer and receipt photos. It is not collected when you are off duty.",
+  "@consentWhy": {},
+  "consentRetention": "Route data is kept for up to 12 months and then deleted.",
+  "@consentRetention": {},
+  "consentContinue": "I understand, continue",
+  "@consentContinue": {},
+  "cameraUnavailable": "Camera unavailable: {error}",
+  "@cameraUnavailable": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "couldNotTakePhoto": "Could not take the photo: {error}",
+  "@couldNotTakePhoto": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "fitOdometer": "Fit the whole odometer in the frame",
+  "@fitOdometer": {},
+  "fitReceipt": "Fit the whole receipt in the frame",
+  "@fitReceipt": {},
+  "fitDocument": "Fit the whole document in the frame",
+  "@fitDocument": {},
+  "documentPhoto": "Document photo",
+  "@documentPhoto": {},
+  "gpsNotificationTitle": "Trip in progress",
+  "@gpsNotificationTitle": {},
+  "gpsNotificationText": "Taxcy is recording your route for this trip.",
+  "@gpsNotificationText": {},
+  "rejectEndBeforeStart": "The trip must end after it starts",
+  "@rejectEndBeforeStart": {},
+  "rejectNeedDrop": "Enter where the trip goes",
+  "@rejectNeedDrop": {},
+  "rejectEndBelowStart": "End reading must be at least {km} km",
+  "@rejectEndBelowStart": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "rejectChargesActiveOnly": "Charges can only be added to an active trip",
+  "@rejectChargesActiveOnly": {},
+  "rejectPaymentsAfterStart": "Payments can be recorded once the trip has started",
+  "@rejectPaymentsAfterStart": {},
+  "rejectTripCancelled": "This trip has been cancelled",
+  "@rejectTripCancelled": {},
+  "rejectCancellationPending": "A cancellation request is already pending for this trip",
+  "@rejectCancellationPending": {},
+  "rejectNoPendingCancellation": "There is no pending cancellation request",
+  "@rejectNoPendingCancellation": {},
+  "rejectNotAllowed": "You can't do this on this trip",
+  "@rejectNotAllowed": {},
+  "rejectWrongState": "This can't be done while the trip is {status}",
+  "@rejectWrongState": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  }
+}

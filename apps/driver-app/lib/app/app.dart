@@ -5,17 +5,23 @@ import '../features/common/consent_screen.dart';
 import '../features/common/widgets.dart';
 import '../features/login/login_screen.dart';
 import '../features/trips/trips_screen.dart';
+import '../l10n/app_localizations.dart';
+import 'preferences.dart';
 import 'providers.dart';
 import 'sync_coordinator.dart';
 import 'theme.dart';
 
-class TaxcyDriverApp extends StatelessWidget {
+class TaxcyDriverApp extends ConsumerWidget {
   const TaxcyDriverApp({super.key});
 
   @override
-  Widget build(BuildContext context) => MaterialApp(
-    title: 'Taxcy Driver',
+  Widget build(BuildContext context, WidgetRef ref) => MaterialApp(
+    onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
     theme: buildTheme(),
+    // Null follows the phone's language (English when it isn't supported).
+    locale: ref.watch(localeProvider),
+    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    supportedLocales: AppLocalizations.supportedLocales,
     home: const _Root(),
   );
 }
@@ -53,7 +59,7 @@ class _RootState extends ConsumerState<_Root> {
       error: (error, _) => const LoginScreen(),
       data: (session) {
         if (session == null) return const LoginScreen();
-        if (!session.isDriver) return const NotADriverScreen();
+        if (!session.isDriver) return const NoFleetScreen();
         if (_consented == null) {
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),

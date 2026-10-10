@@ -1,5 +1,5 @@
 name: taxcy_driver
-description: "Taxcy offline-first driver app"
+description: "Taxcy app: offline-first driver screens and online owner/manager mode"
 publish_to: 'none'
 version: 0.1.0
 
@@ -12,12 +12,18 @@ dependencies:
   crypto: ^3.0.7
   drift: ^2.28.0
   drift_flutter: any
+  fl_chart: ^1.2.0
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  flutter_map: ^8.3.2
   flutter_riverpod: ^3.3.2
   flutter_secure_storage: ^11.2.0
   geolocator: ^14.0.1
   http: ^1.6.0
+  intl: ^0.20.2
+  latlong2: ^0.10.1
   path: ^1.9.1
   path_provider: ^2.1.6
   shared_preferences: ^2.5.5
@@ -32,3 +38,13 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  # Localizations are generated from lib/l10n/*.arb (see l10n.yaml) on pub get.
+  generate: true
+  fonts:
+    # Bundled so Hindi renders in the web build without fetching fonts at runtime
+    # (phones have Devanagari fonts already). OFL licence in assets/fonts/OFL.txt.
+    - family: NotoSansDevanagari
+      fonts:
+        - asset: assets/fonts/NotoSansDevanagari-Regular.ttf
+        - asset: assets/fonts/NotoSansDevanagari-SemiBold.ttf
+          weight: 600

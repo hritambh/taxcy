@@ -56,6 +56,8 @@ ThemeData buildTheme() {
 
   return ThemeData(
     useMaterial3: true,
+    // Bundled for the web build; phones use their own Devanagari fonts first.
+    fontFamilyFallback: const ['NotoSansDevanagari'],
     colorScheme: scheme,
     scaffoldBackgroundColor: TaxcyColors.background,
     appBarTheme: const AppBarTheme(

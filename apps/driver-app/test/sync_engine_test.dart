@@ -365,7 +365,7 @@ void main() {
         final view = (await trips.trip(tripId))!;
         expect(view.trip.status, 'cancelled');
         expect(view.conflict, 'TRIP_CANCELLED');
-        expect(notices.single.message, 'This trip was cancelled by the owner');
+        expect(notices.single.code, 'TRIP_CANCELLED');
       },
     );
 

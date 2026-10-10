@@ -81,13 +81,21 @@ class GpsRecorder {
 
   String? get recordingTripId => _tripId;
 
-  Future<void> start(String tripId) async {
+  /// [notificationTitle] and [notificationText] are the Android foreground
+  /// notification, in the app's language.
+  Future<void> start(
+    String tripId, {
+    required String notificationTitle,
+    required String notificationText,
+  }) async {
     if (_tripId == tripId) return;
     await stop();
     if (!await ensureLocationPermission()) return;
     _tripId = tripId;
-    _subscription = Geolocator.getPositionStream(locationSettings: _settings())
-        .listen(
+    _subscription =
+        Geolocator.getPositionStream(
+          locationSettings: _settings(notificationTitle, notificationText),
+        ).listen(
           (position) => unawaited(_store(tripId, position)),
           onError: (Object error) => debugPrint('GPS error: $error'),
         );
@@ -115,15 +123,15 @@ class GpsRecorder {
         ),
       );
 
-  LocationSettings _settings() {
+  LocationSettings _settings(String title, String text) {
     if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
       return AndroidSettings(
         accuracy: LocationAccuracy.high,
         distanceFilter: 50,
         intervalDuration: const Duration(seconds: 15),
-        foregroundNotificationConfig: const ForegroundNotificationConfig(
-          notificationTitle: 'Trip in progress',
-          notificationText: 'Taxcy is recording your route for this trip.',
+        foregroundNotificationConfig: ForegroundNotificationConfig(
+          notificationTitle: title,
+          notificationText: text,
           enableWakeLock: true,
           setOngoing: true,
         ),

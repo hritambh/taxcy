@@ -19,10 +19,12 @@ class TripDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final view = ref.watch(tripProvider(tripId)).value;
+    final l = context.l10n;
+    final fmt = context.fmt;
     if (view == null) {
       return Scaffold(
         appBar: AppBar(),
-        body: const Center(child: Text('Trip not found on this phone')),
+        body: Center(child: Text(l.tripNotFoundOnPhone)),
       );
     }
     final t = view.trip;
@@ -43,7 +45,7 @@ class TripDetailScreen extends ConsumerWidget {
                     StatusChip(t.status),
                     const Spacer(),
                     Text(
-                      formatInr(t.quotedFarePaise),
+                      fmt.inr(t.quotedFarePaise),
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                   ],
@@ -51,13 +53,15 @@ class TripDetailScreen extends ConsumerWidget {
                 const SizedBox(height: 8),
                 _Line(
                   Icons.schedule,
-                  '${formatDay(t.scheduledStartAt)}, '
-                  '${formatTime(t.scheduledStartAt)} – ${formatTime(t.scheduledEndAt)}',
+                  '${fmt.dayTime(t.scheduledStartAt)} – ${fmt.time(t.scheduledEndAt)}',
                 ),
                 _Line(Icons.trip_origin, t.fromText),
                 if (t.toText != null) _Line(Icons.place, t.toText!),
                 if (t.includedKm != null)
-                  _Line(Icons.route, 'Includes ${t.includedKm} km'),
+                  _Line(
+                    Icons.route,
+                    l.includesKm(km: fmt.number(t.includedKm!)),
+                  ),
                 if (t.vehicle != null)
                   _Line(
                     Icons.directions_car,
@@ -74,60 +78,58 @@ class TripDetailScreen extends ConsumerWidget {
                 if (t.startOdometer != null)
                   _Line(
                     Icons.speed,
-                    'Start odometer: ${t.startOdometer!.typedKm} km',
+                    l.startOdometerKm(km: fmt.number(t.startOdometer!.typedKm)),
                   ),
                 if (t.endOdometer != null)
                   _Line(
                     Icons.speed,
-                    'End odometer: ${t.endOdometer!.typedKm} km',
+                    l.endOdometerKm(km: fmt.number(t.endOdometer!.typedKm)),
                   ),
                 if (t.status == 'started' && !blocked) _LiveTrip(trip: t),
                 if (t.cancellationPending)
-                  const Card(
+                  Card(
                     child: ListTile(
-                      leading: Icon(Icons.hourglass_top),
-                      title: Text('Cancellation requested'),
-                      subtitle: Text(
-                        'Waiting for your owner to approve or reject it.',
-                      ),
+                      leading: const Icon(Icons.hourglass_top),
+                      title: Text(l.cancellationRequested),
+                      subtitle: Text(l.cancellationWaiting),
                     ),
                   ),
                 if (t.charges.isNotEmpty) ...[
                   const SizedBox(height: 16),
                   Text(
-                    'Charges',
+                    l.charges,
                     style: Theme.of(context).textTheme.titleSmall,
                   ),
                   for (final c in t.charges.where((c) => !c.voided))
                     ListTile(
                       dense: true,
-                      title: Text(chargeKindLabels[c.kind] ?? c.kind),
-                      subtitle: Text(chargeNote(c)),
-                      trailing: Text(formatInr(c.amountPaise)),
+                      title: Text(chargeKindLabel(l, c.kind)),
+                      subtitle: Text(chargeNote(l, c)),
+                      trailing: Text(fmt.inr(c.amountPaise)),
                     ),
                 ],
                 if (t.fuelFills.isNotEmpty) ...[
                   const SizedBox(height: 16),
-                  Text('Fuel', style: Theme.of(context).textTheme.titleSmall),
+                  Text(l.fuel, style: Theme.of(context).textTheme.titleSmall),
                   for (final f in t.fuelFills)
                     ListTile(
                       dense: true,
-                      title: Text(fuelFillLabel(f)),
-                      subtitle: Text(paidByLabels[f.paidBy] ?? f.paidBy),
-                      trailing: Text(formatInr(f.costPaise)),
+                      title: Text(fuelFillLabel(fmt, f)),
+                      subtitle: Text(paidByLabel(l, f.paidBy)),
+                      trailing: Text(fmt.inr(f.costPaise)),
                     ),
                 ],
                 if (t.collections.isNotEmpty) ...[
                   const SizedBox(height: 8),
                   Text(
-                    'Collected',
+                    l.collected,
                     style: Theme.of(context).textTheme.titleSmall,
                   ),
                   for (final c in t.collections)
                     ListTile(
                       dense: true,
-                      title: Text(c.method.toUpperCase()),
-                      trailing: Text(formatInr(c.amountPaise)),
+                      title: Text(methodLabel(l, c.method)),
+                      trailing: Text(fmt.inr(c.amountPaise)),
                     ),
                 ],
               ],
@@ -146,14 +148,14 @@ class TripDetailScreen extends ConsumerWidget {
                       FilledButton.icon(
                         key: const Key('start-trip'),
                         icon: const Icon(Icons.play_arrow),
-                        label: const Text('Start trip'),
+                        label: Text(l.startTrip),
                         onPressed: () =>
                             _push(context, StartTripScreen(trip: t)),
                       ),
                     if (t.status == 'started') ...[
                       OutlinedButton.icon(
                         icon: const Icon(Icons.local_gas_station),
-                        label: const Text('Fuel'),
+                        label: Text(l.fuel),
                         onPressed: () => _push(
                           context,
                           FuelFillScreen(
@@ -164,7 +166,7 @@ class TripDetailScreen extends ConsumerWidget {
                       ),
                       OutlinedButton.icon(
                         icon: const Icon(Icons.add),
-                        label: const Text('Charge'),
+                        label: Text(l.chargeButton),
                         onPressed: () => showChargeSheet(context, t),
                       ),
                     ],
@@ -172,13 +174,13 @@ class TripDetailScreen extends ConsumerWidget {
                       OutlinedButton(
                         onPressed: () =>
                             _push(context, CancelRequestScreen(trip: t)),
-                        child: const Text('Request cancellation'),
+                        child: Text(l.requestCancellation),
                       ),
                     if (can.contains('end'))
                       FilledButton.icon(
                         key: const Key('end-trip'),
                         icon: const Icon(Icons.flag),
-                        label: const Text('End trip'),
+                        label: Text(l.endTrip),
                         onPressed: () => _push(context, EndTripScreen(trip: t)),
                       ),
                   ],
@@ -206,13 +208,10 @@ class _ConflictBanner extends StatelessWidget {
       leading: const Icon(Icons.info_outline),
       title: Text(
         view.conflict == 'TRIP_CANCELLED'
-            ? 'This trip was cancelled by the owner'
-            : 'This trip has been reassigned to another driver',
+            ? context.l10n.conflictCancelledBanner
+            : context.l10n.conflictReassignedBanner,
       ),
-      subtitle: const Text(
-        'Anything you recorded offline for it was not applied. '
-        'Your photos were still sent to the owner.',
-      ),
+      subtitle: Text(context.l10n.conflictBannerDetail),
     ),
   );
 }
@@ -277,13 +276,16 @@ class _LiveTripState extends ConsumerState<_LiveTrip> {
                   formatDuration(DateTime.now().difference(started)),
                   style: theme.headlineSmall,
                 ),
-                const Text('elapsed'),
+                Text(context.l10n.elapsed),
               ],
             ),
             Column(
               children: [
-                Text(km.toStringAsFixed(1), style: theme.headlineSmall),
-                const Text('km by GPS'),
+                Text(
+                  context.fmt.number(km, decimals: 1),
+                  style: theme.headlineSmall,
+                ),
+                Text(context.l10n.kmByGps),
               ],
             ),
           ],

@@ -70,8 +70,14 @@ class Session {
     return null;
   }
 
-  /// The app is for drivers; owners and managers use the admin web.
-  bool get isDriver => activeMembership?.roles.contains('driver') ?? false;
+  List<String> get roles => activeMembership?.roles ?? const [];
+
+  /// Drivers get the offline-first driver screens.
+  bool get isDriver => roles.contains('driver');
+  bool get isOwner => roles.contains('owner');
+
+  /// Owners and managers get owner mode; managers can't change settings or pay.
+  bool get isStaff => isOwner || roles.contains('manager');
 
   JsonMap toJson() => {
     'accessToken': accessToken,

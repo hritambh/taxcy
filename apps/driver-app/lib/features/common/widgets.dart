@@ -8,26 +8,30 @@ import '../../app/providers.dart';
 import '../../app/theme.dart';
 import '../../core/media/captured_photo.dart';
 import '../../core/sync/sync_engine.dart';
+import '../../core/sync/outbox.dart';
+import '../../l10n/app_localizations.dart';
+import 'errors.dart';
 import 'format.dart';
 
 /// 🟢 Synced / 🟡 N pending / 🔴 Offline, plus a tap-through for items that need attention.
 class SyncStatusBar extends ConsumerWidget {
   const SyncStatusBar({super.key});
 
-  static String label(SyncStatus s) {
+  static String label(AppLocalizations l, SyncStatus s) {
     if (!s.online) {
       return s.pending == 0
-          ? 'Offline'
-          : 'Offline · ${s.pending} saved on phone';
+          ? l.syncOffline
+          : l.syncOfflineSaved(count: s.pending);
     }
-    if (s.pending > 0) return '${s.pending} pending';
-    return 'Synced';
+    if (s.pending > 0) return l.syncPending(count: s.pending);
+    return l.synced;
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final status = ref.watch(syncStatusProvider).value;
     if (status == null) return const SizedBox.shrink();
+    final l = context.l10n;
     final (Color color, IconData icon) = !status.online
         ? (Colors.red.shade700, Icons.cloud_off)
         : status.pending > 0
@@ -41,18 +45,18 @@ class SyncStatusBar extends ConsumerWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Row(
             children: [
-              Icon(icon, size: 18, color: color, semanticLabel: 'Sync status'),
+              Icon(icon, size: 18, color: color, semanticLabel: l.syncStatus),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  label(status),
+                  label(l, status),
                   key: const Key('sync-status-label'),
                   style: TextStyle(color: color, fontWeight: FontWeight.w600),
                 ),
               ),
               if (status.attention > 0)
                 Text(
-                  '${status.attention} need attention',
+                  l.needAttention(count: status.attention),
                   style: TextStyle(color: Colors.red.shade700),
                 ),
               if (status.syncing)
@@ -80,18 +84,16 @@ class SyncStatusBar extends ConsumerWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const ListTile(
-              title: Text('These could not be sent'),
-              subtitle: Text(
-                'The server rejected them. Ask your owner, or retry.',
-              ),
+            ListTile(
+              title: Text(sheet.l10n.attentionTitle),
+              subtitle: Text(sheet.l10n.attentionSubtitle),
             ),
             for (final item in items)
               ListTile(
                 dense: true,
                 leading: const Icon(Icons.error_outline),
-                title: Text(item.kind),
-                subtitle: Text(item.lastError ?? ''),
+                title: Text(outboxKindLabel(sheet.l10n, item.kind)),
+                subtitle: Text(outboxErrorText(sheet.l10n, item.lastError)),
               ),
             Padding(
               padding: const EdgeInsets.all(16),
@@ -101,7 +103,7 @@ class SyncStatusBar extends ConsumerWidget {
                   unawaited(engine.syncNow());
                   if (sheet.mounted) Navigator.of(sheet).pop();
                 },
-                child: const Text('Retry all'),
+                child: Text(sheet.l10n.retryAll),
               ),
             ),
           ],
@@ -128,9 +130,14 @@ class _SyncNoticeListenerState extends ConsumerState<SyncNoticeListener> {
     super.initState();
     _sub = ref.read(syncEngineProvider).notices.listen((notice) {
       if (!mounted) return;
+      final l = context.l10n;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(notice.message),
+          content: Text(
+            notice.code == 'TRIP_CANCELLED'
+                ? l.conflictCancelledBanner
+                : l.conflictReassignedBanner,
+          ),
           duration: const Duration(seconds: 6),
         ),
       );
@@ -161,7 +168,7 @@ class StatusChip extends StatelessWidget {
       _ => Colors.grey,
     };
     return Chip(
-      label: Text(statusLabels[status] ?? status),
+      label: Text(statusLabel(context.l10n, status)),
       labelStyle: TextStyle(color: color.shade800, fontSize: 12),
       backgroundColor: color.shade50,
       side: BorderSide.none,
@@ -204,7 +211,11 @@ class PhotoField extends ConsumerWidget {
             _Thumbnail(key: ValueKey(current.id), photoRef: current.path),
           const SizedBox(width: 12),
           Expanded(
-            child: Text(current == null ? 'No photo yet' : 'Photo taken'),
+            child: Text(
+              current == null
+                  ? context.l10n.noPhotoYet
+                  : context.l10n.photoTaken,
+            ),
           ),
           TextButton.icon(
             onPressed: () async {
@@ -212,7 +223,9 @@ class PhotoField extends ConsumerWidget {
               if (taken != null) onChanged(taken);
             },
             icon: const Icon(Icons.camera_alt),
-            label: Text(current == null ? 'Take photo' : 'Retake'),
+            label: Text(
+              current == null ? context.l10n.takePhoto : context.l10n.retake,
+            ),
           ),
         ],
       ),
@@ -251,17 +264,13 @@ class _ThumbnailState extends ConsumerState<_Thumbnail> {
   );
 }
 
-/// Validates whole kilometres.
-String? validateKm(String? value, {int? atLeast}) {
-  final km = int.tryParse((value ?? '').trim());
-  if (km == null || km < 0) return 'Enter the odometer reading in km';
-  if (atLeast != null && km < atLeast) return 'Must be at least $atLeast km';
-  return null;
-}
-
-String? validateRupees(String? value, {bool allowZero = false}) {
-  final paise = parseRupees(value ?? '');
-  if (paise == null) return 'Enter an amount in ₹';
-  if (!allowZero && paise == 0) return 'Amount must be more than ₹0';
-  return null;
-}
+/// What an outbox item is, for the "could not be sent" list.
+String outboxKindLabel(AppLocalizations l, String kind) => switch (kind) {
+  OutboxKind.media => l.outboxMedia,
+  OutboxKind.tripCommand => l.outboxTripCommand,
+  OutboxKind.tripCreate => l.outboxTripCreate,
+  OutboxKind.tripCharge => l.outboxTripCharge,
+  OutboxKind.tripCollection => l.outboxTripCollection,
+  OutboxKind.fuelFill => l.outboxFuelFill,
+  _ => kind,
+};
