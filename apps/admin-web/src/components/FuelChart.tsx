@@ -13,18 +13,18 @@ import type { ChartPoint } from '../lib/fuel-chart.js';
 import { fmtDayShort } from '../lib/format.js';
 
 // Reference palette (dataviz skill): one series hue, status steps for verdicts,
-// recessive chrome. The admin console is light-only, so only light steps are used.
+// recessive blue-grey chrome to match the console theme. Light-only.
 const COLORS = {
-  surface: '#fcfcfb',
-  series: '#2a78d6',
-  band: 'rgba(42, 120, 214, 0.10)',
+  surface: '#ffffff',
+  series: '#2563eb',
+  band: 'rgba(37, 99, 235, 0.10)',
   critical: '#d03b3b',
   serious: '#ec835a',
-  grid: '#e1e0d9',
-  axis: '#c3c2b7',
-  muted: '#898781',
-  ink: '#0b0b0b',
-  secondary: '#52514e',
+  grid: '#e3eaf6',
+  axis: '#bccbe3',
+  muted: '#637594',
+  ink: '#121b2f',
+  secondary: '#4a5a77',
 };
 
 const fmtValue = (v: number, unitLabel: string) =>

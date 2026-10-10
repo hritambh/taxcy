@@ -15,14 +15,16 @@ export function AuthShell({
   children: React.ReactNode;
 }) {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
+    <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-brand-700 via-brand-800 to-brand-950 px-4">
       <div className="w-full max-w-sm">
-        <div className="mb-6 flex items-center gap-2 text-brand-700">
-          <Car className="size-6" aria-hidden />
-          <span className="text-lg font-semibold">Taxcy</span>
+        <div className="mb-6 flex items-center gap-2.5 text-white">
+          <span className="flex size-10 items-center justify-center rounded-xl bg-white text-brand-700 shadow-md">
+            <Car className="size-5" aria-hidden />
+          </span>
+          <span className="text-2xl font-semibold tracking-tight">Taxcy</span>
         </div>
-        <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-          <h1 className="text-lg font-semibold text-slate-900">{title}</h1>
+        <div className="rounded-2xl bg-white p-6 shadow-2xl shadow-brand-950/30">
+          <h1 className="text-lg font-semibold text-brand-950">{title}</h1>
           {subtitle && <p className="mt-1 text-sm text-slate-600">{subtitle}</p>}
           <div className="mt-5">{children}</div>
         </div>
@@ -84,7 +86,7 @@ export function LoginPage() {
           <Field label="Mobile number" error={phoneError}>
             {(props) => (
               <div className="flex">
-                <span className="inline-flex items-center rounded-l-md border border-r-0 border-slate-300 bg-slate-50 px-3 text-sm text-slate-600">
+                <span className="inline-flex items-center rounded-l-md border border-r-0 border-slate-300 bg-brand-50 px-3 text-sm font-medium text-brand-700">
                   +91
                 </span>
                 <Input

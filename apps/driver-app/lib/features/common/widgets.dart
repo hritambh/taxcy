@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/providers.dart';
+import '../../app/theme.dart';
 import '../../core/media/captured_photo.dart';
 import '../../core/sync/sync_engine.dart';
 import 'format.dart';
@@ -31,7 +32,7 @@ class SyncStatusBar extends ConsumerWidget {
         ? (Colors.red.shade700, Icons.cloud_off)
         : status.pending > 0
         ? (Colors.amber.shade800, Icons.cloud_upload)
-        : (Colors.green.shade700, Icons.cloud_done);
+        : (TaxcyColors.blue700, Icons.cloud_done);
     return Material(
       color: color.withValues(alpha: 0.12),
       child: InkWell(

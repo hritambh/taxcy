@@ -75,7 +75,7 @@ export function RouteMap({
           id: 'route',
           type: 'line',
           source: 'route',
-          paint: { 'line-color': '#2a78d6', 'line-width': 3 },
+          paint: { 'line-color': '#2563eb', 'line-width': 3 },
           layout: { 'line-join': 'round', 'line-cap': 'round' },
         });
       }
@@ -153,7 +153,7 @@ export function PointPicker({
 
   useEffect(() => {
     if (!map.current || !value) return;
-    marker.current ??= new Marker({ element: pin('#2a78d6', label) }).addTo(map.current);
+    marker.current ??= new Marker({ element: pin('#2563eb', label) }).addTo(map.current);
     marker.current.setLngLat([value.lng, value.lat]);
   }, [value, label]);
 

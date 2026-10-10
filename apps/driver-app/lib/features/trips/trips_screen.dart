@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/providers.dart';
+import '../../app/theme.dart';
 import '../../core/repositories/trips_repository.dart';
 import '../common/format.dart';
 import '../common/widgets.dart';
@@ -131,7 +132,22 @@ class _TripTile extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       child: ListTile(
-        title: Text(t.routeLabel),
+        leading: CircleAvatar(
+          backgroundColor: t.status == 'started'
+              ? TaxcyColors.blue700
+              : TaxcyColors.blue50,
+          foregroundColor: t.status == 'started'
+              ? Colors.white
+              : TaxcyColors.blue700,
+          child: Icon(
+            t.status == 'started' ? Icons.local_taxi : Icons.route,
+            size: 20,
+          ),
+        ),
+        title: Text(
+          t.routeLabel,
+          style: const TextStyle(fontWeight: FontWeight.w600),
+        ),
         subtitle: Text(
           [
             '${formatDay(t.scheduledStartAt)}, ${formatTime(t.scheduledStartAt)}',

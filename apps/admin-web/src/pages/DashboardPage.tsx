@@ -34,8 +34,11 @@ export function DashboardPage() {
               <>
                 <dl className="mb-4 grid grid-cols-3 gap-3 sm:grid-cols-6">
                   {STATUSES.map((status) => (
-                    <div key={status} className="rounded-md bg-slate-50 p-2 text-center">
-                      <dd className="tabular text-xl font-semibold text-slate-900">
+                    <div
+                      key={status}
+                      className="rounded-lg border border-brand-100 bg-brand-50 p-2 text-center"
+                    >
+                      <dd className="tabular text-xl font-semibold text-brand-800">
                         {list.filter((t) => t.status === status).length}
                       </dd>
                       <dt className="text-xs text-slate-500 capitalize">{status}</dt>
@@ -52,7 +55,7 @@ export function DashboardPage() {
                         <li key={trip.id}>
                           <Link
                             to={`/trips/${trip.id}`}
-                            className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2 text-sm hover:bg-slate-50"
+                            className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-md px-1 py-2 text-sm hover:bg-brand-50"
                           >
                             <span className="tabular w-16 text-slate-500">
                               {fmtTime(trip.scheduledStartAt)}
@@ -86,11 +89,11 @@ export function DashboardPage() {
                     </dd>
                     <dt className="text-xs text-red-800">Critical alerts</dt>
                   </Link>
-                  <Link to="/review" className="rounded-md bg-slate-50 p-3 hover:bg-slate-100">
-                    <dd className="tabular text-2xl font-semibold text-slate-900">
+                  <Link to="/review" className="rounded-md bg-brand-50 p-3 hover:bg-brand-100">
+                    <dd className="tabular text-2xl font-semibold text-brand-800">
                       {s.openReviewItems}
                     </dd>
-                    <dt className="text-xs text-slate-600">To review</dt>
+                    <dt className="text-xs text-brand-700">To review</dt>
                   </Link>
                 </dl>
               )}

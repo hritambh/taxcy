@@ -3,30 +3,63 @@
 
 @theme {
   --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --color-brand-50: #eef6ff;
-  --color-brand-100: #d9eaff;
-  --color-brand-500: #2563eb;
-  --color-brand-600: #1d4ed8;
-  --color-brand-700: #1e40af;
+
+  /* Taxcy blue: the one accent colour, from tints for surfaces to the deep sidebar. */
+  --color-brand-50: #eff6ff;
+  --color-brand-100: #dbeafe;
+  --color-brand-200: #bfdbfe;
+  --color-brand-300: #93c5fd;
+  --color-brand-400: #60a5fa;
+  --color-brand-500: #3b82f6;
+  --color-brand-600: #2563eb;
+  --color-brand-700: #1d4ed8;
+  --color-brand-800: #1e40af;
+  --color-brand-900: #1e3a8a;
+  --color-brand-950: #172554;
+
+  /* Neutrals lean blue, so borders, muted text and tints sit with the brand. */
+  --color-slate-50: #f5f8fe;
+  --color-slate-100: #ebf1fb;
+  --color-slate-200: #d9e3f3;
+  --color-slate-300: #bccbe3;
+  --color-slate-400: #8d9fbe;
+  --color-slate-500: #637594;
+  --color-slate-600: #4a5a77;
+  --color-slate-700: #36445e;
+  --color-slate-800: #222e45;
+  --color-slate-900: #121b2f;
+
+  --shadow-xs: 0 1px 2px 0 rgb(30 64 175 / 0.06);
+  --shadow-card: 0 1px 3px 0 rgb(30 64 175 / 0.08), 0 1px 2px -1px rgb(30 64 175 / 0.06);
 }
 
 :root {
   color-scheme: light;
-  background: #f8fafc;
-  color: #0f172a;
+  background: var(--color-slate-50);
+  color: var(--color-slate-900);
 }
 
 body {
   margin: 0;
-  background: #f8fafc;
+  background:
+    linear-gradient(180deg, var(--color-brand-50) 0, var(--color-slate-50) 320px) no-repeat,
+    var(--color-slate-50);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
 }
 
 dialog::backdrop {
-  background: rgb(15 23 42 / 0.45);
+  background: rgb(23 37 84 / 0.5);
 }
 
 .tabular {
   font-variant-numeric: tabular-nums;
+}
+
+/* Light blue row highlight in every table. */
+tbody tr {
+  transition: background-color 120ms;
+}
+tbody tr:hover {
+  background: color-mix(in srgb, var(--color-brand-50) 70%, transparent);
 }

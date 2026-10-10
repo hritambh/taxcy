@@ -7,6 +7,7 @@ import '../features/login/login_screen.dart';
 import '../features/trips/trips_screen.dart';
 import 'providers.dart';
 import 'sync_coordinator.dart';
+import 'theme.dart';
 
 class TaxcyDriverApp extends StatelessWidget {
   const TaxcyDriverApp({super.key});
@@ -14,10 +15,7 @@ class TaxcyDriverApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) => MaterialApp(
     title: 'Taxcy Driver',
-    theme: ThemeData(
-      colorSchemeSeed: const Color(0xFF0F766E),
-      useMaterial3: true,
-    ),
+    theme: buildTheme(),
     home: const _Root(),
   );
 }

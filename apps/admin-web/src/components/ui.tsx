@@ -16,11 +16,12 @@ import { errorMessage } from '../lib/errors.js';
 type Variant = 'primary' | 'secondary' | 'danger' | 'ghost';
 
 const VARIANTS: Record<Variant, string> = {
-  primary: 'bg-brand-600 text-white hover:bg-brand-700 disabled:bg-brand-600/50',
+  primary:
+    'bg-brand-600 text-white shadow-xs hover:bg-brand-700 active:bg-brand-800 disabled:bg-brand-600/50',
   secondary:
-    'border border-slate-300 bg-white text-slate-800 hover:bg-slate-50 disabled:text-slate-400',
+    'border border-brand-200 bg-white text-brand-700 hover:border-brand-300 hover:bg-brand-50 disabled:text-slate-400',
   danger: 'bg-red-600 text-white hover:bg-red-700 disabled:bg-red-600/50',
-  ghost: 'text-slate-700 hover:bg-slate-100 disabled:text-slate-400',
+  ghost: 'text-slate-700 hover:bg-brand-50 hover:text-brand-800 disabled:text-slate-400',
 };
 
 export const Button = forwardRef<
@@ -128,10 +129,14 @@ export function Card({
   className?: string | undefined;
 }) {
   return (
-    <section className={cn('rounded-lg border border-slate-200 bg-white shadow-xs', className)}>
+    <section className={cn('rounded-xl border border-brand-100 bg-white shadow-card', className)}>
       {(title ?? actions) && (
-        <header className="flex items-center justify-between gap-2 border-b border-slate-100 px-4 py-3">
-          {title && <h2 className="text-sm font-semibold text-slate-900">{title}</h2>}
+        <header className="flex items-center justify-between gap-2 border-b border-brand-100 px-4 py-3">
+          {title && (
+            <h2 className="flex items-center gap-2 text-sm font-semibold text-brand-900 before:h-4 before:w-1 before:rounded-full before:bg-brand-500">
+              {title}
+            </h2>
+          )}
           {actions && <div className="flex items-center gap-2">{actions}</div>}
         </header>
       )}
@@ -185,7 +190,7 @@ export function PageHeader({
   return (
     <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
       <div>
-        <h1 className="text-xl font-semibold text-slate-900">{title}</h1>
+        <h1 className="text-2xl font-semibold tracking-tight text-brand-950">{title}</h1>
         {description && <p className="mt-1 text-sm text-slate-600">{description}</p>}
       </div>
       {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
@@ -197,7 +202,7 @@ export function Spinner({ label = 'Loading…' }: { label?: string }) {
   return (
     <div
       role="status"
-      className="flex items-center justify-center gap-2 py-10 text-sm text-slate-500"
+      className="flex items-center justify-center gap-2 py-10 text-sm text-brand-600"
     >
       <Loader2 className="size-4 animate-spin" aria-hidden />
       {label}
@@ -208,7 +213,9 @@ export function Spinner({ label = 'Loading…' }: { label?: string }) {
 export function EmptyState({ title, children }: { title: string; children?: ReactNode }) {
   return (
     <div className="flex flex-col items-center justify-center gap-2 py-10 text-center">
-      <Inbox className="size-6 text-slate-400" aria-hidden />
+      <span className="flex size-10 items-center justify-center rounded-full bg-brand-50 text-brand-500">
+        <Inbox className="size-5" aria-hidden />
+      </span>
       <p className="text-sm font-medium text-slate-700">{title}</p>
       {children && <div className="text-sm text-slate-500">{children}</div>}
     </div>
@@ -303,14 +310,14 @@ export function Modal({
         onClose();
       }}
       className={cn(
-        'm-auto w-[calc(100%-2rem)] rounded-lg border border-slate-200 bg-white p-0 text-slate-900 shadow-xl',
+        'm-auto w-[calc(100%-2rem)] rounded-xl border border-brand-100 bg-white p-0 text-slate-900 shadow-xl',
         wide ? 'max-w-3xl' : 'max-w-lg',
       )}
     >
       {open && (
         <div className="flex max-h-[85vh] flex-col">
-          <header className="flex items-center justify-between border-b border-slate-100 px-5 py-3">
-            <h2 id={titleId} className="text-base font-semibold">
+          <header className="flex items-center justify-between rounded-t-xl border-b border-brand-100 bg-brand-50 px-5 py-3">
+            <h2 id={titleId} className="text-base font-semibold text-brand-900">
               {title}
             </h2>
             <Button variant="ghost" size="sm" aria-label="Close" onClick={onClose}>
@@ -350,7 +357,7 @@ export function Th({
     <th
       scope="col"
       className={cn(
-        'border-b border-slate-200 px-3 py-2 text-xs font-semibold tracking-wide text-slate-500 uppercase',
+        'border-b border-brand-100 bg-brand-50/70 px-3 py-2 text-xs font-semibold tracking-wide text-brand-800 uppercase',
         align === 'right' && 'text-right',
         className,
       )}

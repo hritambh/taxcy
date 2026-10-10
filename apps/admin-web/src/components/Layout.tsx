@@ -47,7 +47,7 @@ function CountBadge({ count, urgent }: { count: number; urgent: boolean }) {
     <span
       className={cn(
         'ml-auto min-w-5 rounded-full px-1.5 py-0.5 text-center text-xs font-semibold tabular-nums',
-        urgent ? 'bg-red-600 text-white' : 'bg-slate-200 text-slate-700',
+        urgent ? 'bg-red-500 text-white' : 'bg-white/15 text-white',
       )}
       aria-label={`${String(count)} open`}
     >
@@ -66,15 +66,18 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
     : 0;
   const memberships = auth.session?.memberships ?? [];
   return (
-    <div className="flex h-full flex-col">
-      <div className="flex items-center gap-2 px-4 py-4 text-brand-700">
-        <Car className="size-5" aria-hidden />
-        <span className="font-semibold">Taxcy</span>
+    <div className="flex h-full flex-col text-brand-50">
+      <div className="flex items-center gap-2.5 px-4 py-5">
+        <span className="flex size-8 items-center justify-center rounded-lg bg-white text-brand-700 shadow-sm">
+          <Car className="size-4.5" aria-hidden />
+        </span>
+        <span className="text-lg font-semibold tracking-tight text-white">Taxcy</span>
       </div>
       <div className="px-3 pb-3">
         {memberships.length > 1 ? (
           <Select
             aria-label="Organization"
+            className="border-white/20 bg-white/10 text-white [&>option]:text-slate-900"
             value={auth.session?.activeOrgId ?? ''}
             onChange={(e) => void auth.switchOrg(e.target.value)}
           >
@@ -85,7 +88,7 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
             ))}
           </Select>
         ) : (
-          <p className="truncate px-1 text-sm font-medium text-slate-800">
+          <p className="truncate rounded-md bg-white/10 px-2.5 py-1.5 text-sm font-medium text-white">
             {auth.activeMembership?.orgName}
           </p>
         )}
@@ -99,8 +102,10 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
             onClick={onNavigate}
             className={({ isActive }) =>
               cn(
-                'flex items-center gap-2.5 rounded-md px-2.5 py-2 text-sm font-medium focus-visible:outline-2 focus-visible:outline-brand-500',
-                isActive ? 'bg-brand-50 text-brand-700' : 'text-slate-700 hover:bg-slate-100',
+                'flex items-center gap-2.5 rounded-md px-2.5 py-2 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-white',
+                isActive
+                  ? 'bg-white text-brand-800 shadow-sm'
+                  : 'text-brand-100 hover:bg-white/10 hover:text-white',
               )
             }
           >
@@ -118,17 +123,17 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
           </NavLink>
         ))}
       </nav>
-      <div className="border-t border-slate-200 p-3">
-        <p className="truncate text-sm font-medium text-slate-800">
+      <div className="border-t border-white/15 p-3">
+        <p className="truncate text-sm font-medium text-white">
           {auth.session?.user.name ?? auth.session?.user.phone}
         </p>
-        <p className="mb-2 text-xs text-slate-500 capitalize">
+        <p className="mb-2 text-xs text-brand-200 capitalize">
           {auth.activeMembership?.roles.join(', ')}
         </p>
         <Button
           variant="ghost"
           size="sm"
-          className="w-full justify-start"
+          className="w-full justify-start text-brand-100 hover:bg-white/10 hover:text-white"
           onClick={() => void auth.logout()}
         >
           <LogOut className="size-4" aria-hidden />
@@ -143,13 +148,14 @@ export function Layout() {
   const [menuOpen, setMenuOpen] = useState(false);
   return (
     <div className="min-h-screen lg:flex">
-      <aside className="sticky top-0 hidden h-screen w-60 shrink-0 border-r border-slate-200 bg-white lg:block">
+      <aside className="sticky top-0 hidden h-screen w-60 shrink-0 bg-gradient-to-b from-brand-800 to-brand-950 lg:block">
         <Sidebar />
       </aside>
-      <header className="sticky top-0 z-20 flex items-center gap-2 border-b border-slate-200 bg-white px-4 py-2 lg:hidden">
+      <header className="sticky top-0 z-20 flex items-center gap-2 bg-brand-800 px-4 py-2 text-white shadow-md lg:hidden">
         <Button
           variant="ghost"
           size="sm"
+          className="text-white hover:bg-white/10"
           aria-label="Open menu"
           aria-expanded={menuOpen}
           onClick={() => {
@@ -158,24 +164,24 @@ export function Layout() {
         >
           <Menu className="size-5" aria-hidden />
         </Button>
-        <span className="font-semibold text-brand-700">Taxcy</span>
+        <span className="font-semibold">Taxcy</span>
       </header>
       {menuOpen && (
         <div className="fixed inset-0 z-30 lg:hidden">
           <button
             type="button"
             aria-label="Close menu"
-            className="absolute inset-0 bg-slate-900/40"
+            className="absolute inset-0 bg-brand-950/50"
             onClick={() => {
               setMenuOpen(false);
             }}
           />
-          <aside className="absolute inset-y-0 left-0 w-64 bg-white shadow-xl">
+          <aside className="absolute inset-y-0 left-0 w-64 bg-gradient-to-b from-brand-800 to-brand-950 shadow-xl">
             <Button
               variant="ghost"
               size="sm"
               aria-label="Close menu"
-              className="absolute top-3 right-2"
+              className="absolute top-4 right-2 text-white hover:bg-white/10"
               onClick={() => {
                 setMenuOpen(false);
               }}

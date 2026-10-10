@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/providers.dart';
+import '../../app/theme.dart';
 import '../../core/api/api.dart';
 
 /// Phone number → OTP → signed in.
@@ -79,88 +80,137 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
-      body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.all(24),
-          children: [
-            const SizedBox(height: 48),
-            Text('Taxcy Driver', style: theme.textTheme.headlineMedium),
-            const SizedBox(height: 8),
-            Text(
-              _codeSent
-                  ? 'Enter the code we sent to +91 ${_phone.text.trim()}'
-                  : 'Sign in with the mobile number your fleet owner registered.',
-              style: theme.textTheme.bodyLarge,
-            ),
-            const SizedBox(height: 32),
-            TextField(
-              key: const Key('phone-field'),
-              controller: _phone,
-              enabled: !_codeSent && !_busy,
-              keyboardType: TextInputType.phone,
-              inputFormatters: [
-                FilteringTextInputFormatter.digitsOnly,
-                LengthLimitingTextInputFormatter(10),
-              ],
-              decoration: const InputDecoration(
-                labelText: 'Mobile number',
-                prefixText: '+91 ',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            if (_codeSent) ...[
-              const SizedBox(height: 16),
-              TextField(
-                key: const Key('code-field'),
-                controller: _code,
-                enabled: !_busy,
-                autofocus: true,
-                keyboardType: TextInputType.number,
-                inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly,
-                  LengthLimitingTextInputFormatter(6),
+      body: DecoratedBox(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [TaxcyColors.blue700, TaxcyColors.blue950],
+          ),
+        ),
+        child: SafeArea(
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 440),
+              child: ListView(
+                shrinkWrap: true,
+                padding: const EdgeInsets.all(24),
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(
+                          Icons.local_taxi,
+                          color: TaxcyColors.blue700,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        'Taxcy Driver',
+                        style: theme.textTheme.headlineSmall?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: _form(theme),
+                      ),
+                    ),
+                  ),
                 ],
-                decoration: const InputDecoration(
-                  labelText: '6-digit code',
-                  border: OutlineInputBorder(),
-                ),
               ),
-            ],
-            if (_error != null) ...[
-              const SizedBox(height: 16),
-              Text(
-                _error!,
-                key: const Key('login-error'),
-                style: TextStyle(color: theme.colorScheme.error),
-              ),
-            ],
-            const SizedBox(height: 24),
-            FilledButton(
-              key: const Key('login-submit'),
-              onPressed: _busy ? null : (_codeSent ? _verify : _sendCode),
-              child: _busy
-                  ? const SizedBox.square(
-                      dimension: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : Text(_codeSent ? 'Verify and sign in' : 'Send code'),
             ),
-            if (_codeSent)
-              TextButton(
-                onPressed: _busy
-                    ? null
-                    : () => setState(() {
-                        _codeSent = false;
-                        _code.clear();
-                        _error = null;
-                      }),
-                child: const Text('Use a different number'),
-              ),
-          ],
+          ),
         ),
       ),
     );
   }
+
+  List<Widget> _form(ThemeData theme) => [
+    Text(
+      _codeSent
+          ? 'Enter the code we sent to +91 ${_phone.text.trim()}'
+          : 'Sign in with the mobile number your fleet owner registered.',
+      style: theme.textTheme.bodyLarge,
+    ),
+    const SizedBox(height: 24),
+    TextField(
+      key: const Key('phone-field'),
+      controller: _phone,
+      enabled: !_codeSent && !_busy,
+      keyboardType: TextInputType.phone,
+      inputFormatters: [
+        FilteringTextInputFormatter.digitsOnly,
+        LengthLimitingTextInputFormatter(10),
+      ],
+      decoration: const InputDecoration(
+        labelText: 'Mobile number',
+        prefixText: '+91 ',
+        border: OutlineInputBorder(),
+      ),
+    ),
+    if (_codeSent) ...[
+      const SizedBox(height: 16),
+      TextField(
+        key: const Key('code-field'),
+        controller: _code,
+        enabled: !_busy,
+        autofocus: true,
+        keyboardType: TextInputType.number,
+        inputFormatters: [
+          FilteringTextInputFormatter.digitsOnly,
+          LengthLimitingTextInputFormatter(6),
+        ],
+        decoration: const InputDecoration(
+          labelText: '6-digit code',
+          border: OutlineInputBorder(),
+        ),
+      ),
+    ],
+    if (_error != null) ...[
+      const SizedBox(height: 16),
+      Text(
+        _error!,
+        key: const Key('login-error'),
+        style: TextStyle(color: theme.colorScheme.error),
+      ),
+    ],
+    const SizedBox(height: 24),
+    FilledButton(
+      key: const Key('login-submit'),
+      onPressed: _busy ? null : (_codeSent ? _verify : _sendCode),
+      child: _busy
+          ? const SizedBox.square(
+              dimension: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : Text(_codeSent ? 'Verify and sign in' : 'Send code'),
+    ),
+    if (_codeSent)
+      TextButton(
+        onPressed: _busy
+            ? null
+            : () => setState(() {
+                _codeSent = false;
+                _code.clear();
+                _error = null;
+              }),
+        child: const Text('Use a different number'),
+      ),
+  ];
 }
 
 /// Signed in, but this account isn't a driver in the active organization.
