@@ -115,3 +115,16 @@ const paidByLabels = {
 String fuelFillLabel(TripFuelFill f) =>
     '${fuelNames[f.fuel] ?? f.fuel} ${(f.quantityMilli / 1000).toStringAsFixed(1)} ${f.unit}'
     '${f.isFullTank ? ' · full tank' : ''}';
+
+/// Charges the customer pays on top of the quoted fare; the driver never pays
+/// them, so they're never reimbursed (mirrors EXTRA_FARE_CHARGES in libs/domain).
+const extraFareKinds = {'night_charge', 'extra_km', 'driver_allowance'};
+
+bool isExtraFare(String kind) => extraFareKinds.contains(kind);
+
+/// How a charge on a trip is described under its name.
+String chargeNote(TripCharge c) => isExtraFare(c.kind)
+    ? 'Extra fare · paid by the customer'
+    : c.paidByDriver
+    ? 'Paid by you · paid back in settlement'
+    : 'Billed to the customer';

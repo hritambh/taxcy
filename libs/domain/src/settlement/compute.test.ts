@@ -97,6 +97,33 @@ describe('computeSettlement', () => {
     expect(toDriver.netPayablePaise).toBe(rupees(1_800));
   });
 
+  it('night charge and extra km add to the customer fare and are never reimbursed', () => {
+    const trip: SettlementTrip = {
+      id: 'N',
+      farePaise: rupees(3_000),
+      odometerKm: 200,
+      charges: [
+        // Marked "paid by driver" by mistake: still extra fare, not an expense.
+        { id: 'night', kind: 'night_charge', amountPaise: rupees(500), paidByDriver: true },
+        { id: 'km', kind: 'extra_km', amountPaise: rupees(400), paidByDriver: false },
+        { id: 'toll', kind: 'toll', amountPaise: rupees(200), paidByDriver: true },
+      ],
+      collections: [{ id: 'cash', method: 'cash', amountPaise: rupees(4_100) }],
+    };
+    const r = computeSettlement({
+      trips: [trip],
+      fuelFills: [],
+      payRule: { kind: 'none', allowanceToDriver: true },
+      adjustments: [],
+    });
+    expect(r).toMatchObject({
+      expectedFarePaise: rupees(4_100),
+      driverExpensesPaise: rupees(200),
+      netPayablePaise: rupees(3_900),
+      shortfallPaise: 0,
+    });
+  });
+
   it('fuel paid by the owner or a fuel card is not a driver expense', () => {
     const r = computeSettlement(
       input(

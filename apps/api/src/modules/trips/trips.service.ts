@@ -1,7 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import type { GeoPoint, Trip, TripType } from '@taxcy/contracts';
 import type { Prisma, TenantTx } from '@taxcy/db';
-import { decideTransition, type TripActor, type TripCommand, type TripStatus } from '@taxcy/domain';
+import {
+  chargePaidByDriver,
+  decideTransition,
+  type TripActor,
+  type TripCommand,
+  type TripStatus,
+} from '@taxcy/domain';
 import type { TenantAuth } from '../../platform/auth/auth-context.js';
 import { AppError, notFound } from '../../platform/errors.js';
 import { newId } from '../../platform/ids.js';
@@ -856,7 +862,8 @@ export class TripsService {
         tripId: trip.id,
         kind: c.kind,
         amountPaise: BigInt(c.amountPaise),
-        paidByDriver: c.paidByDriver,
+        // Extra fare (night charge, extra km, allowance) is never the driver's expense.
+        paidByDriver: chargePaidByDriver(c),
         mediaId: c.mediaId ?? null,
         note: c.note ?? null,
         enteredBy: auth.userId,

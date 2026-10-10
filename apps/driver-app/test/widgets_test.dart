@@ -219,7 +219,13 @@ void main() {
       );
       await settle(tester);
       expect(find.text('Toll'), findsOneWidget);
-      expect(find.text('Added during the trip · paid by you'), findsOneWidget);
+      expect(
+        find.text(
+          'Added during the trip · Paid by you · paid back in settlement',
+        ),
+        findsOneWidget,
+      );
+      expect(find.text('Fare ₹3,500 + tolls & expenses ₹250'), findsOneWidget);
       // ₹3,500 quoted + ₹250 toll; fuel is the owner's cost, not the customer's.
       expect(find.text('Customer paid · expected ₹3,750'), findsOneWidget);
       expect(find.text('Diesel 20.0 L'), findsOneWidget);

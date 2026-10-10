@@ -100,9 +100,7 @@ class TripDetailScreen extends ConsumerWidget {
                     ListTile(
                       dense: true,
                       title: Text(chargeKindLabels[c.kind] ?? c.kind),
-                      subtitle: c.paidByDriver
-                          ? const Text('Paid by you')
-                          : null,
+                      subtitle: Text(chargeNote(c)),
                       trailing: Text(formatInr(c.amountPaise)),
                     ),
                 ],

@@ -55,7 +55,7 @@ class _ChargeSheetState extends ConsumerState<_ChargeSheet> {
               id: const Uuid().v4(),
               kind: _kind,
               amountPaise: parseRupees(_amount.text)!,
-              paidByDriver: _paidByDriver,
+              paidByDriver: !isExtraFare(_kind) && _paidByDriver,
               mediaId: _receipt?.id,
             ),
             receipt: _receipt,
@@ -99,13 +99,22 @@ class _ChargeSheetState extends ConsumerState<_ChargeSheet> {
             ),
             validator: validateRupees,
           ),
-          SwitchListTile(
-            contentPadding: EdgeInsets.zero,
-            title: const Text('I paid this'),
-            subtitle: const Text('Paid back to you in your settlement'),
-            value: _paidByDriver,
-            onChanged: (v) => setState(() => _paidByDriver = v),
-          ),
+          if (isExtraFare(_kind))
+            const ListTile(
+              key: Key('extra-fare-note'),
+              contentPadding: EdgeInsets.zero,
+              leading: Icon(Icons.add_circle_outline),
+              title: Text('Added to the customer’s fare'),
+              subtitle: Text('Collect it from the customer with the fare.'),
+            )
+          else
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('I paid this'),
+              subtitle: const Text('Paid back to you in your settlement'),
+              value: _paidByDriver,
+              onChanged: (v) => setState(() => _paidByDriver = v),
+            ),
           PhotoField(
             kind: 'fuel_receipt',
             label: 'Receipt photo (optional)',

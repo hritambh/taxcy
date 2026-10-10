@@ -1,3 +1,4 @@
+import { chargePaidByDriver } from './charges.js';
 import type { PayRule } from './pay-rules.js';
 
 export type CollectionMethod = 'cash' | 'upi' | 'card';
@@ -85,7 +86,7 @@ export function computeSettlement(input: SettlementInput): SettlementResult {
     lines.push({ refType: 'trip', refId: trip.id, amountPaise: trip.farePaise });
     for (const charge of trip.charges) {
       expectedFarePaise += charge.amountPaise;
-      if (charge.paidByDriver) driverExpensesPaise += charge.amountPaise;
+      if (chargePaidByDriver(charge)) driverExpensesPaise += charge.amountPaise;
       lines.push({ refType: 'trip_charge', refId: charge.id, amountPaise: charge.amountPaise });
     }
     for (const collection of trip.collections) {

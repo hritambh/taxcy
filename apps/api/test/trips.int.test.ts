@@ -444,6 +444,26 @@ describe('visibility and charges', () => {
     ]);
   });
 
+  it('night charge and extra km are extra fare, never paid by the driver', async () => {
+    const trip = await newTrip();
+    await start(trip, driver.session).expect(200);
+    for (const kind of ['night_charge', 'extra_km']) {
+      await request(h.http)
+        .post(`/v1/trips/${trip.id}/charges`)
+        .set(...bearer(driver.session))
+        .send({ id: randomUUID(), kind, amountPaise: 50_000, paidByDriver: true })
+        .expect(201);
+    }
+    const res = await request(h.http)
+      .get(`/v1/trips/${trip.id}`)
+      .set(...bearer(owner))
+      .expect(200);
+    expect((res.body as Trip).charges.map((c) => [c.kind, c.paidByDriver])).toEqual([
+      ['night_charge', false],
+      ['extra_km', false],
+    ]);
+  });
+
   it('charges are idempotent on id; only staff can void them', async () => {
     const trip = await newTrip();
     await start(trip, driver.session).expect(200);

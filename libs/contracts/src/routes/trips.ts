@@ -63,7 +63,11 @@ export const ChargeInput = z.object({
   id: Id,
   kind: ChargeKind,
   amountPaise: Paise,
-  /** True when the driver paid it out of pocket; reimbursed in settlement. */
+  /**
+   * True when the driver paid it out of pocket; reimbursed in settlement. Ignored
+   * (stored as false) for extra fare: night_charge, extra_km and driver_allowance,
+   * which the customer pays on top of the quoted fare.
+   */
   paidByDriver: z.boolean(),
   mediaId: Id.optional(),
   note: z.string().max(200).optional(),

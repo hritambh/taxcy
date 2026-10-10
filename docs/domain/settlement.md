@@ -16,16 +16,21 @@ Online payments (UPI/card) are assumed to go **straight to the owner's account**
 
 One settlement per driver per **IST business date**. A trip belongs to the IST date it **ended**, or for an approved cancellation, the date it was **cancelled**. A fuel fill belongs to the IST date of `filled_at`.
 
-| Field                             | Formula                                                                                       |
-| --------------------------------- | --------------------------------------------------------------------------------------------- |
-| `expected_fare`                   | Σ (quoted fare, or cancellation fare, + non-voided charges) over that day's trips             |
-| `cash`                            | Σ cash collections on those trips                                                             |
-| `online`                          | Σ UPI/card collections on those trips                                                         |
-| `driver_expenses`                 | Σ fuel fills with `paid_by = driver_cash` that day, plus charges with `paid_by_driver = true` |
-| `driver_earnings`                 | From the driver's [pay rule](#driver-pay-rules)                                               |
-| `carried_adjustment`              | Net of items that synced after an earlier day was already settled                             |
-| **`net_payable`**                 | `cash − driver_expenses − driver_earnings + carried_adjustment`                               |
-| `shortfall` (derived, shown only) | `expected_fare − (cash + online)`                                                             |
+| Field                             | Formula                                                                                               |
+| --------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `expected_fare`                   | Σ (quoted fare, or cancellation fare, + non-voided charges) over that day's trips                     |
+| `cash`                            | Σ cash collections on those trips                                                                     |
+| `online`                          | Σ UPI/card collections on those trips                                                                 |
+| `driver_expenses`                 | Σ fuel fills with `paid_by = driver_cash` that day, plus expense charges with `paid_by_driver = true` |
+| `driver_earnings`                 | From the driver's [pay rule](#driver-pay-rules)                                                       |
+| `carried_adjustment`              | Net of items that synced after an earlier day was already settled                                     |
+| **`net_payable`**                 | `cash − driver_expenses − driver_earnings + carried_adjustment`                                       |
+| `shortfall` (derived, shown only) | `expected_fare − (cash + online)`                                                                     |
+
+**Two kinds of charge.** Every charge adds to what the customer pays (`expected_fare`).
+
+- **Extra fare:** `night_charge`, `extra_km` and `driver_allowance`, charged on top of the quoted fare for extra service. The driver never pays these, so they're never reimbursed. The API stores `paid_by_driver = false` for them whatever the client sends.
+- **Expenses:** `toll`, `parking`, `state_tax` and `other`, which someone pays along the way. When the driver paid (`paid_by_driver = true`), they're reimbursed in settlement.
 
 `net_payable > 0` means the driver hands that much to the owner. `net_payable < 0` means the owner pays the driver.
 

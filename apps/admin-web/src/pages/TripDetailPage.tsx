@@ -1,4 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query';
+import { chargePaidByDriver, isExtraFareCharge } from '@taxcy/domain';
 import { useMemo, useState, type SubmitEvent } from 'react';
 import { Link, useParams } from 'react-router';
 import { RouteMap } from '../components/maps.js';
@@ -575,7 +576,7 @@ function ChargesCard({ trip }: { trip: Trip }) {
             id: crypto.randomUUID(),
             kind,
             amountPaise,
-            paidByDriver,
+            paidByDriver: chargePaidByDriver({ kind, paidByDriver }),
             ...(note.trim() ? { note: note.trim() } : {}),
           },
         }),
@@ -639,7 +640,12 @@ function ChargesCard({ trip }: { trip: Trip }) {
                 </Td>
                 <Td>
                   <span className="text-xs text-slate-500">
-                    {c.paidByDriver ? 'Driver paid' : 'Billed only'} · by {c.enteredRole}
+                    {isExtraFareCharge(c.kind)
+                      ? 'Extra fare'
+                      : c.paidByDriver
+                        ? 'Driver paid'
+                        : 'Billed only'}{' '}
+                    · by {c.enteredRole}
                   </span>
                 </Td>
                 <Td align="right">{fmtInr(c.amountPaise)}</Td>
@@ -702,16 +708,22 @@ function ChargesCard({ trip }: { trip: Trip }) {
                 />
               )}
             </Field>
-            <label className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={paidByDriver}
-                onChange={(e) => {
-                  setPaidByDriver(e.target.checked);
-                }}
-              />
-              The driver paid this out of pocket (reimbursed in settlement)
-            </label>
+            {isExtraFareCharge(kind) ? (
+              <p className="rounded-md bg-brand-50 px-3 py-2 text-sm text-brand-800">
+                Extra fare: added to what the customer pays, on top of the quoted fare.
+              </p>
+            ) : (
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={paidByDriver}
+                  onChange={(e) => {
+                    setPaidByDriver(e.target.checked);
+                  }}
+                />
+                The driver paid this out of pocket (reimbursed in settlement)
+              </label>
+            )}
             <Field label="Note">
               {(props) => (
                 <Input

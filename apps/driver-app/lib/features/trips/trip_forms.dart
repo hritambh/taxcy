@@ -175,6 +175,27 @@ class _EndTripScreenState extends ConsumerState<EndTripScreen> {
       _addedCharges.fold<int>(0, (sum, c) => sum + c.amountPaise) +
       _charges.fold(0, (sum, c) => sum + (parseRupees(c.amount.text) ?? 0));
 
+  /// "Fare ₹3,500 + extra fare ₹900 + expenses ₹200".
+  String get _fareBreakdown {
+    var extra = 0;
+    var expenses = 0;
+    for (final (kind, paise) in [
+      for (final c in _addedCharges) (c.kind, c.amountPaise),
+      for (final c in _charges) (c.kind, parseRupees(c.amount.text) ?? 0),
+    ]) {
+      if (isExtraFare(kind)) {
+        extra += paise;
+      } else {
+        expenses += paise;
+      }
+    }
+    return [
+      'Fare ${formatInr(widget.trip.quotedFarePaise)}',
+      if (extra > 0) 'extra fare ${formatInr(extra)}',
+      if (expenses > 0) 'tolls & expenses ${formatInr(expenses)}',
+    ].join(' + ');
+  }
+
   int get _fuelPaidByDriver => widget.trip.fuelFills
       .where((f) => f.paidBy == 'driver_cash')
       .fold<int>(0, (sum, f) => sum + f.costPaise);
@@ -201,7 +222,7 @@ class _EndTripScreenState extends ConsumerState<EndTripScreen> {
           id: _uuid.v4(),
           kind: c.kind,
           amountPaise: parseRupees(c.amount.text)!,
-          paidByDriver: c.paidByDriver,
+          paidByDriver: !isExtraFare(c.kind) && c.paidByDriver,
         ),
     ];
     await _submit(
@@ -265,11 +286,7 @@ class _EndTripScreenState extends ConsumerState<EndTripScreen> {
                 contentPadding: EdgeInsets.zero,
                 leading: const Icon(Icons.check_circle_outline),
                 title: Text(chargeKindLabels[c.kind] ?? c.kind),
-                subtitle: Text(
-                  c.paidByDriver
-                      ? 'Added during the trip · paid by you'
-                      : 'Added during the trip',
-                ),
+                subtitle: Text('Added during the trip · ${chargeNote(c)}'),
                 trailing: Text(formatInr(c.amountPaise)),
               ),
             for (final (index, c) in _charges.indexed)
@@ -295,12 +312,19 @@ class _EndTripScreenState extends ConsumerState<EndTripScreen> {
                       onChanged: (_) => setState(() {}),
                     ),
                   ),
-                  Checkbox(
-                    value: c.paidByDriver,
-                    onChanged: (v) =>
-                        setState(() => c.paidByDriver = v ?? true),
-                  ),
-                  const Text('I paid'),
+                  if (isExtraFare(c.kind))
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 8),
+                      child: Text('Extra fare'),
+                    )
+                  else ...[
+                    Checkbox(
+                      value: c.paidByDriver,
+                      onChanged: (v) =>
+                          setState(() => c.paidByDriver = v ?? true),
+                    ),
+                    const Text('I paid'),
+                  ],
                   IconButton(
                     icon: const Icon(Icons.close),
                     onPressed: () => setState(() => _charges.removeAt(index)),
@@ -310,7 +334,7 @@ class _EndTripScreenState extends ConsumerState<EndTripScreen> {
             TextButton.icon(
               onPressed: () => setState(() => _charges.add(_ChargeRow())),
               icon: const Icon(Icons.add),
-              label: const Text('Add toll, parking or other charge'),
+              label: const Text('Add toll, night charge, extra km…'),
             ),
             const SizedBox(height: 16),
             if (widget.trip.fuelFills.isNotEmpty) ...[
@@ -339,6 +363,11 @@ class _EndTripScreenState extends ConsumerState<EndTripScreen> {
             Text(
               'Customer paid · expected ${formatInr(_expected)}',
               style: Theme.of(context).textTheme.titleSmall,
+            ),
+            Text(
+              _fareBreakdown,
+              key: const Key('fare-breakdown'),
+              style: Theme.of(context).textTheme.bodySmall,
             ),
             if (_alreadyCollected > 0)
               Text(
