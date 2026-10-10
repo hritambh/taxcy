@@ -638,6 +638,8 @@ model Alert {
   severity    AlertSeverity
   title       String
   explanation String
+  /// Translatable form of title/explanation: { key, params } (see AlertMessage in libs/contracts).
+  message     Json?
   vehicleId   String?       @map("vehicle_id") @db.Uuid
   driverId    String?       @map("driver_id") @db.Uuid
   tripId      String?       @map("trip_id") @db.Uuid

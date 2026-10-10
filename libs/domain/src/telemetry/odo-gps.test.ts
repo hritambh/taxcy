@@ -36,6 +36,12 @@ describe('explainOdoGps', () => {
     const v = odoGpsVerdict({ ...good, odometerKm: 182, gpsKm: 151 });
     const text = explainOdoGps({
       tripLabel: 'Trip on 9 Oct (Pune → Mumbai, MH12 AB 1234)',
+      trip: {
+        startedAt: new Date('2026-10-09T03:30:00Z'),
+        from: 'Pune',
+        to: 'Mumbai',
+        registrationNo: 'MH12 AB 1234',
+      },
       odometerKm: 182,
       gpsKm: 151,
       excessPct: v.excessPct ?? 0,
@@ -48,5 +54,18 @@ describe('explainOdoGps', () => {
       "The odometer readings say 182 km, but the phone's GPS recorded 151 km. " +
         'The odometer distance is 21% higher; the allowed difference is 10%. Check the start and end odometer photos.',
     );
+    expect(text.message).toEqual({
+      key: 'odo_gps_mismatch',
+      params: {
+        tripStartedAt: '2026-10-09T03:30:00.000Z',
+        from: 'Pune',
+        to: 'Mumbai',
+        registrationNo: 'MH12 AB 1234',
+        odometerKm: 182,
+        gpsKm: 151,
+        excessPct: 21,
+        tolerancePct: 10,
+      },
+    });
   });
 });

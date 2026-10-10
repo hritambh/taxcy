@@ -14,6 +14,7 @@ const alert = (overrides: Partial<Alert>): Alert => ({
   severity: 'critical',
   title: 'MH12CD5678 (Dzire, CNG) used more fuel than usual',
   explanation: 'Between 3 Oct and 8 Oct it ran 520 km on 28.6 kg of CNG…',
+  message: null,
   status: 'open',
   subjectType: 'fuel_cycle',
   subjectId: '0199c7a2-5b7e-7c3d-9f00-1a2b3c4d5e02',

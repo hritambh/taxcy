@@ -1,5 +1,6 @@
 import { formatInr, formatInrShort } from '../money.js';
-import { IST_TIME_ZONE } from '../time.js';
+import type { AlertText } from '../messages.js';
+import { IST_TIME_ZONE, istBusinessDate } from '../time.js';
 import type { Cycle } from './cycles.js';
 import type { Evaluation } from './evaluate.js';
 import type { FuelKind, VehicleFuelType } from './types.js';
@@ -25,6 +26,7 @@ const day = new Intl.DateTimeFormat('en-IN', {
 });
 const km = new Intl.NumberFormat('en-IN', { maximumFractionDigits: 0 });
 const one = (n: number) => n.toFixed(1);
+const round1 = (n: number) => Math.round(n * 10) / 10;
 const roundRupees = (paise: number, toNearest: number) =>
   Math.round(paise / 100 / toNearest) * toNearest * 100;
 
@@ -45,7 +47,7 @@ export function explainFuelCycle(input: {
   driverNames: readonly string[];
   /** Bi-fuel only: how much of the cycle's cost was petrol. */
   petrolCostPaise?: number;
-}): { title: string; explanation: string } {
+}): AlertText {
   const { cycle, evaluation, vehicle } = input;
   const label = `${vehicle.registrationNo} (${vehicle.model}, ${FUEL_NAMES[vehicle.fuelType]})`;
   const period = `Between ${day.format(cycle.startedAt)} and ${day.format(cycle.endedAt)}`;
@@ -54,6 +56,14 @@ export function explainFuelCycle(input: {
   const who = names
     ? ` Fills in this period were logged by ${names}${names.endsWith('.') ? '' : '.'}`
     : '';
+  const common = {
+    vehicle: { ...vehicle },
+    from: istBusinessDate(cycle.startedAt),
+    to: istBusinessDate(cycle.endedAt),
+    distanceKm: Math.round(cycle.distanceKm),
+    percentWorse: worse,
+    drivers: [...input.driverNames],
+  };
 
   if (cycle.metric === 'paise_per_km') {
     const perKm = (paise: number) => `${formatInr(Math.round(paise))}/km`;
@@ -68,6 +78,16 @@ export function explainFuelCycle(input: {
         `which is ${perKm(cycle.value ?? 0)}. This car usually costs about ${perKm(evaluation.baselineMean)}, ` +
         `so this is ${worse}% more than normal.${petrol}${who} ` +
         'Check whether the car was run on petrol unnecessarily, and check the receipts.',
+      message: {
+        key: 'fuel_cost_high',
+        params: {
+          ...common,
+          costPaise: Math.round(cycle.costPaise),
+          paisePerKm: Math.round(cycle.value ?? 0),
+          baselinePaisePerKm: Math.round(evaluation.baselineMean),
+          petrolCostPaise: Math.round(input.petrolCostPaise ?? 0),
+        },
+      },
     };
   }
 
@@ -86,6 +106,18 @@ export function explainFuelCycle(input: {
       `so this is ${worse}% worse than normal. That's roughly ${one(extraUnits)} ${unit} ` +
       `(about ${formatInrShort(extraCost)}) more ${FUEL_NAMES[fuel]} than expected.${who} ` +
       'Check the receipts and odometer photos.',
+    message: {
+      key: 'fuel_efficiency_low',
+      params: {
+        ...common,
+        fuel,
+        used: round1(usedUnits),
+        value: round1(cycle.value ?? 0),
+        baseline: round1(evaluation.baselineMean),
+        extraUnits: round1(extraUnits),
+        extraCostPaise: extraCost,
+      },
+    },
   };
 }
 

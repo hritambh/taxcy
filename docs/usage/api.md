@@ -98,6 +98,16 @@ Photos are OCR'd in the background. A disagreement between typed and OCR values 
 | `PATCH /me`              | signed in |                 | Update your profile                                                   |
 | `POST /orgs`             | signed in |                 | Create an organization; you become its owner (and driver, for a DCO)  |
 
+### Members
+
+| Endpoint                       | Who            | Idempotency-Key | What it does                                                                             |
+| ------------------------------ | -------------- | --------------- | ---------------------------------------------------------------------------------------- |
+| `GET /members`                 | owner, manager |                 | People with access to the org, with their roles                                          |
+| `POST /members/managers`       | owner          |                 | Give someone manager access by phone (managers can't change settings or pay rules)       |
+| `DELETE /members/{id}/manager` | owner          |                 | Take away manager access; other roles stay, and a member with no roles left is suspended |
+
+Drivers are added with `POST /drivers`, which also creates their driver profile. A removed manager keeps their current access token until it expires (at most 15 minutes).
+
 ### Media
 
 | Endpoint                    | Who                    | Idempotency-Key | What it does                                                             |
@@ -190,6 +200,15 @@ Photos are OCR'd in the background. A disagreement between typed and OCR values 
 | `PATCH /alerts/{id}`              | owner, manager |                 | Acknowledge, resolve or dismiss an alert (dismissing a fuel alert as a false alarm retrains the baseline) |
 | `GET /review-items`               | owner, manager |                 | Review queue, oldest first                                                                                |
 | `POST /review-items/{id}/resolve` | owner, manager |                 | Decide a review item; using the OCR or a corrected value updates the record and re-runs its checks        |
+
+### Text in the user's language
+
+The API doesn't translate. Where it produces text, it also sends the data behind it so each app can phrase it in the user's language:
+
+- **Alerts** have `message: { key, params }` next to the English `title` and `explanation`. `key` is the alert kind (`fuel_efficiency_low`, `fuel_cost_high`, `odo_gps_mismatch`, `document_expiring`, `document_expired`, `cancellation_requested`); `params` holds pre-rounded numbers, IST dates (`YYYY-MM-DD`) and names. Alerts raised before messages existed have `message: null`; show the English text for those.
+- **Settlement lines** have `item` (the trip, charge, collection or fuel fill the line is for) next to the English `description`.
+- **Review items** for implausible fuel cycles have `context.reasonCode` next to the English `context.reason`.
+- **Errors** have a stable `error.code`; translate by code and fall back to `error.message`.
 
 ## Generated TypeScript client
 

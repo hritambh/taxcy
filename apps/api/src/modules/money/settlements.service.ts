@@ -1,5 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { PayRule, type SettlementSummary } from '@taxcy/contracts';
+import {
+  ChargeKind,
+  CollectionMethod,
+  PaidBy,
+  PayRule,
+  type SettlementItem,
+  type SettlementSummary,
+} from '@taxcy/contracts';
 import type { Prisma, TenantTx } from '@taxcy/db';
 import {
   computeSettlement,
@@ -24,6 +31,7 @@ interface Line {
   refId: string;
   amountPaise: number;
   description: string;
+  item: SettlementItem | null;
   originalDate: string | null;
 }
 
@@ -34,6 +42,88 @@ export interface SettlementDetail extends SettlementSummary {
 
 const istDayStart = (date: string) => new Date(`${date}T00:00:00+05:30`);
 const rupees = (paise: bigint | number) => formatInrShort(Number(paise));
+
+interface TripLike {
+  fromText: string;
+  toText: string | null;
+  status: string;
+  vehicle: { registrationNo: string } | null;
+}
+interface TripRef {
+  from: string;
+  to: string | null;
+  registrationNo: string | null;
+}
+
+const tripRef = (t: TripLike): TripRef => ({
+  from: t.fromText,
+  to: t.toText,
+  registrationNo: t.vehicle?.registrationNo ?? null,
+});
+const tripItem = (t: TripLike): SettlementItem => ({
+  kind: 'trip',
+  trip: tripRef(t),
+  cancelled: t.status === 'cancelled',
+});
+const chargeItem = (
+  c: { kind: string; amountPaise: bigint; paidByDriver: boolean },
+  t: TripLike | undefined,
+): SettlementItem => ({
+  kind: 'charge',
+  chargeKind: ChargeKind.parse(c.kind),
+  amountPaise: Number(c.amountPaise),
+  paidByDriver: c.paidByDriver,
+  trip: t ? tripRef(t) : null,
+});
+const collectionItem = (
+  c: { method: string; amountPaise: bigint; reference: string | null },
+  t: TripLike | undefined,
+): SettlementItem => ({
+  kind: 'collection',
+  method: CollectionMethod.parse(c.method),
+  amountPaise: Number(c.amountPaise),
+  reference: c.reference,
+  trip: t ? tripRef(t) : null,
+});
+const fillItem = (f: {
+  fuel: 'petrol' | 'diesel' | 'cng';
+  quantityMilli: number;
+  costPaise: bigint;
+  paidBy: string;
+}): SettlementItem => ({
+  kind: 'fuel_fill',
+  fuel: f.fuel,
+  quantityMilli: f.quantityMilli,
+  costPaise: Number(f.costPaise),
+  paidBy: PaidBy.parse(f.paidBy),
+});
+
+const tripText = (r: TripRef) =>
+  `${r.to ? `${r.from} → ${r.to}` : r.from}${r.registrationNo ? ` (${r.registrationNo})` : ''}`;
+
+/** The English fallback for a line; apps describe `item` in the user's language. */
+function describe(item: SettlementItem | null, late = false): string {
+  if (!item) return '';
+  let text: string;
+  let trip: TripRef | null = null;
+  switch (item.kind) {
+    case 'trip':
+      text = `${tripText(item.trip)}${item.cancelled ? ' (cancelled, cancellation fare)' : ''}`;
+      break;
+    case 'charge':
+      text = `${item.chargeKind.replace('_', ' ')} ${rupees(item.amountPaise)}${item.paidByDriver ? ', paid by driver' : ''}`;
+      trip = item.trip;
+      break;
+    case 'collection':
+      text = `${item.method.toUpperCase()} collected ${rupees(item.amountPaise)}${item.reference ? ` (${item.reference})` : ''}`;
+      trip = item.trip;
+      break;
+    case 'fuel_fill':
+      text = `${item.fuel} ${(item.quantityMilli / 1000).toFixed(1)} ${item.fuel === 'cng' ? 'kg' : 'L'}, ${rupees(item.costPaise)}, ${item.paidBy.replace('_', ' ')}`;
+      break;
+  }
+  return late ? `Late item: ${text}${trip ? ` for ${tripText(trip)}` : ''}` : text;
+}
 
 const tripInclude = {
   vehicle: { select: { registrationNo: true } },
@@ -307,22 +397,26 @@ export class SettlementsService {
       for (const c of trip.collections.filter((x) => open(x.id))) {
         const amount = c.method === 'cash' ? Number(c.amountPaise) : 0;
         adjustments.push({ id: c.id, amountPaise: amount });
+        const item = collectionItem(c, trip);
         lines.push({
           refType: 'adjustment',
           refId: c.id,
           amountPaise: amount,
-          description: `Late ${c.method} collection ${rupees(c.amountPaise)} for ${this.tripLabel(trip)}`,
+          description: describe(item, true),
+          item,
           originalDate: istBusinessDate(closedAt(trip)),
         });
       }
       for (const c of trip.charges.filter((x) => open(x.id))) {
         const amount = c.paidByDriver ? -Number(c.amountPaise) : 0;
         adjustments.push({ id: c.id, amountPaise: amount });
+        const item = chargeItem(c, trip);
         lines.push({
           refType: 'adjustment',
           refId: c.id,
           amountPaise: amount,
-          description: `Late ${c.kind.replace('_', ' ')} ${rupees(c.amountPaise)} for ${this.tripLabel(trip)}`,
+          description: describe(item, true),
+          item,
           originalDate: istBusinessDate(closedAt(trip)),
         });
       }
@@ -376,37 +470,35 @@ export class SettlementsService {
       trips.flatMap((t) => t.charges.map((c) => [c.id, { c, t }] as const)),
     );
     const collectionById = new Map(
-      trips.flatMap((t) => t.collections.map((c) => [c.id, c] as const)),
+      trips.flatMap((t) => t.collections.map((c) => [c.id, { c, t }] as const)),
     );
     const fillById = new Map(fills.map((f) => [f.id, f]));
     for (const line of result.lines) {
       if (line.refType === 'adjustment') continue; // described above
-      let description = '';
+      let item: SettlementItem | null = null;
       let originalDate: string | null = null;
       if (line.refType === 'trip') {
         const t = tripById.get(line.refId);
         if (t) {
-          description = `${this.tripLabel(t)}${t.status === 'cancelled' ? ' (cancelled, cancellation fare)' : ''}`;
+          item = tripItem(t);
           const tripDay = istBusinessDate(closedAt(t));
           if (tripDay !== day) originalDate = tripDay;
         }
       } else if (line.refType === 'trip_charge') {
         const entry = chargeById.get(line.refId);
-        if (entry)
-          description = `${entry.c.kind.replace('_', ' ')} ${rupees(entry.c.amountPaise)}${entry.c.paidByDriver ? ', paid by driver' : ''}`;
+        if (entry) item = chargeItem(entry.c, entry.t);
       } else if (line.refType === 'collection') {
-        const c = collectionById.get(line.refId);
-        if (c)
-          description = `${c.method.toUpperCase()} collected ${rupees(c.amountPaise)}${c.reference ? ` (${c.reference})` : ''}`;
+        const entry = collectionById.get(line.refId);
+        if (entry) item = collectionItem(entry.c, entry.t);
       } else {
         const f = fillById.get(line.refId);
         if (f) {
-          description = `${f.fuel} ${(f.quantityMilli / 1000).toFixed(1)} ${f.fuel === 'cng' ? 'kg' : 'L'}, ${rupees(f.costPaise)}, ${f.paidBy.replace('_', ' ')}`;
+          item = fillItem(f);
           const fillDay = istBusinessDate(f.filledAt);
           if (fillDay !== day) originalDate = fillDay;
         }
       }
-      lines.push({ ...line, description, originalDate });
+      lines.push({ ...line, description: describe(item), item, originalDate });
     }
 
     return {
@@ -430,14 +522,6 @@ export class SettlementsService {
     };
   }
 
-  private tripLabel(trip: {
-    fromText: string;
-    toText: string | null;
-    vehicle: { registrationNo: string } | null;
-  }): string {
-    return `${trip.toText ? `${trip.fromText} → ${trip.toText}` : trip.fromText}${trip.vehicle ? ` (${trip.vehicle.registrationNo})` : ''}`;
-  }
-
   private async tripKm(
     tx: TenantTx,
     trip: { startOdometerId: string | null; endOdometerId: string | null },
@@ -458,34 +542,37 @@ export class SettlementsService {
   ): Promise<Line[]> {
     const ids = lines.map((l) => l.refId);
     const [trips, charges, collections, fills] = await Promise.all([
-      tx.trip.findMany({
+      tx.trip.findMany({ where: { id: { in: ids } }, include: { vehicle: tripInclude.vehicle } }),
+      tx.tripCharge.findMany({
         where: { id: { in: ids } },
-        include: { vehicle: { select: { registrationNo: true } } },
+        include: { trip: { include: { vehicle: tripInclude.vehicle } } },
       }),
-      tx.tripCharge.findMany({ where: { id: { in: ids } } }),
-      tx.tripCollection.findMany({ where: { id: { in: ids } } }),
+      tx.tripCollection.findMany({
+        where: { id: { in: ids } },
+        include: { trip: { include: { vehicle: tripInclude.vehicle } } },
+      }),
       tx.fuelFill.findMany({ where: { id: { in: ids } } }),
     ]);
-    const describe = (refId: string): string => {
+    const itemFor = (refId: string): SettlementItem | null => {
       const t = trips.find((x) => x.id === refId);
-      if (t) return this.tripLabel(t);
+      if (t) return tripItem(t);
       const c = charges.find((x) => x.id === refId);
-      if (c)
-        return `${c.kind.replace('_', ' ')} ${rupees(c.amountPaise)}${c.paidByDriver ? ', paid by driver' : ''}`;
+      if (c) return chargeItem(c, c.trip);
       const col = collections.find((x) => x.id === refId);
-      if (col) return `${col.method.toUpperCase()} collected ${rupees(col.amountPaise)}`;
+      if (col) return collectionItem(col, col.trip);
       const f = fills.find((x) => x.id === refId);
-      if (f)
-        return `${f.fuel} ${(f.quantityMilli / 1000).toFixed(1)} ${f.fuel === 'cng' ? 'kg' : 'L'}, ${rupees(f.costPaise)}, ${f.paidBy.replace('_', ' ')}`;
-      return '';
+      return f ? fillItem(f) : null;
     };
-    return lines.map((l) => ({
-      refType: l.refType as SettlementLineType,
-      refId: l.refId,
-      amountPaise: Number(l.amountPaise),
-      description:
-        l.refType === 'adjustment' ? `Late item: ${describe(l.refId)}` : describe(l.refId),
-      originalDate: null,
-    }));
+    return lines.map((l) => {
+      const item = itemFor(l.refId);
+      return {
+        refType: l.refType as SettlementLineType,
+        refId: l.refId,
+        amountPaise: Number(l.amountPaise),
+        description: describe(item, l.refType === 'adjustment'),
+        item,
+        originalDate: null,
+      };
+    });
   }
 }

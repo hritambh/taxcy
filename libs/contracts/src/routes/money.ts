@@ -1,17 +1,52 @@
 import { z } from 'zod';
-import { CalendarDate, DateTime, Id } from '../common.js';
+import { CalendarDate, DateTime, FuelKind, Id, PaidBy, Paise } from '../common.js';
 import { access, defineRoute } from '../http.js';
-import { PayRule } from './fleet.js';
-import { CollectionInput, Trip } from './trips.js';
+import { DocType, FuelType, PayRule } from './fleet.js';
+import { ChargeKind, CollectionInput, CollectionMethod, Trip } from './trips.js';
 
 const SignedPaise = z.number().int();
+
+const TripRef = z.object({
+  from: z.string(),
+  to: z.string().nullable(),
+  registrationNo: z.string().nullable(),
+});
+
+/** What a settlement line refers to, so apps can describe it in the user's language. */
+export const SettlementItem = z.discriminatedUnion('kind', [
+  z.object({ kind: z.literal('trip'), trip: TripRef, cancelled: z.boolean() }),
+  z.object({
+    kind: z.literal('charge'),
+    chargeKind: ChargeKind,
+    amountPaise: Paise,
+    paidByDriver: z.boolean(),
+    trip: TripRef.nullable(),
+  }),
+  z.object({
+    kind: z.literal('collection'),
+    method: CollectionMethod,
+    amountPaise: Paise,
+    reference: z.string().nullable(),
+    trip: TripRef.nullable(),
+  }),
+  z.object({
+    kind: z.literal('fuel_fill'),
+    fuel: FuelKind,
+    quantityMilli: z.number().int().nonnegative(),
+    costPaise: Paise,
+    paidBy: PaidBy,
+  }),
+]);
+export type SettlementItem = z.infer<typeof SettlementItem>;
 
 export const SettlementLine = z.object({
   refType: z.enum(['trip', 'trip_charge', 'collection', 'fuel_fill', 'adjustment']),
   refId: Id,
   amountPaise: SignedPaise,
-  /** Human-readable, e.g. "Pune → Mumbai (MH12AB1234)" or "Diesel 40 L, paid by driver". */
+  /** English fallback, e.g. "Pune → Mumbai (MH12AB1234)" or "diesel 40.0 L, ₹3,800, driver cash". */
   description: z.string(),
+  /** The referenced record; null if it no longer exists. */
+  item: SettlementItem.nullable(),
   /** For adjustments: the IST date the item originally belonged to. */
   originalDate: z.string().nullable(),
 });
@@ -94,14 +129,86 @@ export const AlertKind = z.enum([
   'cancellation_requested',
   'gps_coverage_low',
 ]);
+const IsoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+const FuelCycleParams = z.object({
+  vehicle: z.object({ registrationNo: z.string(), model: z.string(), fuelType: FuelType }),
+  from: IsoDate,
+  to: IsoDate,
+  distanceKm: z.number(),
+  percentWorse: z.number(),
+  drivers: z.array(z.string()),
+});
+const DocumentExpiryParams = z.object({
+  docType: DocType,
+  subjectKind: z.enum(['vehicle', 'driver']),
+  subject: z.string(),
+  expiresOn: IsoDate,
+  daysLeft: z.number().int(),
+});
+
+/**
+ * An alert's text as a key plus values, for apps to show in the user's language.
+ * Numbers are pre-rounded for display; dates are IST calendar dates. Null on alerts
+ * raised before messages existed; use title and explanation then.
+ */
+export const AlertMessage = z.discriminatedUnion('key', [
+  z.object({
+    key: z.literal('fuel_efficiency_low'),
+    params: FuelCycleParams.extend({
+      fuel: FuelKind,
+      used: z.number(),
+      value: z.number(),
+      baseline: z.number(),
+      extraUnits: z.number(),
+      extraCostPaise: z.number(),
+    }),
+  }),
+  z.object({
+    key: z.literal('fuel_cost_high'),
+    params: FuelCycleParams.extend({
+      costPaise: z.number(),
+      paisePerKm: z.number(),
+      baselinePaisePerKm: z.number(),
+      petrolCostPaise: z.number(),
+    }),
+  }),
+  z.object({
+    key: z.literal('odo_gps_mismatch'),
+    params: z.object({
+      tripStartedAt: z.string(),
+      from: z.string(),
+      to: z.string().nullable(),
+      registrationNo: z.string().nullable(),
+      odometerKm: z.number(),
+      gpsKm: z.number(),
+      excessPct: z.number(),
+      tolerancePct: z.number(),
+    }),
+  }),
+  z.object({ key: z.literal('document_expiring'), params: DocumentExpiryParams }),
+  z.object({ key: z.literal('document_expired'), params: DocumentExpiryParams }),
+  z.object({
+    key: z.literal('cancellation_requested'),
+    params: z.object({
+      from: z.string(),
+      driverName: z.string().nullable(),
+      reason: z.string(),
+      endKm: z.number(),
+    }),
+  }),
+]);
+export type AlertMessage = z.infer<typeof AlertMessage>;
+
 export const AlertStatus = z.enum(['open', 'acknowledged', 'resolved', 'dismissed']);
 
 export const Alert = z.object({
   id: Id,
   kind: AlertKind,
   severity: z.enum(['info', 'warning', 'critical']),
+  /** English fallback; prefer `message`. */
   title: z.string(),
   explanation: z.string(),
+  message: AlertMessage.nullable(),
   status: AlertStatus,
   subjectType: z.string(),
   subjectId: Id,

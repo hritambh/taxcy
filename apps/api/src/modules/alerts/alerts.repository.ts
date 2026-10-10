@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import type { AlertMessage } from '@taxcy/contracts';
 import type { Prisma, TenantTx } from '@taxcy/db';
 import { newId } from '../../platform/ids.js';
 
@@ -14,8 +15,10 @@ export type AlertKind =
 export interface RaiseAlert {
   kind: AlertKind;
   severity: 'info' | 'warning' | 'critical';
+  /** English fallback for clients that don't know the message key. */
   title: string;
   explanation: string;
+  message: AlertMessage;
   subjectType: string;
   subjectId: string;
   vehicleId?: string | null;
@@ -34,6 +37,7 @@ export class AlertsRepository {
       severity: alert.severity,
       title: alert.title,
       explanation: alert.explanation,
+      message: alert.message,
       subjectType: alert.subjectType,
       subjectId: alert.subjectId,
       vehicleId: alert.vehicleId ?? null,

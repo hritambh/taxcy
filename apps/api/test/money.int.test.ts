@@ -36,7 +36,13 @@ interface Detail {
   carriedAdjustmentPaise: number;
   shortfallPaise: number;
   tripCount: number;
-  lines: { refType: string; refId: string; amountPaise: number; description: string }[];
+  lines: {
+    refType: string;
+    refId: string;
+    amountPaise: number;
+    description: string;
+    item: Record<string, unknown> | null;
+  }[];
 }
 
 async function runTrip(
@@ -155,6 +161,39 @@ describe('daily settlement', () => {
       tripCount: 2,
     });
     expect(draft.lines).toHaveLength(7);
+    // Each line carries a structured item, so apps can describe it in any language.
+    expect(draft.lines).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          refType: 'trip',
+          item: {
+            kind: 'trip',
+            trip: { from: 'Pune', to: 'Mumbai', registrationNo: expect.any(String) as string },
+            cancelled: false,
+          },
+        }),
+        expect.objectContaining({
+          refType: 'trip_charge',
+          description: 'toll ₹250, paid by driver',
+          item: expect.objectContaining({
+            kind: 'charge',
+            chargeKind: 'toll',
+            amountPaise: rupees(250),
+            paidByDriver: true,
+          }) as unknown,
+        }),
+        expect.objectContaining({
+          refType: 'fuel_fill',
+          item: {
+            kind: 'fuel_fill',
+            fuel: 'diesel',
+            quantityMilli: 13_300,
+            costPaise: rupees(1_200),
+            paidBy: 'driver_cash',
+          },
+        }),
+      ]),
+    );
 
     const list = await request(h.http)
       .get(`/v1/settlements?date=${today()}`)
@@ -172,6 +211,10 @@ describe('daily settlement', () => {
       .set(...key())
       .expect(200);
     expect(settled.body).toMatchObject({ status: 'settled', netPayablePaise: rupees(1_290) });
+    // Stored lines are described from the same items.
+    expect((settled.body as Detail).lines.map((l) => l.item?.['kind']).sort()).toEqual(
+      draft.lines.map((l) => l.item?.['kind']).sort(),
+    );
     const tripNow = await request(h.http)
       .get(`/v1/trips/${tripA.id}`)
       .set(...bearer(owner))
@@ -211,7 +254,14 @@ describe('daily settlement', () => {
       netPayablePaise: rupees(500),
       tripCount: 0,
     });
-    expect(next.lines).toMatchObject([{ refType: 'adjustment', amountPaise: rupees(500) }]);
+    expect(next.lines).toMatchObject([
+      {
+        refType: 'adjustment',
+        amountPaise: rupees(500),
+        item: { kind: 'collection', method: 'cash', amountPaise: rupees(500) },
+      },
+    ]);
+    expect(next.lines[0]?.description).toMatch(/^Late item: CASH collected ₹500 for /);
   });
 
   it('an approved cancellation of a started trip counts its cancellation fare', async () => {
@@ -302,6 +352,18 @@ describe('alerts inbox', () => {
         .expect(200)
     ).body as { id: string }[];
     expect(open).toHaveLength(1);
+    expect(open[0]).toMatchObject({
+      message: {
+        key: 'document_expiring',
+        params: {
+          docType: 'insurance',
+          subjectKind: 'vehicle',
+          subject: 'MH12AL0001',
+          expiresOn: today(),
+          daysLeft: 0,
+        },
+      },
+    });
     const done = await request(h.http)
       .patch(`/v1/alerts/${open[0]?.id ?? ''}`)
       .set(...bearer(owner))

@@ -1,3 +1,5 @@
+import type { AlertText } from '../messages.js';
+
 export type DocType = 'rc' | 'insurance' | 'permit' | 'puc' | 'driving_licence';
 export type ExpiryBucket = 'expired' | number;
 
@@ -44,11 +46,19 @@ export function explainExpiry(input: {
   docType: DocType;
   /** e.g. "MH12 AB 1234" or "Ramesh Kumar". */
   subject: string;
+  subjectKind: 'vehicle' | 'driver';
   expiresOn: string;
   today: string;
-}): { title: string; explanation: string } {
+}): AlertText {
   const name = DOC_NAMES[input.docType];
   const days = daysUntil(input.expiresOn, input.today);
+  const params = {
+    docType: input.docType,
+    subjectKind: input.subjectKind,
+    subject: input.subject,
+    expiresOn: input.expiresOn,
+    daysLeft: days,
+  };
   const date = new Date(`${input.expiresOn}T00:00:00Z`).toLocaleDateString('en-IN', {
     day: 'numeric',
     month: 'short',
@@ -59,11 +69,13 @@ export function explainExpiry(input: {
     return {
       title: `${name} for ${input.subject} has expired`,
       explanation: `${name} for ${input.subject} expired on ${date}. Operating without it risks fines and insurance claims being rejected. Renew it and upload the new copy.`,
+      message: { key: 'document_expired', params },
     };
   }
   const when = days === 0 ? 'today' : days === 1 ? 'tomorrow' : `in ${days} days`;
   return {
     title: `${name} for ${input.subject} expires ${when}`,
     explanation: `${name} for ${input.subject} expires on ${date}. Renew it and upload the new copy before then.`,
+    message: { key: 'document_expiring', params },
   };
 }

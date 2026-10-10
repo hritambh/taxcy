@@ -189,6 +189,12 @@ export class TelemetryService implements OnApplicationBootstrap {
       const route = trip.toText ? `${trip.fromText} → ${trip.toText}` : trip.fromText;
       const text = explainOdoGps({
         tripLabel: `Trip on ${date} (${route}, ${trip.vehicle?.registrationNo ?? 'vehicle'})`,
+        trip: {
+          startedAt: trip.startedAt,
+          from: trip.fromText,
+          to: trip.toText,
+          registrationNo: trip.vehicle?.registrationNo ?? null,
+        },
         odometerKm,
         gpsKm,
         excessPct: verdict.excessPct,

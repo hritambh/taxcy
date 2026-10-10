@@ -44,6 +44,7 @@ describe('explainExpiry', () => {
       explainExpiry({
         docType: 'insurance',
         subject: 'MH12 AB 1234',
+        subjectKind: 'vehicle',
         expiresOn: '2026-10-14',
         today,
       }),
@@ -51,15 +52,37 @@ describe('explainExpiry', () => {
       title: 'Insurance for MH12 AB 1234 expires in 5 days',
       explanation:
         'Insurance for MH12 AB 1234 expires on 14 Oct 2026. Renew it and upload the new copy before then.',
+      message: {
+        key: 'document_expiring',
+        params: {
+          docType: 'insurance',
+          subjectKind: 'vehicle',
+          subject: 'MH12 AB 1234',
+          expiresOn: '2026-10-14',
+          daysLeft: 5,
+        },
+      },
     });
   });
 
   it('tomorrow and today', () => {
     expect(
-      explainExpiry({ docType: 'puc', subject: 'X', expiresOn: '2026-10-10', today }).title,
+      explainExpiry({
+        docType: 'puc',
+        subject: 'X',
+        subjectKind: 'vehicle',
+        expiresOn: '2026-10-10',
+        today,
+      }).title,
     ).toMatch(/expires tomorrow$/);
     expect(
-      explainExpiry({ docType: 'puc', subject: 'X', expiresOn: '2026-10-09', today }).title,
+      explainExpiry({
+        docType: 'puc',
+        subject: 'X',
+        subjectKind: 'vehicle',
+        expiresOn: '2026-10-09',
+        today,
+      }).title,
     ).toMatch(/expires today$/);
   });
 
@@ -68,9 +91,13 @@ describe('explainExpiry', () => {
       explainExpiry({
         docType: 'driving_licence',
         subject: 'Ramesh Kumar',
+        subjectKind: 'driver',
         expiresOn: '2026-10-01',
         today,
-      }).title,
-    ).toBe('Driving licence for Ramesh Kumar has expired');
+      }),
+    ).toMatchObject({
+      title: 'Driving licence for Ramesh Kumar has expired',
+      message: { key: 'document_expired', params: { subjectKind: 'driver', daysLeft: -8 } },
+    });
   });
 });

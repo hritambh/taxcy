@@ -41,6 +41,23 @@ describe('explainFuelCycle', () => {
         "That's roughly 6.9 kg (about ₹620) more CNG than expected. " +
         'Fills in this period were logged by Ramesh K. Check the receipts and odometer photos.',
     );
+    expect(text.message).toEqual({
+      key: 'fuel_efficiency_low',
+      params: {
+        vehicle: { registrationNo: 'MH12 AB 1234', model: 'Dzire', fuelType: 'cng' },
+        from: '2026-10-03',
+        to: '2026-10-08',
+        distanceKm: 520,
+        percentWorse: 24,
+        drivers: ['Ramesh K.'],
+        fuel: 'cng',
+        used: 28.6,
+        value: 18.2,
+        baseline: 24,
+        extraUnits: 6.9,
+        extraCostPaise: 62_000,
+      },
+    });
   });
 
   it('worked example: bi-fuel Ertiga costing more to run', () => {
@@ -74,6 +91,17 @@ describe('explainFuelCycle', () => {
         'This car usually costs about ₹4.20/km, so this is 70% more than normal. ₹2,000 of that was petrol. ' +
         'Check whether the car was run on petrol unnecessarily, and check the receipts.',
     );
+    expect(text.message).toMatchObject({
+      key: 'fuel_cost_high',
+      params: {
+        costPaise: 285_000,
+        paisePerKm: 713,
+        baselinePaisePerKm: 420,
+        percentWorse: 70,
+        petrolCostPaise: 200_000,
+        drivers: [],
+      },
+    });
   });
 
   it('lists several drivers naturally', () => {

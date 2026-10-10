@@ -119,3 +119,56 @@ export const identityRoutes = {
     response: Session,
   }),
 };
+
+export const MemberStatus = z.enum(['invited', 'active', 'suspended']);
+
+/** Someone with access to the org: owners, managers and drivers. */
+export const Member = z.object({
+  /** The membership id. */
+  id: Id,
+  userId: Id,
+  name: z.string().nullable(),
+  phone: PhoneE164,
+  roles: z.array(MembershipRole),
+  /**
+   * 'invited' until their first sign-in. 'suspended' once their last role was taken
+   * away; `roles` then still shows that role, for the record.
+   */
+  status: MemberStatus,
+  createdAt: DateTime,
+});
+export type Member = z.infer<typeof Member>;
+
+const IdParam = z.object({ id: Id });
+
+export const memberRoutes = {
+  listMembers: defineRoute({
+    method: 'GET',
+    path: '/members',
+    summary: 'People with access to the org, with their roles',
+    tag: 'members',
+    access: access.staff,
+    response: z.array(Member),
+  }),
+  inviteManager: defineRoute({
+    method: 'POST',
+    path: '/members/managers',
+    summary:
+      'Give someone manager access by phone (managers run trips, alerts and settlements, but cannot change settings or pay rules)',
+    tag: 'members',
+    access: access.roles('owner'),
+    status: 201,
+    body: z.object({ name: z.string().trim().min(1).max(100), phone: PhoneE164 }),
+    response: Member,
+  }),
+  removeManager: defineRoute({
+    method: 'DELETE',
+    path: '/members/{id}/manager',
+    summary:
+      'Take away manager access. Other roles (e.g. driver) stay; with none left the member is suspended',
+    tag: 'members',
+    access: access.roles('owner'),
+    params: IdParam,
+    response: Member,
+  }),
+};

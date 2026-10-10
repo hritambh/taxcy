@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import {
   AlertKind,
+  AlertMessage,
   AlertStatus,
   ReviewKind,
   ReviewStatus,
@@ -29,6 +30,8 @@ function toAlert(row: Prisma.AlertGetPayload<object>): Alert {
     severity: Severity.parse(row.severity),
     status: AlertStatus.parse(row.status),
     data: asRecord(row.data),
+    // Rows written before messages existed (or with an unknown shape) fall back to the text.
+    message: AlertMessage.safeParse(row.message).data ?? null,
   };
 }
 

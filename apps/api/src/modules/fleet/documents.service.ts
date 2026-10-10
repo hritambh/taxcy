@@ -160,6 +160,7 @@ export class DocumentsService {
     const text = explainExpiry({
       docType: doc.docType,
       subject: await this.subjectLabel(tx, doc),
+      subjectKind: doc.vehicleId ? 'vehicle' : 'driver',
       expiresOn,
       today,
     });

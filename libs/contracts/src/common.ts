@@ -32,3 +32,10 @@ export const CalendarDate = z.codec(z.iso.date(), z.date(), {
   decode: (iso) => new Date(`${iso}T00:00:00.000Z`),
   encode: (date) => date.toISOString().slice(0, 10),
 });
+
+export const FuelKind = z.enum(['petrol', 'diesel', 'cng']);
+export type FuelKind = z.infer<typeof FuelKind>;
+
+/** Who paid for fuel: the driver in cash (reimbursed in settlement), the owner, or a fuel card. */
+export const PaidBy = z.enum(['driver_cash', 'owner', 'fuel_card']);
+export type PaidBy = z.infer<typeof PaidBy>;

@@ -414,6 +414,15 @@ export class TripsService {
           severity: 'warning',
           title: `Cancellation requested for the trip from ${trip.fromText}`,
           explanation: `${trip.driver?.name ?? 'The driver'} asked to cancel this running trip: "${input.reason}". The odometer read ${input.endOdometer.typedKm} km. Approve (optionally with a cancellation fare) or reject it on the trip page.`,
+          message: {
+            key: 'cancellation_requested',
+            params: {
+              from: trip.fromText,
+              driverName: trip.driver?.name ?? null,
+              reason: input.reason,
+              endKm: input.endOdometer.typedKm,
+            },
+          },
           subjectType: 'trip',
           subjectId: trip.id,
           tripId: trip.id,

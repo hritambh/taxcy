@@ -1,3 +1,5 @@
+import type { AlertText } from '../messages.js';
+
 export type DistanceVerdict = 'ok' | 'flagged' | 'inconclusive';
 
 export interface OdoGpsInput {
@@ -42,12 +44,26 @@ export function odoGpsVerdict(input: OdoGpsInput): OdoGpsResult {
 
 export function explainOdoGps(input: {
   tripLabel: string;
+  trip: { startedAt: Date; from: string; to: string | null; registrationNo: string | null };
   odometerKm: number;
   gpsKm: number;
   excessPct: number;
   tolerancePct: number;
-}): { title: string; explanation: string } {
+}): AlertText {
   return {
+    message: {
+      key: 'odo_gps_mismatch',
+      params: {
+        tripStartedAt: input.trip.startedAt.toISOString(),
+        from: input.trip.from,
+        to: input.trip.to,
+        registrationNo: input.trip.registrationNo,
+        odometerKm: input.odometerKm,
+        gpsKm: Math.round(input.gpsKm),
+        excessPct: Math.round(input.excessPct),
+        tolerancePct: input.tolerancePct,
+      },
+    },
     title: `${input.tripLabel} shows more km on the odometer than the GPS route`,
     explanation:
       `The odometer readings say ${input.odometerKm} km, but the phone's GPS recorded ${Math.round(input.gpsKm)} km. ` +

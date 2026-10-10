@@ -173,6 +173,7 @@ export class FuelAuditService {
           typedValue: cycle.value === null ? null : cycle.value.toFixed(2),
           context: {
             reason: explainInvalidCycle(evaluation.invalidReason),
+            reasonCode: evaluation.invalidReason,
             vehicleId,
             openingFillId: cycle.openingFillId,
             distanceKm: cycle.distanceKm,

@@ -1,11 +1,9 @@
 import { z } from 'zod';
-import { DateTime, Id, Paise } from '../common.js';
+import { DateTime, FuelKind, Id, PaidBy, Paise } from '../common.js';
 import { access, defineRoute } from '../http.js';
 import { OdometerInput, OdometerReading } from './trips.js';
 
-export const FuelKind = z.enum(['petrol', 'diesel', 'cng']);
 export const AuditTrack = z.enum(['petrol', 'diesel', 'cng', 'bifuel_cost']);
-export const PaidBy = z.enum(['driver_cash', 'owner', 'fuel_card']);
 
 export const FuelFill = z.object({
   id: Id,
