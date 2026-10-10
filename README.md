@@ -21,6 +21,7 @@ Taxcy gives a fleet owner a trustworthy picture of what their cars and drivers a
 | Approve or reject trip cancellations                                                                             | Add tolls, parking and other charges                       |
 | Configure driver pay rules                                                                                       | Keep working offline; sync when back online                |
 | Settle each driver's day: fare, cash, online, expenses, net payable                                              |                                                            |
+| Use the console in English or Hindi (हिन्दी), with amounts and dates in Indian format                            |                                                            |
 
 Out of scope for now: the passenger app, return-leg matching and the OTA partner API. The schema leaves room for them (see [`docs/database.md`](docs/database.md#future-proofing)).
 
@@ -43,17 +44,17 @@ docs/           Architecture, domain rules, database, usage guides
 
 ## Tech stack
 
-| Concern        | Choice                                                                   |
-| -------------- | ------------------------------------------------------------------------ |
-| Monorepo       | Bun workspaces (package manager) + Nx (task runner); Node 24 runtime     |
-| API            | NestJS, Prisma ORM, Zod                                                  |
-| Database       | PostgreSQL 16 + PostGIS + btree_gist                                     |
-| Jobs / cache   | Redis + BullMQ (separate `workers` app, same codebase)                   |
-| Object storage | S3-compatible, signed upload URLs (RustFS locally)                       |
-| Admin web      | React, Vite, TanStack Query, React Router, Tailwind, shadcn/ui, MapLibre |
-| Driver app     | Flutter: camera, geolocator (foreground service), drift (SQLite)         |
-| Observability  | pino structured logs, request IDs, health checks, Sentry                 |
-| Testing        | Vitest, flutter_test, Testcontainers, Maestro                            |
+| Concern        | Choice                                                                                             |
+| -------------- | -------------------------------------------------------------------------------------------------- |
+| Monorepo       | Bun workspaces (package manager) + Nx (task runner); Node 24 runtime                               |
+| API            | NestJS, Prisma ORM, Zod                                                                            |
+| Database       | PostgreSQL 16 + PostGIS + btree_gist                                                               |
+| Jobs / cache   | Redis + BullMQ (separate `workers` app, same codebase)                                             |
+| Object storage | S3-compatible, signed upload URLs (RustFS locally)                                                 |
+| Admin web      | React, Vite, TanStack Query, React Router, Tailwind, shadcn/ui, MapLibre, i18next (English, Hindi) |
+| Driver app     | Flutter: camera, geolocator (foreground service), drift (SQLite)                                   |
+| Observability  | pino structured logs, request IDs, health checks, Sentry                                           |
+| Testing        | Vitest, flutter_test, Testcontainers, Maestro                                                      |
 
 ## Running it locally
 

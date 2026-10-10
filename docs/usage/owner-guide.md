@@ -10,6 +10,12 @@ The admin web is for **owners** and **managers**. Drivers use the [mobile app](d
 2. Enter the 6-digit OTP you receive by SMS. In local development the OTP is printed in the API log.
 3. If you belong to more than one organization, choose one. You can switch later from the top-right menu.
 
+### Language
+
+The admin web is available in **English** and **Hindi (हिन्दी)**. Pick one from the language menu on the sign-in page or at the bottom of the sidebar; the choice is remembered on that browser. On first visit it follows your browser's language.
+
+Everything is shown in the chosen language, including alerts, settlement lines and error messages, with amounts in rupees with Indian grouping (₹1,23,456) and times in IST. Names, places, notes and reasons that people typed are shown exactly as entered. A few older alerts raised before this feature stay in English.
+
 ## 2. Set up your fleet
 
 ### Vehicles
