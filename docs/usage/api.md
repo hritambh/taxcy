@@ -145,25 +145,25 @@ Drivers are added with `POST /drivers`, which also creates their driver profile.
 
 ### Trips
 
-| Endpoint                                    | Who                    | Idempotency-Key | What it does                                                                       |
-| ------------------------------------------- | ---------------------- | --------------- | ---------------------------------------------------------------------------------- |
-| `GET /trips`                                | owner, manager         |                 | Trips, newest scheduled first                                                      |
-| `POST /trips`                               | owner, manager         |                 | Create a trip, optionally assigning it straight away                               |
-| `GET /trips/{id}`                           | owner, manager, driver |                 | A trip (drivers see only their own)                                                |
-| `PATCH /trips/{id}`                         | owner, manager         |                 | Edit trip details before it starts                                                 |
-| `GET /trips/{id}/events`                    | owner, manager, driver |                 | Every transition, with actor and device/server times                               |
-| `POST /trips/{id}/assign`                   | owner, manager         | required        | Assign or reassign a vehicle and driver                                            |
-| `POST /trips/{id}/unassign`                 | owner, manager         | required        | Remove the assignment                                                              |
-| `POST /trips/{id}/start`                    | owner, manager, driver | required        | Start the trip with an odometer reading                                            |
-| `POST /trips/{id}/end`                      | owner, manager, driver | required        | End the trip with an odometer reading, plus what was collected and spent           |
-| `POST /trips/{id}/cancel`                   | owner, manager         | required        | Cancel a trip that has not started                                                 |
-| `POST /trips/{id}/cancellation-requests`    | owner, manager, driver | required        | Ask to cancel a started trip (needs a reason and the end odometer; staff approve)  |
-| `POST /cancellation-requests/{id}/approve`  | owner, manager         | required        | Approve a cancellation request; optionally charge a cancellation fare              |
-| `POST /cancellation-requests/{id}/reject`   | owner, manager         | required        | Reject a cancellation request; the trip continues                                  |
-| `POST /cancellation-requests/{id}/withdraw` | owner, manager, driver | required        | Withdraw your cancellation request                                                 |
-| `POST /trips/{id}/charges`                  | owner, manager, driver |                 | Add a toll, parking, allowance or other charge (driver or staff; idempotent on id) |
-| `POST /trips/{id}/charges/{chargeId}/void`  | owner, manager         |                 | Void a wrong charge before the day is settled                                      |
-| `GET /me/trips`                             | driver                 |                 | The signed-in driver's current and recent trips (for the app to sync)              |
+| Endpoint                                    | Who                    | Idempotency-Key | What it does                                                                                                                                     |
+| ------------------------------------------- | ---------------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `GET /trips`                                | owner, manager         |                 | Trips, newest scheduled first                                                                                                                    |
+| `POST /trips`                               | any member             |                 | Create a trip (optional `includedKm`; idempotent on optional client `id`). Drivers create trips assigned to themselves, in the vehicle they pick |
+| `GET /trips/{id}`                           | owner, manager, driver |                 | A trip (drivers see only their own)                                                                                                              |
+| `PATCH /trips/{id}`                         | owner, manager         |                 | Edit trip details before it starts                                                                                                               |
+| `GET /trips/{id}/events`                    | owner, manager, driver |                 | Every transition, with actor and device/server times                                                                                             |
+| `POST /trips/{id}/assign`                   | owner, manager         | required        | Assign or reassign a vehicle and driver                                                                                                          |
+| `POST /trips/{id}/unassign`                 | owner, manager         | required        | Remove the assignment                                                                                                                            |
+| `POST /trips/{id}/start`                    | owner, manager, driver | required        | Start the trip with an odometer reading                                                                                                          |
+| `POST /trips/{id}/end`                      | owner, manager, driver | required        | End the trip with an odometer reading, plus what was collected and spent                                                                         |
+| `POST /trips/{id}/cancel`                   | owner, manager         | required        | Cancel a trip that has not started                                                                                                               |
+| `POST /trips/{id}/cancellation-requests`    | owner, manager, driver | required        | Ask to cancel a started trip (needs a reason and the end odometer; staff approve)                                                                |
+| `POST /cancellation-requests/{id}/approve`  | owner, manager         | required        | Approve a cancellation request; optionally charge a cancellation fare                                                                            |
+| `POST /cancellation-requests/{id}/reject`   | owner, manager         | required        | Reject a cancellation request; the trip continues                                                                                                |
+| `POST /cancellation-requests/{id}/withdraw` | owner, manager, driver | required        | Withdraw your cancellation request                                                                                                               |
+| `POST /trips/{id}/charges`                  | owner, manager, driver |                 | Add a toll, parking, allowance or other charge (driver or staff; idempotent on id)                                                               |
+| `POST /trips/{id}/charges/{chargeId}/void`  | owner, manager         |                 | Void a wrong charge before the day is settled                                                                                                    |
+| `GET /me/trips`                             | driver                 |                 | The signed-in driver's current and recent trips (for the app to sync)                                                                            |
 
 ### Fuel
 

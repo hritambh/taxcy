@@ -297,6 +297,7 @@ class Trip {
     required this.quotedFarePaise,
     required this.allowedCommands,
     required this.updatedAt,
+    this.includedKm,
     this.toText,
     this.customerName,
     this.customerPhone,
@@ -335,6 +336,7 @@ class Trip {
       vehicle: vehicle == null ? null : TripVehicle.fromJson(vehicle),
       driverName: driver?.str('name'),
       quotedFarePaise: json.integer('quotedFarePaise'),
+      includedKm: json.intOrNull('includedKm'),
       startOdometer: start == null ? null : OdometerReading.fromJson(start),
       endOdometer: end == null ? null : OdometerReading.fromJson(end),
       startedAt: json.dateOrNull('startedAt'),
@@ -370,6 +372,9 @@ class Trip {
   final TripVehicle? vehicle;
   final String? driverName;
   final int quotedFarePaise;
+
+  /// Km included in the fare (e.g. a 300 km package); null when not agreed.
+  final int? includedKm;
   final OdometerReading? startOdometer;
   final OdometerReading? endOdometer;
   final DateTime? startedAt;
@@ -411,6 +416,7 @@ class Trip {
     vehicle: vehicle,
     driverName: driverName,
     quotedFarePaise: quotedFarePaise,
+    includedKm: includedKm,
     startOdometer: startOdometer ?? this.startOdometer,
     endOdometer: endOdometer ?? this.endOdometer,
     startedAt: startedAt ?? this.startedAt,
@@ -439,6 +445,7 @@ class Trip {
     'vehicle': vehicle?.toJson(),
     'driver': driverName == null ? null : {'name': driverName},
     'quotedFarePaise': quotedFarePaise,
+    'includedKm': includedKm,
     'startOdometer': startOdometer?.toJson(),
     'endOdometer': endOdometer?.toJson(),
     'startedAt': startedAt?.toUtc().toIso8601String(),

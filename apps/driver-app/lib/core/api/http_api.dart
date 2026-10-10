@@ -134,6 +134,10 @@ class HttpTaxcyApi implements TaxcyApi {
   );
 
   @override
+  Future<Trip> createTrip(JsonMap body) async =>
+      Trip.fromJson(asJsonMap(await _send('POST', '/trips', body: body)));
+
+  @override
   Future<Trip> addCharge(String tripId, JsonMap body) async => Trip.fromJson(
     asJsonMap(await _send('POST', '/trips/$tripId/charges', body: body)),
   );

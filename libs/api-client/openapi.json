@@ -6042,6 +6042,18 @@
                         "minimum": 0,
                         "maximum": 9007199254740991
                       },
+                      "includedKm": {
+                        "anyOf": [
+                          {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
                       "cancellationFarePaise": {
                         "anyOf": [
                           {
@@ -6518,6 +6530,7 @@
                       "vehicle",
                       "driver",
                       "quotedFarePaise",
+                      "includedKm",
                       "cancellationFarePaise",
                       "startOdometer",
                       "endOdometer",
@@ -6600,7 +6613,7 @@
       },
       "post": {
         "operationId": "postTrips",
-        "summary": "Create a trip, optionally assigning it straight away",
+        "summary": "Create a trip, optionally assigning it straight away. Drivers can create trips for themselves: the trip is assigned to them, in the vehicle they pick",
         "tags": ["trips"],
         "requestBody": {
           "required": true,
@@ -6711,6 +6724,23 @@
                     "type": "integer",
                     "minimum": 0,
                     "maximum": 9007199254740991
+                  },
+                  "includedKm": {
+                    "anyOf": [
+                      {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 20000
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
                   },
                   "vehicleId": {
                     "type": "string",
@@ -6908,6 +6938,18 @@
                       "type": "integer",
                       "minimum": 0,
                       "maximum": 9007199254740991
+                    },
+                    "includedKm": {
+                      "anyOf": [
+                        {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
                     },
                     "cancellationFarePaise": {
                       "anyOf": [
@@ -7385,6 +7427,7 @@
                     "vehicle",
                     "driver",
                     "quotedFarePaise",
+                    "includedKm",
                     "cancellationFarePaise",
                     "startOdometer",
                     "endOdometer",
@@ -7657,6 +7700,18 @@
                       "minimum": 0,
                       "maximum": 9007199254740991
                     },
+                    "includedKm": {
+                      "anyOf": [
+                        {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
                     "cancellationFarePaise": {
                       "anyOf": [
                         {
@@ -8133,6 +8188,7 @@
                     "vehicle",
                     "driver",
                     "quotedFarePaise",
+                    "includedKm",
                     "cancellationFarePaise",
                     "startOdometer",
                     "endOdometer",
@@ -8337,6 +8393,18 @@
                     "type": "integer",
                     "minimum": 0,
                     "maximum": 9007199254740991
+                  },
+                  "includedKm": {
+                    "anyOf": [
+                      {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 20000
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
                   }
                 }
               }
@@ -8517,6 +8585,18 @@
                       "type": "integer",
                       "minimum": 0,
                       "maximum": 9007199254740991
+                    },
+                    "includedKm": {
+                      "anyOf": [
+                        {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
                     },
                     "cancellationFarePaise": {
                       "anyOf": [
@@ -8994,6 +9074,7 @@
                     "vehicle",
                     "driver",
                     "quotedFarePaise",
+                    "includedKm",
                     "cancellationFarePaise",
                     "startOdometer",
                     "endOdometer",
@@ -9494,6 +9575,18 @@
                       "minimum": 0,
                       "maximum": 9007199254740991
                     },
+                    "includedKm": {
+                      "anyOf": [
+                        {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
                     "cancellationFarePaise": {
                       "anyOf": [
                         {
@@ -9970,6 +10063,7 @@
                     "vehicle",
                     "driver",
                     "quotedFarePaise",
+                    "includedKm",
                     "cancellationFarePaise",
                     "startOdometer",
                     "endOdometer",
@@ -10251,6 +10345,18 @@
                       "minimum": 0,
                       "maximum": 9007199254740991
                     },
+                    "includedKm": {
+                      "anyOf": [
+                        {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
                     "cancellationFarePaise": {
                       "anyOf": [
                         {
@@ -10727,6 +10833,7 @@
                     "vehicle",
                     "driver",
                     "quotedFarePaise",
+                    "includedKm",
                     "cancellationFarePaise",
                     "startOdometer",
                     "endOdometer",
@@ -11053,6 +11160,18 @@
                       "minimum": 0,
                       "maximum": 9007199254740991
                     },
+                    "includedKm": {
+                      "anyOf": [
+                        {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
                     "cancellationFarePaise": {
                       "anyOf": [
                         {
@@ -11529,6 +11648,7 @@
                     "vehicle",
                     "driver",
                     "quotedFarePaise",
+                    "includedKm",
                     "cancellationFarePaise",
                     "startOdometer",
                     "endOdometer",
@@ -11933,6 +12053,18 @@
                       "minimum": 0,
                       "maximum": 9007199254740991
                     },
+                    "includedKm": {
+                      "anyOf": [
+                        {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
                     "cancellationFarePaise": {
                       "anyOf": [
                         {
@@ -12409,6 +12541,7 @@
                     "vehicle",
                     "driver",
                     "quotedFarePaise",
+                    "includedKm",
                     "cancellationFarePaise",
                     "startOdometer",
                     "endOdometer",
@@ -12709,6 +12842,18 @@
                       "minimum": 0,
                       "maximum": 9007199254740991
                     },
+                    "includedKm": {
+                      "anyOf": [
+                        {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
                     "cancellationFarePaise": {
                       "anyOf": [
                         {
@@ -13185,6 +13330,7 @@
                     "vehicle",
                     "driver",
                     "quotedFarePaise",
+                    "includedKm",
                     "cancellationFarePaise",
                     "startOdometer",
                     "endOdometer",
@@ -13521,6 +13667,18 @@
                       "minimum": 0,
                       "maximum": 9007199254740991
                     },
+                    "includedKm": {
+                      "anyOf": [
+                        {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
                     "cancellationFarePaise": {
                       "anyOf": [
                         {
@@ -13997,6 +14155,7 @@
                     "vehicle",
                     "driver",
                     "quotedFarePaise",
+                    "includedKm",
                     "cancellationFarePaise",
                     "startOdometer",
                     "endOdometer",
@@ -14301,6 +14460,18 @@
                       "minimum": 0,
                       "maximum": 9007199254740991
                     },
+                    "includedKm": {
+                      "anyOf": [
+                        {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
                     "cancellationFarePaise": {
                       "anyOf": [
                         {
@@ -14777,6 +14948,7 @@
                     "vehicle",
                     "driver",
                     "quotedFarePaise",
+                    "includedKm",
                     "cancellationFarePaise",
                     "startOdometer",
                     "endOdometer",
@@ -15077,6 +15249,18 @@
                       "minimum": 0,
                       "maximum": 9007199254740991
                     },
+                    "includedKm": {
+                      "anyOf": [
+                        {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
                     "cancellationFarePaise": {
                       "anyOf": [
                         {
@@ -15553,6 +15737,7 @@
                     "vehicle",
                     "driver",
                     "quotedFarePaise",
+                    "includedKm",
                     "cancellationFarePaise",
                     "startOdometer",
                     "endOdometer",
@@ -15834,6 +16019,18 @@
                       "minimum": 0,
                       "maximum": 9007199254740991
                     },
+                    "includedKm": {
+                      "anyOf": [
+                        {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
                     "cancellationFarePaise": {
                       "anyOf": [
                         {
@@ -16310,6 +16507,7 @@
                     "vehicle",
                     "driver",
                     "quotedFarePaise",
+                    "includedKm",
                     "cancellationFarePaise",
                     "startOdometer",
                     "endOdometer",
@@ -16630,6 +16828,18 @@
                       "minimum": 0,
                       "maximum": 9007199254740991
                     },
+                    "includedKm": {
+                      "anyOf": [
+                        {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
                     "cancellationFarePaise": {
                       "anyOf": [
                         {
@@ -17106,6 +17316,7 @@
                     "vehicle",
                     "driver",
                     "quotedFarePaise",
+                    "includedKm",
                     "cancellationFarePaise",
                     "startOdometer",
                     "endOdometer",
@@ -17388,6 +17599,18 @@
                       "minimum": 0,
                       "maximum": 9007199254740991
                     },
+                    "includedKm": {
+                      "anyOf": [
+                        {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
                     "cancellationFarePaise": {
                       "anyOf": [
                         {
@@ -17864,6 +18087,7 @@
                     "vehicle",
                     "driver",
                     "quotedFarePaise",
+                    "includedKm",
                     "cancellationFarePaise",
                     "startOdometer",
                     "endOdometer",
@@ -18137,6 +18361,18 @@
                         "type": "integer",
                         "minimum": 0,
                         "maximum": 9007199254740991
+                      },
+                      "includedKm": {
+                        "anyOf": [
+                          {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
                       },
                       "cancellationFarePaise": {
                         "anyOf": [
@@ -18614,6 +18850,7 @@
                       "vehicle",
                       "driver",
                       "quotedFarePaise",
+                      "includedKm",
                       "cancellationFarePaise",
                       "startOdometer",
                       "endOdometer",
@@ -20564,6 +20801,18 @@
                       "minimum": 0,
                       "maximum": 9007199254740991
                     },
+                    "includedKm": {
+                      "anyOf": [
+                        {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
                     "cancellationFarePaise": {
                       "anyOf": [
                         {
@@ -21040,6 +21289,7 @@
                     "vehicle",
                     "driver",
                     "quotedFarePaise",
+                    "includedKm",
                     "cancellationFarePaise",
                     "startOdometer",
                     "endOdometer",

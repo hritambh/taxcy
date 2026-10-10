@@ -67,6 +67,11 @@ final fuelRepositoryProvider = Provider<FuelRepository>(
   (ref) => FuelRepository(ref.watch(databaseProvider), ref.watch(apiProvider)),
 );
 
+/// The fleet's vehicles, refreshed when online and cached for offline use.
+final vehiclesProvider = FutureProvider<List<Vehicle>>(
+  (ref) => ref.watch(fuelRepositoryProvider).vehicles(),
+);
+
 /// Where photos wait until they're uploaded: files on phones, the local database
 /// in the browser.
 final photoStoreProvider = Provider<PhotoStore>(

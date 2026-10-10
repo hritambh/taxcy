@@ -85,6 +85,69 @@ class TripsRepository {
 
   Future<void> _save(Trip trip) => engine.cacheTrip(trip);
 
+  /// Creates a trip for this driver, in [vehicle]. It shows straight away (as
+  /// assigned, so it can be started at once) and reaches the server when online;
+  /// any start or end queued after it is sent after it.
+  Future<Trip> create({
+    required String tripType,
+    required String fromText,
+    required String? toText,
+    required DateTime scheduledStartAt,
+    required DateTime scheduledEndAt,
+    required int quotedFarePaise,
+    required Vehicle vehicle,
+    int? includedKm,
+    String? customerName,
+    String? customerPhone,
+  }) async {
+    if (!scheduledEndAt.isAfter(scheduledStartAt)) {
+      throw LocalRejection('The trip must end after it starts');
+    }
+    if (tripType != 'local_rental' && (toText == null || toText.isEmpty)) {
+      throw LocalRejection('Enter where the trip goes');
+    }
+    final id = _uuid.v4();
+    final trip = Trip(
+      id: id,
+      tripType: tripType,
+      status: 'assigned',
+      fromText: fromText,
+      toText: tripType == 'local_rental' ? null : toText,
+      scheduledStartAt: scheduledStartAt,
+      scheduledEndAt: scheduledEndAt,
+      quotedFarePaise: quotedFarePaise,
+      includedKm: includedKm,
+      customerName: customerName,
+      customerPhone: customerName == null ? null : customerPhone,
+      vehicle: TripVehicle(
+        id: vehicle.id,
+        registrationNo: vehicle.registrationNo,
+        model: vehicle.model,
+      ),
+      allowedCommands: allowedCommands(const TripState('assigned')),
+      updatedAt: _now(),
+    );
+    await db.transaction(() async {
+      await _outbox.enqueue(OutboxKind.tripCreate, {
+        'body': {
+          'id': id,
+          'tripType': tripType,
+          'from': {'text': fromText},
+          if (trip.toText != null) 'to': {'text': trip.toText},
+          'scheduledStartAt': scheduledStartAt.toUtc().toIso8601String(),
+          'scheduledEndAt': scheduledEndAt.toUtc().toIso8601String(),
+          'quotedFarePaise': quotedFarePaise,
+          'includedKm': ?includedKm,
+          if (customerName != null)
+            'customer': {'name': customerName, 'phone': ?customerPhone},
+          'vehicleId': vehicle.id,
+        },
+      }, tripId: id);
+      await _save(trip);
+    });
+    return trip;
+  }
+
   Future<void> start(
     Trip trip, {
     required CapturedPhoto photo,

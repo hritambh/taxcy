@@ -233,6 +233,31 @@ void main() {
     },
   );
 
+  testWidgets('end trip warns when the km go beyond the included km', (
+    tester,
+  ) async {
+    final h = Harness();
+    addTearDown(h.dispose);
+    final trip = Trip.fromJson({
+      ...tripJson(status: 'started'),
+      'includedKm': 150,
+    });
+    await tester.pumpWidget(
+      h.wrap(MaterialApp(home: EndTripScreen(trip: trip))),
+    );
+    await settle(tester);
+    expect(find.byKey(const Key('km-over-included')), findsNothing);
+    // Started at 48,210 km: 48,400 is 190 km, 40 over.
+    await tester.enterText(find.byKey(const Key('end-km')), '48400');
+    await tester.pump();
+    expect(
+      find.text(
+        '40 km over the 150 km included in the fare. Add an extra km charge below.',
+      ),
+      findsOneWidget,
+    );
+  });
+
   testWidgets(
     'start trip needs an odometer photo and a reading, then queues offline',
     (tester) async {

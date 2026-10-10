@@ -19,7 +19,11 @@ If GPS keeps getting cut off, your trips show as "inconclusive" to your owner.
 
 ## My trips
 
-The home screen lists your trips for today and upcoming days. Tap a trip to see the pickup and drop points, the customer, and the time.
+The home screen lists your trips for today and upcoming days. Tap a trip to see the pickup and drop points, the customer, the time, and the km included in the fare (if agreed).
+
+## Create a trip
+
+For a customer you pick up yourself, tap **New trip**: choose one way, round trip or local, enter the pickup and drop, start time and expected duration, the vehicle, the fare and, if agreed, the **included km**. The customer's name and number are optional. The trip is assigned to you and works offline; your owner sees it once your phone is online.
 
 ## Start a trip
 
@@ -33,15 +37,17 @@ The home screen lists your trips for today and upcoming days. Tap a trip to see 
 The **live trip** screen shows elapsed time and distance so far.
 
 - **Add charge:** add tolls, parking, state tax and similar at any time, with an optional receipt photo. Mark **I paid this** if it came out of your pocket; it's paid back to you in your settlement.
+- **Night charge, extra km and driver allowance** are extra fare: the customer pays them on top of the fare. There's no **I paid this** for them.
 - **Request cancellation:** if the customer cancels mid-way, tap **Request cancellation**, enter the reason, and take an odometer photo. Your owner approves or rejects it. Until then the trip keeps running. You'll be notified of the decision.
 
 ## End a trip
 
 1. Tap **End trip**.
 2. Take a photo of the odometer and type the reading.
-3. Enter what the customer paid: **Cash**, **UPI** or **Card**. You can split it, for example part cash and part UPI.
-4. Add any tolls, parking or state tax you paid.
-5. Tap **End**.
+3. If the trip has included km and you've gone past them, the app says by how much; add an **Extra km** charge.
+4. Add any other charges. The screen shows what the customer should pay: fare + extra fare + tolls and expenses. Charges and fuel added during the trip are listed too.
+5. Enter what the customer paid: **Cash**, **UPI** or **Card**. You can split it, for example part cash and part UPI.
+6. Tap **End**.
 
 ## Log a fuel fill
 

@@ -42,6 +42,11 @@ The admin web is for **owners** and **managers**. Drivers use the [mobile app](d
 - Type: **One way**, **Round trip** or **Local rental**.
 - Pickup and drop: type an address and drop the pin on the map (local rentals have no drop point).
 - Scheduled start and end, customer name and phone, and the **quoted fare** in ₹.
+- **Included km** (optional): the km the fare covers, e.g. 300 for a 300 km package. The trip page shows how far the trip went past it, and the driver is prompted to add an extra km charge.
+
+Drivers can also create trips themselves in the app (for example a walk-in customer). Those are assigned to the driver, in the vehicle they picked, and the usual double-booking checks apply.
+
+**Charges.** Night charges, extra km and driver allowance are extra fare: added to what the customer pays and never reimbursed to the driver. Tolls, parking, state tax and other charges are expenses, reimbursed to the driver when they paid.
 
 ### Assign
 

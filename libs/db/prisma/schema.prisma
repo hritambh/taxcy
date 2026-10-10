@@ -387,6 +387,8 @@ model Trip {
   vehicleId             String?                                @map("vehicle_id") @db.Uuid
   driverId              String?                                @map("driver_id") @db.Uuid
   quotedFarePaise       BigInt                                 @map("quoted_fare_paise")
+  /// Km included in the quoted fare (e.g. a 300 km package); beyond it, extra km is chargeable.
+  includedKm            Int?                                   @map("included_km")
   startOdometerId       String?                                @map("start_odometer_id") @db.Uuid
   endOdometerId         String?                                @map("end_odometer_id") @db.Uuid
   startedAt             DateTime?                              @map("started_at") @db.Timestamptz

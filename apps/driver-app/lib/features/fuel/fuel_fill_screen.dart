@@ -11,10 +11,6 @@ import '../common/format.dart';
 import '../common/widgets.dart';
 import 'fuel_vehicle.dart';
 
-final _vehiclesProvider = FutureProvider<List<Vehicle>>(
-  (ref) => ref.watch(fuelRepositoryProvider).vehicles(),
-);
-
 /// Receipt photo, odometer photo + km, quantity, amount, full-tank toggle, who paid.
 ///
 /// The vehicle comes from the driver's trips, never from the whole fleet: opened
@@ -96,7 +92,7 @@ class _FuelFillScreenState extends ConsumerState<FuelFillScreen> {
   }
 
   Widget _body() {
-    final vehicles = ref.watch(_vehiclesProvider);
+    final vehicles = ref.watch(vehiclesProvider);
     final trips = ref.watch(tripsProvider);
     if (vehicles.isLoading || trips.isLoading) {
       return const Center(child: CircularProgressIndicator());

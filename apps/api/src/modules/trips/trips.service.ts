@@ -51,6 +51,7 @@ interface TripDetailsInput {
   scheduledStartAt: Date;
   scheduledEndAt: Date;
   quotedFarePaise: number;
+  includedKm?: number | null | undefined;
 }
 
 const EVENT_TYPES: Record<TripCommand, string> = {
@@ -161,17 +162,45 @@ export class TripsService {
 
   async create(
     auth: TenantAuth,
-    input: TripDetailsInput & { vehicleId?: string | undefined; driverId?: string | undefined },
+    input: TripDetailsInput & {
+      id?: string | undefined;
+      vehicleId?: string | undefined;
+      driverId?: string | undefined;
+    },
   ): Promise<Trip> {
     this.assertSchedule(input.scheduledStartAt, input.scheduledEndAt);
     if (input.tripType !== 'local_rental' && !input.to) {
       throw new AppError('VALIDATION_FAILED', 'One-way and round trips need a drop location');
     }
-    if (Boolean(input.vehicleId) !== Boolean(input.driverId)) {
+    const byDriver = !this.isStaff(auth);
+    if (byDriver && !input.vehicleId) {
+      throw new AppError('VALIDATION_FAILED', 'Pick the vehicle for the trip');
+    }
+    if (!byDriver && Boolean(input.vehicleId) !== Boolean(input.driverId)) {
       throw new AppError('VALIDATION_FAILED', 'Assign a vehicle and a driver together');
     }
     return this.db.tenant(auth.orgId, async (tx) => {
-      const id = newId();
+      const id = input.id ?? newId();
+      if (input.id) {
+        const existing = await tx.trip.findFirst({
+          where: { id: input.id, orgId: tx.orgId },
+          select: { createdBy: true },
+        });
+        if (existing) {
+          // A retry of a create that already went through (e.g. sent again from offline).
+          if (existing.createdBy !== auth.userId)
+            throw new AppError('IDEMPOTENCY_CONFLICT', 'Trip id already in use');
+          return this.requireView(tx, id);
+        }
+      }
+      // A driver's own trip is always theirs, in the vehicle they picked.
+      const driverId = byDriver ? await this.myDriverId(tx, auth) : input.driverId;
+      if (byDriver && !driverId) {
+        throw new AppError('FORBIDDEN_ROLE', 'Only drivers and staff can create trips');
+      }
+      if (byDriver && input.driverId && input.driverId !== driverId) {
+        throw new AppError('FORBIDDEN_ROLE', 'Drivers can only create trips for themselves');
+      }
       await tx.trip.create({
         data: {
           id,
@@ -183,6 +212,7 @@ export class TripsService {
           scheduledStartAt: input.scheduledStartAt,
           scheduledEndAt: input.scheduledEndAt,
           quotedFarePaise: BigInt(input.quotedFarePaise),
+          includedKm: input.includedKm ?? null,
           createdBy: auth.userId,
         },
       });
@@ -193,13 +223,28 @@ export class TripsService {
         from: null,
         to: 'created',
         occurredAt: new Date(),
-        payload: { quotedFarePaise: input.quotedFarePaise },
+        payload: {
+          quotedFarePaise: input.quotedFarePaise,
+          ...(byDriver ? { createdByDriver: true } : {}),
+        },
       });
-      if (input.vehicleId && input.driverId) {
-        await this.applyInTx(tx, auth, id, 'assign', newId(), new Date(), async (trip) => {
-          await this.assignVehicleAndDriver(tx, trip, input.vehicleId ?? '', input.driverId ?? '');
-          return { vehicleId: input.vehicleId, driverId: input.driverId };
-        });
+      const vehicleId = input.vehicleId;
+      if (vehicleId && driverId) {
+        await this.applyInTx(
+          tx,
+          auth,
+          id,
+          'assign',
+          newId(),
+          new Date(),
+          async (trip) => {
+            await this.assignVehicleAndDriver(tx, trip, vehicleId, driverId);
+            return { vehicleId, driverId };
+          },
+          // Creating their own trip assigns it to the driver; the event still
+          // records the driver as the actor.
+          byDriver ? ['staff'] : undefined,
+        );
       }
       return this.requireView(tx, id);
     });
@@ -225,6 +270,7 @@ export class TripsService {
           ...(patch.quotedFarePaise === undefined
             ? {}
             : { quotedFarePaise: BigInt(patch.quotedFarePaise) }),
+          ...(patch.includedKm === undefined ? {} : { includedKm: patch.includedKm }),
           scheduledStartAt: start,
           scheduledEndAt: end,
           version: { increment: 1 },

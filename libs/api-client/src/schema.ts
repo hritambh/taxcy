@@ -447,7 +447,7 @@ export interface paths {
     /** Trips, newest scheduled first */
     get: operations['getTrips'];
     put?: never;
-    /** Create a trip, optionally assigning it straight away */
+    /** Create a trip, optionally assigning it straight away. Drivers can create trips for themselves: the trip is assigned to them, in the vehicle they pick */
     post: operations['postTrips'];
     delete?: never;
     options?: never;
@@ -3973,6 +3973,7 @@ export interface operations {
               name: string;
             } | null;
             quotedFarePaise: number;
+            includedKm: number | null;
             cancellationFarePaise: number | null;
             startOdometer: {
               /** Format: uuid */
@@ -4171,6 +4172,9 @@ export interface operations {
           /** Format: date-time */
           scheduledEndAt: string;
           quotedFarePaise: number;
+          includedKm?: number | null;
+          /** Format: uuid */
+          id?: string;
           /** Format: uuid */
           vehicleId?: string;
           /** Format: uuid */
@@ -4227,6 +4231,7 @@ export interface operations {
               name: string;
             } | null;
             quotedFarePaise: number;
+            includedKm: number | null;
             cancellationFarePaise: number | null;
             startOdometer: {
               /** Format: uuid */
@@ -4449,6 +4454,7 @@ export interface operations {
               name: string;
             } | null;
             quotedFarePaise: number;
+            includedKm: number | null;
             cancellationFarePaise: number | null;
             startOdometer: {
               /** Format: uuid */
@@ -4649,6 +4655,7 @@ export interface operations {
           /** Format: date-time */
           scheduledEndAt?: string;
           quotedFarePaise?: number;
+          includedKm?: number | null;
         };
       };
     };
@@ -4701,6 +4708,7 @@ export interface operations {
               name: string;
             } | null;
             quotedFarePaise: number;
+            includedKm: number | null;
             cancellationFarePaise: number | null;
             startOdometer: {
               /** Format: uuid */
@@ -5016,6 +5024,7 @@ export interface operations {
               name: string;
             } | null;
             quotedFarePaise: number;
+            includedKm: number | null;
             cancellationFarePaise: number | null;
             startOdometer: {
               /** Format: uuid */
@@ -5240,6 +5249,7 @@ export interface operations {
               name: string;
             } | null;
             quotedFarePaise: number;
+            includedKm: number | null;
             cancellationFarePaise: number | null;
             startOdometer: {
               /** Format: uuid */
@@ -5480,6 +5490,7 @@ export interface operations {
               name: string;
             } | null;
             quotedFarePaise: number;
+            includedKm: number | null;
             cancellationFarePaise: number | null;
             startOdometer: {
               /** Format: uuid */
@@ -5749,6 +5760,7 @@ export interface operations {
               name: string;
             } | null;
             quotedFarePaise: number;
+            includedKm: number | null;
             cancellationFarePaise: number | null;
             startOdometer: {
               /** Format: uuid */
@@ -5979,6 +5991,7 @@ export interface operations {
               name: string;
             } | null;
             quotedFarePaise: number;
+            includedKm: number | null;
             cancellationFarePaise: number | null;
             startOdometer: {
               /** Format: uuid */
@@ -6222,6 +6235,7 @@ export interface operations {
               name: string;
             } | null;
             quotedFarePaise: number;
+            includedKm: number | null;
             cancellationFarePaise: number | null;
             startOdometer: {
               /** Format: uuid */
@@ -6454,6 +6468,7 @@ export interface operations {
               name: string;
             } | null;
             quotedFarePaise: number;
+            includedKm: number | null;
             cancellationFarePaise: number | null;
             startOdometer: {
               /** Format: uuid */
@@ -6684,6 +6699,7 @@ export interface operations {
               name: string;
             } | null;
             quotedFarePaise: number;
+            includedKm: number | null;
             cancellationFarePaise: number | null;
             startOdometer: {
               /** Format: uuid */
@@ -6908,6 +6924,7 @@ export interface operations {
               name: string;
             } | null;
             quotedFarePaise: number;
+            includedKm: number | null;
             cancellationFarePaise: number | null;
             startOdometer: {
               /** Format: uuid */
@@ -7151,6 +7168,7 @@ export interface operations {
               name: string;
             } | null;
             quotedFarePaise: number;
+            includedKm: number | null;
             cancellationFarePaise: number | null;
             startOdometer: {
               /** Format: uuid */
@@ -7374,6 +7392,7 @@ export interface operations {
               name: string;
             } | null;
             quotedFarePaise: number;
+            includedKm: number | null;
             cancellationFarePaise: number | null;
             startOdometer: {
               /** Format: uuid */
@@ -7596,6 +7615,7 @@ export interface operations {
               name: string;
             } | null;
             quotedFarePaise: number;
+            includedKm: number | null;
             cancellationFarePaise: number | null;
             startOdometer: {
               /** Format: uuid */
@@ -8510,6 +8530,7 @@ export interface operations {
               name: string;
             } | null;
             quotedFarePaise: number;
+            includedKm: number | null;
             cancellationFarePaise: number | null;
             startOdometer: {
               /** Format: uuid */

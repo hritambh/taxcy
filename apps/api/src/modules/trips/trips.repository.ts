@@ -140,6 +140,7 @@ export class TripsRepository {
         vehicle: row.vehicle,
         driver: row.driver ? { id: row.driver.id, name: row.driver.name } : null,
         quotedFarePaise: toNumber(row.quotedFarePaise),
+        includedKm: row.includedKm,
         cancellationFarePaise:
           row.cancellationFarePaise === null ? null : toNumber(row.cancellationFarePaise),
         startOdometer: odometer(

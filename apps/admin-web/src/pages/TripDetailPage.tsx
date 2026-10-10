@@ -988,6 +988,20 @@ export function TripDetailPage() {
                   />
                   <Stat label="Driver" value={t.driver?.name ?? 'Unassigned'} />
                   <Stat label="Quoted fare" value={fmtInr(t.quotedFarePaise)} />
+                  <Stat
+                    label="Included km"
+                    value={t.includedKm === null ? 'Not set' : `${String(t.includedKm)} km`}
+                    hint={(() => {
+                      const driven =
+                        t.startOdometer && t.endOdometer
+                          ? t.endOdometer.typedKm - t.startOdometer.typedKm
+                          : null;
+                      if (t.includedKm === null || driven === null) return undefined;
+                      return driven > t.includedKm
+                        ? `${String(driven - t.includedKm)} km over (driven ${String(driven)} km)`
+                        : `Driven ${String(driven)} km`;
+                    })()}
+                  />
                   {t.cancellationFarePaise !== null && (
                     <Stat label="Cancellation fare" value={fmtInr(t.cancellationFarePaise)} />
                   )}

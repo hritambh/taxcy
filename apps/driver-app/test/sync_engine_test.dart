@@ -89,6 +89,59 @@ void main() {
     });
   });
 
+  group('trips the driver creates', () {
+    const vehicle = Vehicle(
+      id: '0199c7a2-0000-7000-8000-0000000000bb',
+      registrationNo: 'MH12CD5678',
+      model: 'Dzire',
+      fuelType: 'cng',
+    );
+
+    test(
+      'shows at once as assigned, can be started offline, and syncs create before start',
+      () async {
+        final trip = await trips.create(
+          tripType: 'one_way',
+          fromText: 'Hinjewadi',
+          toText: 'Pune Airport',
+          scheduledStartAt: now,
+          scheduledEndAt: now.add(const Duration(hours: 2)),
+          quotedFarePaise: 90000,
+          includedKm: 40,
+          customerName: 'Walk-in',
+          vehicle: vehicle,
+        );
+        final local = (await trips.trip(trip.id))!.trip;
+        expect(local.status, 'assigned');
+        expect(local.includedKm, 40);
+        expect(local.allowedCommands, contains('start'));
+
+        await trips.start(local, photo: fakePhoto('odo-new'), km: 1000);
+        await engine.syncNow();
+        final calls = api.calls.map((c) => c.name).toList();
+        expect(calls, containsAllInOrder(['createTrip', 'trip.start']));
+        expect(
+          api.calls.firstWhere((c) => c.name == 'createTrip').args,
+          containsPair('vehicleId', vehicle.id),
+        );
+      },
+    );
+
+    test('rejects a trip without a drop, except local rentals', () async {
+      Future<Trip> make(String type, String? to) => trips.create(
+        tripType: type,
+        fromText: 'Kothrud',
+        toText: to,
+        scheduledStartAt: now,
+        scheduledEndAt: now.add(const Duration(hours: 4)),
+        quotedFarePaise: 50000,
+        vehicle: vehicle,
+      );
+      await expectLater(make('one_way', ''), throwsA(isA<LocalRejection>()));
+      expect((await make('local_rental', null)).toText, isNull);
+    });
+  });
+
   group('fuel during a trip', () {
     const vehicle = Vehicle(
       id: '0199c7a2-0000-7000-8000-0000000000aa',

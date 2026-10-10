@@ -204,6 +204,9 @@ class SyncEngine {
           payload.obj('body'),
         );
         await _storeServerTrip(trip, excludingSeq: item.seq);
+      case OutboxKind.tripCreate:
+        final trip = await api.createTrip(payload.obj('body'));
+        await _storeServerTrip(trip, excludingSeq: item.seq);
       case OutboxKind.tripCharge:
         final trip = await api.addCharge(
           payload.str('tripId'),

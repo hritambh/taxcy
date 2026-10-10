@@ -371,6 +371,88 @@ describe('cancelling a started trip needs a reason and approval', () => {
   });
 });
 
+describe('creating trips', () => {
+  it('included km is optional, and can be set, changed and cleared before the trip starts', async () => {
+    const plain = await newTrip();
+    expect(plain.includedKm).toBeNull();
+    const pkg = await newTrip(true, { includedKm: 300 });
+    expect(pkg.includedKm).toBe(300);
+    const edited = await request(h.http)
+      .patch(`/v1/trips/${pkg.id}`)
+      .set(...bearer(owner))
+      .send({ includedKm: 350 })
+      .expect(200);
+    expect((edited.body as Trip).includedKm).toBe(350);
+    const cleared = await request(h.http)
+      .patch(`/v1/trips/${pkg.id}`)
+      .set(...bearer(owner))
+      .send({ includedKm: null })
+      .expect(200);
+    expect((cleared.body as Trip).includedKm).toBeNull();
+  });
+
+  it('a driver creates a trip for themselves, once per client id', async () => {
+    vehicleSeq += 1;
+    const vehicle = await createVehicle(h, owner, `MH14DC${String(vehicleSeq).padStart(4, '0')}`);
+    const body = {
+      id: randomUUID(),
+      tripType: 'one_way',
+      customer: { name: 'Walk-in customer' },
+      from: { text: 'Hinjewadi' },
+      to: { text: 'Pune Airport' },
+      ...schedule(),
+      quotedFarePaise: 90_000,
+      includedKm: 40,
+      vehicleId: vehicle.id,
+    };
+    const created = await request(h.http)
+      .post('/v1/trips')
+      .set(...bearer(driver.session))
+      .send(body)
+      .expect(201);
+    expect(created.body).toMatchObject({
+      id: body.id,
+      status: 'assigned',
+      includedKm: 40,
+      vehicle: { id: vehicle.id },
+      driver: { id: driver.driverId },
+    });
+    // Sent again from the offline queue: the same trip, not a second one.
+    const again = await request(h.http)
+      .post('/v1/trips')
+      .set(...bearer(driver.session))
+      .send(body)
+      .expect(201);
+    expect((again.body as Trip).id).toBe(body.id);
+    expect(await h.owner.trip.count({ where: { id: body.id } })).toBe(1);
+
+    // They can start it like any trip assigned to them.
+    await start(created.body as Trip, driver.session).expect(200);
+  });
+
+  it('drivers must pick a vehicle and cannot create trips for someone else', async () => {
+    const other = await driverSession(h, owner, 'Vikram Rao');
+    vehicleSeq += 1;
+    const vehicle = await createVehicle(h, owner, `MH14DC${String(vehicleSeq).padStart(4, '0')}`);
+    const base = {
+      tripType: 'local_rental',
+      from: { text: 'Kothrud' },
+      ...schedule(),
+      quotedFarePaise: 50_000,
+    };
+    await request(h.http)
+      .post('/v1/trips')
+      .set(...bearer(driver.session))
+      .send(base)
+      .expect(400);
+    await request(h.http)
+      .post('/v1/trips')
+      .set(...bearer(driver.session))
+      .send({ ...base, vehicleId: vehicle.id, driverId: other.driverId })
+      .expect(403);
+  });
+});
+
 describe('visibility and charges', () => {
   it('drivers see only their own trips', async () => {
     const mine = await newTrip();

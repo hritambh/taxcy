@@ -196,6 +196,16 @@ class _EndTripScreenState extends ConsumerState<EndTripScreen> {
     ].join(' + ');
   }
 
+  /// Km driven beyond the trip's included km, from the end reading typed so far.
+  int? get _kmOver {
+    final included = widget.trip.includedKm;
+    final startKm = widget.trip.startOdometer?.typedKm;
+    final endKm = int.tryParse(_km.text.trim());
+    if (included == null || startKm == null || endKm == null) return null;
+    final over = endKm - startKm - included;
+    return over > 0 ? over : null;
+  }
+
   int get _fuelPaidByDriver => widget.trip.fuelFills
       .where((f) => f.paidBy == 'driver_cash')
       .fold<int>(0, (sum, f) => sum + f.costPaise);
@@ -273,7 +283,20 @@ class _EndTripScreenState extends ConsumerState<EndTripScreen> {
                 border: const OutlineInputBorder(),
               ),
               validator: (v) => validateKm(v, atLeast: startKm),
+              onChanged: (_) => setState(() {}),
             ),
+            if (_kmOver case final over?)
+              Padding(
+                key: const Key('km-over-included'),
+                padding: const EdgeInsets.only(top: 8),
+                child: Text(
+                  '$over km over the ${widget.trip.includedKm} km included in '
+                  'the fare. Add an extra km charge below.',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
+              ),
             const SizedBox(height: 24),
             Text(
               'Charges you paid or added',

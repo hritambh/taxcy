@@ -7,6 +7,7 @@ import '../../core/repositories/trips_repository.dart';
 import '../common/format.dart';
 import '../common/widgets.dart';
 import '../fuel/fuel_fill_screen.dart';
+import 'new_trip_screen.dart';
 import 'trip_detail_screen.dart';
 
 /// Groups trips the way a driver thinks about them.
@@ -47,6 +48,14 @@ class TripsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final trips = ref.watch(tripsProvider);
     return Scaffold(
+      floatingActionButton: FloatingActionButton.extended(
+        key: const Key('new-trip'),
+        onPressed: () => Navigator.of(
+          context,
+        ).push(MaterialPageRoute<void>(builder: (_) => const NewTripScreen())),
+        icon: const Icon(Icons.add),
+        label: const Text('New trip'),
+      ),
       appBar: AppBar(
         title: const Text('My trips'),
         actions: [

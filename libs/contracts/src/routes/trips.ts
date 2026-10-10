@@ -136,6 +136,7 @@ export const Trip = z.object({
   vehicle: z.object({ id: Id, registrationNo: z.string(), model: z.string() }).nullable(),
   driver: z.object({ id: Id, name: z.string() }).nullable(),
   quotedFarePaise: Paise,
+  includedKm: z.number().int().nullable(),
   cancellationFarePaise: Paise.nullable(),
   startOdometer: OdometerReading.nullable(),
   endOdometer: OdometerReading.nullable(),
@@ -183,6 +184,8 @@ const TripDetails = z.object({
   scheduledStartAt: DateTime,
   scheduledEndAt: DateTime,
   quotedFarePaise: Paise,
+  /** Km included in the quoted fare (e.g. a 300 km package); null when not agreed. */
+  includedKm: z.number().int().min(1).max(20_000).nullable().optional(),
 });
 
 export const tripRoutes = {
@@ -205,11 +208,17 @@ export const tripRoutes = {
   create: defineRoute({
     method: 'POST',
     path: '/trips',
-    summary: 'Create a trip, optionally assigning it straight away',
+    summary:
+      'Create a trip, optionally assigning it straight away. Drivers can create trips for themselves: the trip is assigned to them, in the vehicle they pick',
     tag: 'trips',
-    access: access.staff,
+    access: access.anyMember,
     status: 201,
-    body: TripDetails.extend({ vehicleId: Id.optional(), driverId: Id.optional() }),
+    body: TripDetails.extend({
+      /** Client-generated id, so a trip created offline is created once however often it's sent. */
+      id: Id.optional(),
+      vehicleId: Id.optional(),
+      driverId: Id.optional(),
+    }),
     response: Trip,
   }),
   get: defineRoute({

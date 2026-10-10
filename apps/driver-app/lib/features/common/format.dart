@@ -128,3 +128,7 @@ String chargeNote(TripCharge c) => isExtraFare(c.kind)
     : c.paidByDriver
     ? 'Paid by you · paid back in settlement'
     : 'Billed to the customer';
+
+/// A fare must be a valid amount; zero is allowed (e.g. a free company trip).
+String? validateFare(String? value) =>
+    parseRupees(value ?? '') == null ? 'Enter the fare in ₹' : null;

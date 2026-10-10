@@ -250,6 +250,16 @@ class FakeApi implements TaxcyApi {
   }
 
   @override
+  Future<Trip> createTrip(JsonMap body) async {
+    _record('createTrip', body);
+    return Trip.fromJson({
+      ...tripJson(id: body.str('id')),
+      'quotedFarePaise': body['quotedFarePaise'],
+      'includedKm': body['includedKm'],
+    });
+  }
+
+  @override
   Future<Trip> addCharge(String tripId, JsonMap body) async {
     _record('addCharge', {'tripId': tripId, 'body': body});
     return Trip.fromJson(tripJson(id: tripId, status: 'started'));

@@ -52,6 +52,7 @@ function CreateTripModal({ onClose }: { onClose: () => void }) {
   const [start, setStart] = useState('');
   const [end, setEnd] = useState('');
   const [fare, setFare] = useState('');
+  const [includedKm, setIncludedKm] = useState('');
   const [vehicleId, setVehicleId] = useState('');
   const [driverId, setDriverId] = useState('');
   const [problem, setProblem] = useState<string | null>(null);
@@ -64,14 +65,17 @@ function CreateTripModal({ onClose }: { onClose: () => void }) {
   function submit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
     const quotedFarePaise = rupeesToPaise(fare);
+    const km = includedKm.trim() === '' ? null : Number(includedKm.trim());
     const problemText =
       quotedFarePaise === null
         ? 'Enter the fare in rupees, e.g. 3500'
-        : !start || !end || end <= start
-          ? 'The end time must be after the start time'
-          : Boolean(vehicleId) !== Boolean(driverId)
-            ? 'Pick both a vehicle and a driver, or neither'
-            : null;
+        : km !== null && (!Number.isInteger(km) || km < 1 || km > 20_000)
+          ? 'Included km must be a whole number of km, or left empty'
+          : !start || !end || end <= start
+            ? 'The end time must be after the start time'
+            : Boolean(vehicleId) !== Boolean(driverId)
+              ? 'Pick both a vehicle and a driver, or neither'
+              : null;
     if (problemText !== null || quotedFarePaise === null) {
       setProblem(problemText);
       return;
@@ -86,6 +90,7 @@ function CreateTripModal({ onClose }: { onClose: () => void }) {
         scheduledStartAt: istLocalToIso(start),
         scheduledEndAt: istLocalToIso(end),
         quotedFarePaise,
+        ...(km !== null ? { includedKm: km } : {}),
         ...(customerName.trim()
           ? {
               customer: {
@@ -135,6 +140,22 @@ function CreateTripModal({ onClose }: { onClose: () => void }) {
               value={fare}
               onChange={(e) => {
                 setFare(e.target.value);
+              }}
+            />
+          )}
+        </Field>
+        <Field
+          label="Included km (optional)"
+          hint="Km covered by the fare, e.g. 300 for a 300 km package. Beyond it, add an extra km charge."
+        >
+          {(props) => (
+            <Input
+              {...props}
+              inputMode="numeric"
+              placeholder="300"
+              value={includedKm}
+              onChange={(e) => {
+                setIncludedKm(e.target.value);
               }}
             />
           )}

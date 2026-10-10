@@ -56,6 +56,9 @@ abstract class TaxcyApi {
   );
   Future<void> completeMedia(String mediaId);
 
+  /// Creates a trip assigned to the signed-in driver; idempotent on body.id.
+  Future<Trip> createTrip(JsonMap body);
+
   /// A trip command (start, end, cancellation-requests) with an Idempotency-Key.
   Future<Trip> tripCommand(
     String tripId,

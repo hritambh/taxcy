@@ -56,6 +56,8 @@ class TripDetailScreen extends ConsumerWidget {
                 ),
                 _Line(Icons.trip_origin, t.fromText),
                 if (t.toText != null) _Line(Icons.place, t.toText!),
+                if (t.includedKm != null)
+                  _Line(Icons.route, 'Includes ${t.includedKm} km'),
                 if (t.vehicle != null)
                   _Line(
                     Icons.directions_car,

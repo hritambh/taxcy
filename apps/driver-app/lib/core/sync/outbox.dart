@@ -11,6 +11,9 @@ abstract final class OutboxKind {
   /// Register → upload → confirm a photo. Payload: {photoId}.
   static const media = 'media';
 
+  /// A trip the driver created. Payload: {body}; idempotent on body.id.
+  static const tripCreate = 'trip.create';
+
   /// A trip state command. Payload: {tripId, command, body}; key = Idempotency-Key.
   static const tripCommand = 'trip.command';
 
