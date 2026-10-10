@@ -45,7 +45,7 @@ The **live trip** screen shows elapsed time and distance so far.
 
 ## Log a fuel fill
 
-1. From the home screen, tap **Fuel**.
+1. From the home screen, tap **Fuel** (or **Fuel** on a running trip). The vehicle is filled in from your trip: the running trip's car, otherwise the car on your next assigned trip (or a trip you finished in the last day). If you have trips in more than one car, choose among those. With no trip assigned, you can't log fuel; ask your fleet owner.
 2. Take a photo of the **receipt**.
 3. Take a photo of the **odometer** and type the reading.
 4. Enter the quantity (litres, or kg for CNG) and the amount in ₹.

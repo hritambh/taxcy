@@ -9,6 +9,7 @@ import 'package:taxcy_driver/core/auth/session_store.dart';
 import 'package:taxcy_driver/core/repositories/trips_repository.dart';
 import 'package:taxcy_driver/core/sync/sync_engine.dart';
 import 'package:taxcy_driver/features/common/widgets.dart';
+import 'package:taxcy_driver/features/fuel/fuel_fill_screen.dart';
 import 'package:taxcy_driver/features/trips/trip_forms.dart';
 import 'package:taxcy_driver/features/trips/trips_screen.dart';
 
@@ -137,6 +138,49 @@ void main() {
       expect(find.text(label), findsOneWidget);
     }
     expect(find.text('Pune Station → Mumbai Airport T2'), findsNWidgets(4));
+  });
+
+  group('log fuel picks the vehicle from the driver\'s trips', () {
+    const vehicle = Vehicle(
+      id: '0199c7a2-0000-7000-8000-0000000000aa',
+      registrationNo: 'MH12AB1234',
+      model: 'Innova Crysta',
+      fuelType: 'diesel',
+    );
+
+    testWidgets('a running trip fixes the vehicle', (tester) async {
+      final h = Harness();
+      addTearDown(h.dispose);
+      h.api.vehicleList = const [vehicle];
+      await h.engine.cacheTrip(Trip.fromJson(tripJson(status: 'started')));
+
+      await tester.pumpWidget(
+        h.wrap(const MaterialApp(home: FuelFillScreen())),
+      );
+      await settle(tester);
+      expect(find.byType(DropdownButtonFormField<String>), findsNothing);
+      expect(find.text('MH12AB1234 · Innova Crysta'), findsOneWidget);
+      expect(
+        find.text('From your trip: Pune Station → Mumbai Airport T2'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('with no trip, the driver is told why', (tester) async {
+      final h = Harness();
+      addTearDown(h.dispose);
+      h.api.vehicleList = const [vehicle];
+
+      await tester.pumpWidget(
+        h.wrap(const MaterialApp(home: FuelFillScreen())),
+      );
+      await settle(tester);
+      expect(
+        find.textContaining('No vehicle is assigned to you'),
+        findsOneWidget,
+      );
+      expect(find.text('Save fuel fill'), findsNothing);
+    });
   });
 
   testWidgets(
