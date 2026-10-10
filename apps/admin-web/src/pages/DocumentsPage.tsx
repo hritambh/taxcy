@@ -1,9 +1,9 @@
 import { Plus } from 'lucide-react';
 import { useState, type SubmitEvent } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { DriverSelect, Photo, VehicleSelect } from '../components/shared.js';
 import { DocumentStatusBadge } from '../components/status.js';
-import { DOC_NAMES } from '../lib/labels.js';
 import {
   Button,
   Card,
@@ -43,6 +43,7 @@ function DocumentFormModal({
   renewing?: DocumentRow;
   subject?: { vehicleId?: string; driverId?: string };
 }) {
+  const { t } = useTranslation();
   const [docType, setDocType] = useState<DocType>(
     renewing?.docType ?? (subject?.driverId ? 'driving_licence' : 'insurance'),
   );
@@ -82,17 +83,18 @@ function DocumentFormModal({
     <Modal
       open
       onClose={onClose}
-      title={renewing ? `Renew ${DOC_NAMES[renewing.docType].toLowerCase()}` : 'Add a document'}
+      title={
+        renewing
+          ? t('people.documents.renewTitle', { doc: t(`enums.docType.${renewing.docType}`) })
+          : t('people.documents.addTitle')
+      }
     >
       <form onSubmit={submit} className="grid gap-4 sm:grid-cols-2">
         {renewing ? (
-          <p className="text-sm text-slate-600 sm:col-span-2">
-            The renewed copy replaces the current one (it stays in history), and its expiry alerts
-            are cleared.
-          </p>
+          <p className="text-sm text-slate-600 sm:col-span-2">{t('people.documents.renewHelp')}</p>
         ) : (
           <>
-            <Field label="Document" className="sm:col-span-2">
+            <Field label={t('people.documents.document')} className="sm:col-span-2">
               {(props) => (
                 <Select
                   {...props}
@@ -107,16 +109,19 @@ function DocumentFormModal({
                     : subject?.driverId
                       ? (['driving_licence'] as DocType[])
                       : [...VEHICLE_DOCS, 'driving_licence' as const]
-                  ).map((t) => (
-                    <option key={t} value={t}>
-                      {DOC_NAMES[t]}
+                  ).map((type) => (
+                    <option key={type} value={type}>
+                      {t(`enums.docType.${type}`)}
                     </option>
                   ))}
                 </Select>
               )}
             </Field>
             {!subject && (
-              <Field label={forDriver ? 'Driver' : 'Vehicle'} className="sm:col-span-2">
+              <Field
+                label={forDriver ? t('people.documents.driver') : t('people.documents.vehicle')}
+                className="sm:col-span-2"
+              >
                 {(props) =>
                   forDriver ? (
                     <DriverSelect {...props} value={driverId} onChange={setDriverId} required />
@@ -128,7 +133,7 @@ function DocumentFormModal({
             )}
           </>
         )}
-        <Field label="Number">
+        <Field label={t('people.documents.number')}>
           {(props) => (
             <Input
               {...props}
@@ -139,7 +144,7 @@ function DocumentFormModal({
             />
           )}
         </Field>
-        <Field label="Valid from">
+        <Field label={t('people.documents.validFrom')}>
           {(props) => (
             <Input
               {...props}
@@ -151,7 +156,7 @@ function DocumentFormModal({
             />
           )}
         </Field>
-        <Field label="Expires on" hint="Alerts are raised 30, 7 and 1 days before, and on expiry.">
+        <Field label={t('people.documents.expiresOn')} hint={t('people.documents.expiresOnHint')}>
           {(props) => (
             <Input
               {...props}
@@ -170,10 +175,10 @@ function DocumentFormModal({
         </div>
         <div className="flex justify-end gap-2 sm:col-span-2">
           <Button variant="secondary" onClick={onClose}>
-            Cancel
+            {t('common.cancel')}
           </Button>
           <Button type="submit" busy={save.isPending} disabled={!expiresOn || subjectMissing}>
-            {renewing ? 'Save renewal' : 'Add document'}
+            {renewing ? t('people.documents.saveRenewal') : t('people.documents.add')}
           </Button>
         </div>
       </form>
@@ -189,6 +194,7 @@ export function DocumentsTable({
   filter: DocumentFilter;
   subject?: { vehicleId?: string; driverId?: string };
 }) {
+  const { t } = useTranslation();
   const documents = useDocuments(filter);
   const vehicles = useVehicles();
   const drivers = useDrivers();
@@ -212,7 +218,7 @@ export function DocumentsTable({
 
   return (
     <Card
-      title={subject ? 'Documents' : undefined}
+      title={subject ? t('people.documents.title') : undefined}
       actions={
         <Button
           size="sm"
@@ -221,32 +227,32 @@ export function DocumentsTable({
           }}
         >
           <Plus className="size-4" aria-hidden />
-          Add document
+          {t('people.documents.add')}
         </Button>
       }
     >
       <QueryState query={documents}>
         {(list) =>
           list.length === 0 ? (
-            <EmptyState title="No documents">
-              Add RC, insurance, permit and PUC for vehicles, and licences for drivers.
+            <EmptyState title={t('people.documents.empty')}>
+              {t('people.documents.emptyHint')}
             </EmptyState>
           ) : (
             <Table>
               <thead>
                 <tr>
-                  <Th>Document</Th>
-                  {!subject && <Th>For</Th>}
-                  <Th>Number</Th>
-                  <Th>Expires</Th>
-                  <Th>Status</Th>
+                  <Th>{t('people.documents.colDocument')}</Th>
+                  {!subject && <Th>{t('people.documents.colFor')}</Th>}
+                  <Th>{t('people.documents.colNumber')}</Th>
+                  <Th>{t('people.documents.colExpires')}</Th>
+                  <Th>{t('people.documents.colStatus')}</Th>
                   <Th />
                 </tr>
               </thead>
               <tbody>
                 {list.map((d) => (
                   <tr key={d.id}>
-                    <Td className="font-medium">{DOC_NAMES[d.docType]}</Td>
+                    <Td className="font-medium">{t(`enums.docType.${d.docType}`)}</Td>
                     {!subject && <Td>{subjectName(d)}</Td>}
                     <Td>{d.number ?? '—'}</Td>
                     <Td>{fmtDate(d.expiresOn)}</Td>
@@ -262,7 +268,7 @@ export function DocumentsTable({
                             setViewing(d);
                           }}
                         >
-                          View
+                          {t('people.documents.view')}
                         </Button>
                       )}
                       {d.status !== 'superseded' && (
@@ -273,7 +279,7 @@ export function DocumentsTable({
                             setRenewing(d);
                           }}
                         >
-                          Renew
+                          {t('people.documents.renew')}
                         </Button>
                       )}
                     </Td>
@@ -305,11 +311,11 @@ export function DocumentsTable({
         onClose={() => {
           setViewing(null);
         }}
-        title={viewing ? DOC_NAMES[viewing.docType] : ''}
+        title={viewing ? t(`enums.docType.${viewing.docType}`) : ''}
       >
         <Photo
           mediaId={viewing?.mediaId}
-          alt="Document scan"
+          alt={t('people.documents.scanAlt')}
           className="max-h-[60vh] w-full object-contain"
         />
       </Modal>
@@ -318,23 +324,24 @@ export function DocumentsTable({
 }
 
 const WINDOWS = [
-  { id: 'all', label: 'All current documents' },
-  { id: '30', label: 'Due in 30 days or expired' },
-  { id: '7', label: 'Due in 7 days or expired' },
-  { id: '0', label: 'Expired or due today' },
+  { id: 'all', label: 'windowAll' },
+  { id: '30', label: 'window30' },
+  { id: '7', label: 'window7' },
+  { id: '0', label: 'window0' },
 ] as const;
 
 export function DocumentsPage() {
+  const { t } = useTranslation();
   const [window, setWindow] = useState<(typeof WINDOWS)[number]['id']>('all');
   const filter: DocumentFilter = window === 'all' ? {} : { expiringWithinDays: Number(window) };
   return (
     <>
       <PageHeader
-        title="Documents"
-        description="Alerts are raised 30, 7 and 1 days before expiry, and again when a document expires."
+        title={t('people.documents.title')}
+        description={t('people.documents.description')}
         actions={
           <Select
-            aria-label="Filter documents"
+            aria-label={t('people.documents.filter')}
             className="w-60"
             value={window}
             onChange={(e) => {
@@ -343,7 +350,7 @@ export function DocumentsPage() {
           >
             {WINDOWS.map((w) => (
               <option key={w.id} value={w.id}>
-                {w.label}
+                {t(`people.documents.${w.label}`)}
               </option>
             ))}
           </Select>

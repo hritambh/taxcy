@@ -1,16 +1,11 @@
+import { useTranslation } from 'react-i18next';
 import type { PayRule } from '../lib/api-types.js';
 import { paiseToRupeesInput, rupeesToPaise } from '../lib/format.js';
 import { Field, Input, Select } from './ui.js';
 
 type Kind = PayRule['kind'];
 
-const KINDS: { kind: Kind; label: string }[] = [
-  { kind: 'none', label: 'None (salaried, paid outside Taxcy)' },
-  { kind: 'percent_of_fare', label: 'Percent of fare' },
-  { kind: 'per_trip', label: 'Fixed amount per trip' },
-  { kind: 'per_km', label: 'Per km driven' },
-  { kind: 'fixed_daily', label: 'Fixed amount per working day' },
-];
+const KINDS: Kind[] = ['none', 'percent_of_fare', 'per_trip', 'per_km', 'fixed_daily'];
 
 function defaultsFor(kind: Kind, allowanceToDriver: boolean): PayRule {
   switch (kind) {
@@ -37,6 +32,7 @@ export function PayRuleEditor({
   onChange: (rule: PayRule) => void;
   disabled?: boolean;
 }) {
+  const { t } = useTranslation();
   const rupeeField = (label: string, paise: number, set: (p: number) => void) => (
     <Field label={label}>
       {(props) => (
@@ -56,7 +52,7 @@ export function PayRuleEditor({
 
   return (
     <div className="grid gap-4 sm:grid-cols-2">
-      <Field label="How the driver is paid" className="sm:col-span-2">
+      <Field label={t('people.payRule.howPaid')} className="sm:col-span-2">
         {(props) => (
           <Select
             {...props}
@@ -66,9 +62,9 @@ export function PayRuleEditor({
               onChange(defaultsFor(e.target.value as Kind, value.allowanceToDriver));
             }}
           >
-            {KINDS.map((k) => (
-              <option key={k.kind} value={k.kind}>
-                {k.label}
+            {KINDS.map((kind) => (
+              <option key={kind} value={kind}>
+                {t(`enums.payRuleKind.${kind}`)}
               </option>
             ))}
           </Select>
@@ -76,7 +72,7 @@ export function PayRuleEditor({
       </Field>
       {value.kind === 'percent_of_fare' && (
         <>
-          <Field label="Percent">
+          <Field label={t('people.payRule.percent')}>
             {(props) => (
               <Input
                 {...props}
@@ -92,7 +88,7 @@ export function PayRuleEditor({
               />
             )}
           </Field>
-          <Field label="Of">
+          <Field label={t('people.payRule.of')}>
             {(props) => (
               <Select
                 {...props}
@@ -102,23 +98,23 @@ export function PayRuleEditor({
                   onChange({ ...value, base: e.target.value as 'quoted' | 'expected' });
                 }}
               >
-                <option value="quoted">Quoted fare</option>
-                <option value="expected">Fare including charges</option>
+                <option value="quoted">{t('enums.payBase.quoted')}</option>
+                <option value="expected">{t('enums.payBase.expected')}</option>
               </Select>
             )}
           </Field>
         </>
       )}
       {value.kind === 'per_trip' &&
-        rupeeField('Amount per trip (₹)', value.amountPaise, (amountPaise) => {
+        rupeeField(t('people.payRule.amountPerTrip'), value.amountPaise, (amountPaise) => {
           onChange({ ...value, amountPaise });
         })}
       {value.kind === 'per_km' &&
-        rupeeField('Rate per km (₹)', value.paisePerKm, (paisePerKm) => {
+        rupeeField(t('people.payRule.ratePerKm'), value.paisePerKm, (paisePerKm) => {
           onChange({ ...value, paisePerKm });
         })}
       {value.kind === 'fixed_daily' &&
-        rupeeField('Amount per working day (₹)', value.amountPaise, (amountPaise) => {
+        rupeeField(t('people.payRule.amountPerDay'), value.amountPaise, (amountPaise) => {
           onChange({ ...value, amountPaise });
         })}
       <label className="flex items-start gap-2 text-sm sm:col-span-2">
@@ -132,10 +128,8 @@ export function PayRuleEditor({
           }}
         />
         <span>
-          Driver allowance goes to the driver
-          <span className="block text-xs text-slate-500">
-            The bata a customer pays is added to the driver’s earnings.
-          </span>
+          {t('people.payRule.allowanceToDriver')}
+          <span className="block text-xs text-slate-500">{t('people.payRule.allowanceHint')}</span>
         </span>
       </label>
     </div>

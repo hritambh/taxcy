@@ -1,7 +1,8 @@
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { DocumentStatusBadge, SeverityBadge, TripStatusBadge } from '../components/status.js';
-import { DOC_NAMES } from '../lib/labels.js';
 import { Card, EmptyState, PageHeader, QueryState } from '../components/ui.js';
+import { alertText } from '../lib/alert-text.js';
 import type { Alert, TripStatus } from '../lib/api-types.js';
 import { fmtDate, fmtDateTime, fmtTime, istDayRange, istToday } from '../lib/format.js';
 import { useAlerts, useAlertSummary, useDocuments, useTrips } from '../lib/queries.js';
@@ -10,6 +11,7 @@ const SEVERITY_ORDER: Record<Alert['severity'], number> = { critical: 0, warning
 const STATUSES: TripStatus[] = ['created', 'assigned', 'started', 'ended', 'settled', 'cancelled'];
 
 export function DashboardPage() {
+  const { t } = useTranslation();
   const today = istToday();
   const trips = useTrips({ ...istDayRange(today), limit: 200 });
   const alerts = useAlerts({ status: 'open', limit: 100 });
@@ -18,14 +20,14 @@ export function DashboardPage() {
 
   return (
     <>
-      <PageHeader title="Today" description={fmtDate(today)} />
+      <PageHeader title={t('dashboard.title')} description={fmtDate(today)} />
       <div className="grid gap-4 lg:grid-cols-3">
         <Card
-          title="Today’s trips"
+          title={t('dashboard.todaysTrips')}
           className="lg:col-span-2"
           actions={
             <Link className="text-sm text-brand-700 hover:underline" to="/trips">
-              All trips
+              {t('dashboard.allTrips')}
             </Link>
           }
         >
@@ -41,12 +43,12 @@ export function DashboardPage() {
                       <dd className="tabular text-xl font-semibold text-brand-800">
                         {list.filter((t) => t.status === status).length}
                       </dd>
-                      <dt className="text-xs text-slate-500 capitalize">{status}</dt>
+                      <dt className="text-xs text-slate-500">{t(`enums.tripStatus.${status}`)}</dt>
                     </div>
                   ))}
                 </dl>
                 {list.length === 0 ? (
-                  <EmptyState title="No trips scheduled today" />
+                  <EmptyState title={t('dashboard.noTripsToday')} />
                 ) : (
                   <ul className="divide-y divide-slate-100">
                     {[...list]
@@ -61,11 +63,12 @@ export function DashboardPage() {
                               {fmtTime(trip.scheduledStartAt)}
                             </span>
                             <span className="min-w-0 flex-1 truncate font-medium text-slate-900">
-                              {trip.from.text}
-                              {trip.to ? ` → ${trip.to.text}` : ''}
+                              {trip.to
+                                ? t('common.route', { from: trip.from.text, to: trip.to.text })
+                                : trip.from.text}
                             </span>
                             <span className="text-slate-600">
-                              {trip.driver?.name ?? 'Unassigned'}
+                              {trip.driver?.name ?? t('common.unassigned')}
                             </span>
                             <TripStatusBadge status={trip.status} />
                           </Link>
@@ -79,7 +82,7 @@ export function DashboardPage() {
         </Card>
 
         <div className="space-y-4">
-          <Card title="Needs your attention">
+          <Card title={t('dashboard.needsAttention')}>
             <QueryState query={summary}>
               {(s) => (
                 <dl className="grid grid-cols-2 gap-3 text-center">
@@ -87,23 +90,23 @@ export function DashboardPage() {
                     <dd className="tabular text-2xl font-semibold text-red-700">
                       {s.openAlerts.critical}
                     </dd>
-                    <dt className="text-xs text-red-800">Critical alerts</dt>
+                    <dt className="text-xs text-red-800">{t('dashboard.criticalAlerts')}</dt>
                   </Link>
                   <Link to="/review" className="rounded-md bg-brand-50 p-3 hover:bg-brand-100">
                     <dd className="tabular text-2xl font-semibold text-brand-800">
                       {s.openReviewItems}
                     </dd>
-                    <dt className="text-xs text-brand-700">To review</dt>
+                    <dt className="text-xs text-brand-700">{t('dashboard.toReview')}</dt>
                   </Link>
                 </dl>
               )}
             </QueryState>
           </Card>
           <Card
-            title="Documents due soon"
+            title={t('dashboard.documentsDue')}
             actions={
               <Link className="text-sm text-brand-700 hover:underline" to="/documents">
-                All
+                {t('dashboard.allDocuments')}
               </Link>
             }
           >
@@ -113,13 +116,13 @@ export function DashboardPage() {
                   .filter((d) => d.status === 'expiring' || d.status === 'expired')
                   .slice(0, 6);
                 return due.length === 0 ? (
-                  <EmptyState title="Nothing expiring in the next 30 days" />
+                  <EmptyState title={t('dashboard.nothingExpiring')} />
                 ) : (
                   <ul className="space-y-2 text-sm">
                     {due.map((d) => (
                       <li key={d.id} className="flex items-center justify-between gap-2">
                         <span>
-                          {DOC_NAMES[d.docType]}
+                          {t(`enums.docType.${d.docType}`)}
                           <span className="block text-xs text-slate-500">
                             {fmtDate(d.expiresOn)}
                           </span>
@@ -135,18 +138,18 @@ export function DashboardPage() {
         </div>
 
         <Card
-          title="Open alerts"
+          title={t('dashboard.openAlerts')}
           className="lg:col-span-3"
           actions={
             <Link className="text-sm text-brand-700 hover:underline" to="/alerts">
-              Alerts inbox
+              {t('dashboard.alertsInbox')}
             </Link>
           }
         >
           <QueryState query={alerts}>
             {(list) =>
               list.length === 0 ? (
-                <EmptyState title="No open alerts" />
+                <EmptyState title={t('dashboard.noOpenAlerts')} />
               ) : (
                 <ul className="divide-y divide-slate-100">
                   {[...list]
@@ -156,16 +159,19 @@ export function DashboardPage() {
                         b.createdAt.localeCompare(a.createdAt),
                     )
                     .slice(0, 6)
-                    .map((a) => (
-                      <li key={a.id} className="flex flex-wrap items-start gap-3 py-2.5 text-sm">
-                        <SeverityBadge severity={a.severity} />
-                        <div className="min-w-0 flex-1">
-                          <p className="font-medium text-slate-900">{a.title}</p>
-                          <p className="line-clamp-2 text-slate-600">{a.explanation}</p>
-                        </div>
-                        <span className="text-xs text-slate-500">{fmtDateTime(a.createdAt)}</span>
-                      </li>
-                    ))}
+                    .map((a) => {
+                      const text = alertText(a);
+                      return (
+                        <li key={a.id} className="flex flex-wrap items-start gap-3 py-2.5 text-sm">
+                          <SeverityBadge severity={a.severity} />
+                          <div className="min-w-0 flex-1">
+                            <p className="font-medium text-slate-900">{text.title}</p>
+                            <p className="line-clamp-2 text-slate-600">{text.explanation}</p>
+                          </div>
+                          <span className="text-xs text-slate-500">{fmtDateTime(a.createdAt)}</span>
+                        </li>
+                      );
+                    })}
                 </ul>
               )
             }

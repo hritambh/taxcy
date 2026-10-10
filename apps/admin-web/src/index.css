@@ -2,7 +2,9 @@
 @import 'maplibre-gl/dist/maplibre-gl.css';
 
 @theme {
-  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  /* Inter has no Devanagari, so Hindi falls through to Noto Sans Devanagari glyph by glyph. */
+  --font-sans:
+    'Inter', 'Noto Sans Devanagari', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
 
   /* Taxcy blue: the one accent colour, from tints for surfaces to the deep sidebar. */
   --color-brand-50: #eff6ff;
@@ -54,6 +56,11 @@ dialog::backdrop {
 
 .tabular {
   font-variant-numeric: tabular-nums;
+}
+
+/* Letter-spacing pulls Devanagari conjuncts and matras apart; Hindi keeps natural spacing. */
+:lang(hi) * {
+  letter-spacing: normal;
 }
 
 /* Light blue row highlight in every table. */

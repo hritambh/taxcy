@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link, useParams } from 'react-router';
 import { TripStatusBadge } from '../components/status.js';
 import {
@@ -15,51 +16,48 @@ import {
   Th,
 } from '../components/ui.js';
 import { fmtDateTime, fmtInr, fmtKm, fmtRegistration } from '../lib/format.js';
-import { FUEL_LABELS } from '../lib/labels.js';
 import { useTrips, useVehicle } from '../lib/queries.js';
 import { DocumentsTable } from './DocumentsPage.js';
 import { VehicleFuelPanel } from './FuelPages.js';
 import { VehicleFormModal } from './VehiclesPage.js';
 
-const TABS = [
-  { id: 'documents', label: 'Documents' },
-  { id: 'fuel', label: 'Fuel' },
-  { id: 'trips', label: 'Recent trips' },
-] as const;
+type Tab = 'documents' | 'fuel' | 'trips';
 
 function VehicleTrips({ vehicleId }: { vehicleId: string }) {
+  const { t } = useTranslation();
   const trips = useTrips({ vehicleId, limit: 50 });
   return (
     <Card>
       <QueryState query={trips}>
         {(list) =>
           list.length === 0 ? (
-            <EmptyState title="No trips yet" />
+            <EmptyState title={t('fleet.vehicleDetail.noTrips')} />
           ) : (
             <Table>
               <thead>
                 <tr>
-                  <Th>Scheduled</Th>
-                  <Th>Route</Th>
-                  <Th>Driver</Th>
-                  <Th align="right">Fare</Th>
-                  <Th>Status</Th>
+                  <Th>{t('fleet.vehicleDetail.col.scheduled')}</Th>
+                  <Th>{t('fleet.vehicleDetail.col.route')}</Th>
+                  <Th>{t('fleet.vehicleDetail.col.driver')}</Th>
+                  <Th align="right">{t('fleet.vehicleDetail.col.fare')}</Th>
+                  <Th>{t('fleet.vehicleDetail.col.status')}</Th>
                 </tr>
               </thead>
               <tbody>
-                {list.map((t) => (
-                  <tr key={t.id} className="hover:bg-slate-50">
-                    <Td>{fmtDateTime(t.scheduledStartAt)}</Td>
+                {list.map((trip) => (
+                  <tr key={trip.id} className="hover:bg-slate-50">
+                    <Td>{fmtDateTime(trip.scheduledStartAt)}</Td>
                     <Td>
-                      <Link className="text-brand-700 hover:underline" to={`/trips/${t.id}`}>
-                        {t.from.text}
-                        {t.to ? ` → ${t.to.text}` : ''}
+                      <Link className="text-brand-700 hover:underline" to={`/trips/${trip.id}`}>
+                        {trip.to
+                          ? t('common.route', { from: trip.from.text, to: trip.to.text })
+                          : trip.from.text}
                       </Link>
                     </Td>
-                    <Td>{t.driver?.name ?? '—'}</Td>
-                    <Td align="right">{fmtInr(t.quotedFarePaise)}</Td>
+                    <Td>{trip.driver?.name ?? '—'}</Td>
+                    <Td align="right">{fmtInr(trip.quotedFarePaise)}</Td>
                     <Td>
-                      <TripStatusBadge status={t.status} />
+                      <TripStatusBadge status={trip.status} />
                     </Td>
                   </tr>
                 ))}
@@ -73,9 +71,15 @@ function VehicleTrips({ vehicleId }: { vehicleId: string }) {
 }
 
 export function VehicleDetailPage() {
+  const { t } = useTranslation();
   const { id = '' } = useParams();
   const vehicle = useVehicle(id);
-  const [tab, setTab] = useState<(typeof TABS)[number]['id']>('documents');
+  const [tab, setTab] = useState<Tab>('documents');
+  const tabs: { id: Tab; label: string }[] = [
+    { id: 'documents', label: t('fleet.vehicleDetail.tabDocuments') },
+    { id: 'fuel', label: t('fleet.vehicleDetail.tabFuel') },
+    { id: 'trips', label: t('fleet.vehicleDetail.tabTrips') },
+  ];
   const [editing, setEditing] = useState(false);
 
   return (
@@ -92,28 +96,31 @@ export function VehicleDetailPage() {
                   setEditing(true);
                 }}
               >
-                Edit
+                {t('fleet.vehicleDetail.edit')}
               </Button>
             }
           />
           <Card className="mb-4">
             <dl className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-              <Stat label="Fuel" value={FUEL_LABELS[v.fuelType]} />
-              <Stat label="Last odometer" value={fmtKm(v.lastOdometerKm)} />
               <Stat
-                label="Status"
+                label={t('fleet.vehicleDetail.fuel')}
+                value={t(`enums.fuelType.${v.fuelType}`)}
+              />
+              <Stat label={t('fleet.vehicleDetail.lastOdometer')} value={fmtKm(v.lastOdometerKm)} />
+              <Stat
+                label={t('fleet.vehicleDetail.status')}
                 value={
                   v.status === 'active' ? (
-                    <Badge tone="success">Active</Badge>
+                    <Badge tone="success">{t('enums.activeStatus.active')}</Badge>
                   ) : (
-                    <Badge>Inactive</Badge>
+                    <Badge>{t('enums.activeStatus.inactive')}</Badge>
                   )
                 }
               />
-              <Stat label="Added" value={fmtDateTime(v.createdAt)} />
+              <Stat label={t('fleet.vehicleDetail.added')} value={fmtDateTime(v.createdAt)} />
             </dl>
           </Card>
-          <Tabs tabs={TABS} value={tab} onChange={setTab} />
+          <Tabs tabs={tabs} value={tab} onChange={setTab} />
           {tab === 'documents' && (
             <DocumentsTable filter={{ vehicleId: id }} subject={{ vehicleId: id }} />
           )}

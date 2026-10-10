@@ -16,32 +16,45 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { NavLink, Outlet } from 'react-router';
 import { useAuth } from '../auth/context.js';
 import { useAlertSummary } from '../lib/queries.js';
+import { LanguageSwitcher } from './LanguageSwitcher.js';
 import { Button, Select } from './ui.js';
 
 interface NavItem {
   to: string;
-  label: string;
+  label:
+    | 'dashboard'
+    | 'trips'
+    | 'vehicles'
+    | 'drivers'
+    | 'documents'
+    | 'fuel'
+    | 'alerts'
+    | 'review'
+    | 'settlements'
+    | 'settings';
   icon: LucideIcon;
   badge?: 'alerts' | 'review';
 }
 
 const NAV: NavItem[] = [
-  { to: '/', label: 'Dashboard', icon: LayoutDashboard },
-  { to: '/trips', label: 'Trips', icon: RouteIcon },
-  { to: '/vehicles', label: 'Vehicles', icon: Car },
-  { to: '/drivers', label: 'Drivers', icon: Users },
-  { to: '/documents', label: 'Documents', icon: FileText },
-  { to: '/fuel', label: 'Fuel', icon: Fuel },
-  { to: '/alerts', label: 'Alerts', icon: AlertTriangle, badge: 'alerts' },
-  { to: '/review', label: 'Review', icon: ClipboardCheck, badge: 'review' },
-  { to: '/settlements', label: 'Settlements', icon: Banknote },
-  { to: '/settings', label: 'Settings', icon: Settings },
+  { to: '/', label: 'dashboard', icon: LayoutDashboard },
+  { to: '/trips', label: 'trips', icon: RouteIcon },
+  { to: '/vehicles', label: 'vehicles', icon: Car },
+  { to: '/drivers', label: 'drivers', icon: Users },
+  { to: '/documents', label: 'documents', icon: FileText },
+  { to: '/fuel', label: 'fuel', icon: Fuel },
+  { to: '/alerts', label: 'alerts', icon: AlertTriangle, badge: 'alerts' },
+  { to: '/review', label: 'review', icon: ClipboardCheck, badge: 'review' },
+  { to: '/settlements', label: 'settlements', icon: Banknote },
+  { to: '/settings', label: 'settings', icon: Settings },
 ];
 
 function CountBadge({ count, urgent }: { count: number; urgent: boolean }) {
+  const { t } = useTranslation();
   if (!count) return null;
   return (
     <span
@@ -49,7 +62,7 @@ function CountBadge({ count, urgent }: { count: number; urgent: boolean }) {
         'ml-auto min-w-5 rounded-full px-1.5 py-0.5 text-center text-xs font-semibold tabular-nums',
         urgent ? 'bg-red-500 text-white' : 'bg-white/15 text-white',
       )}
-      aria-label={`${String(count)} open`}
+      aria-label={t('nav.openCount', { count })}
     >
       {count > 99 ? '99+' : count}
     </span>
@@ -57,6 +70,7 @@ function CountBadge({ count, urgent }: { count: number; urgent: boolean }) {
 }
 
 function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
+  const { t } = useTranslation();
   const auth = useAuth();
   const summary = useAlertSummary();
   const openAlerts = summary.data
@@ -71,12 +85,12 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         <span className="flex size-8 items-center justify-center rounded-lg bg-white text-brand-700 shadow-sm">
           <Car className="size-4.5" aria-hidden />
         </span>
-        <span className="text-lg font-semibold tracking-tight text-white">Taxcy</span>
+        <span className="text-lg font-semibold tracking-tight text-white">{t('app.name')}</span>
       </div>
       <div className="px-3 pb-3">
         {memberships.length > 1 ? (
           <Select
-            aria-label="Organization"
+            aria-label={t('nav.organization')}
             className="border-white/20 bg-white/10 text-white [&>option]:text-slate-900"
             value={auth.session?.activeOrgId ?? ''}
             onChange={(e) => void auth.switchOrg(e.target.value)}
@@ -93,7 +107,7 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
           </p>
         )}
       </div>
-      <nav aria-label="Main" className="flex-1 space-y-0.5 overflow-y-auto px-2">
+      <nav aria-label={t('nav.main')} className="flex-1 space-y-0.5 overflow-y-auto px-2">
         {NAV.map((item) => (
           <NavLink
             key={item.to}
@@ -110,7 +124,7 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
             }
           >
             <item.icon className="size-4 shrink-0" aria-hidden />
-            {item.label}
+            {t(`nav.${item.label}`)}
             {item.badge === 'alerts' && (
               <CountBadge
                 count={openAlerts}
@@ -127,9 +141,10 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         <p className="truncate text-sm font-medium text-white">
           {auth.session?.user.name ?? auth.session?.user.phone}
         </p>
-        <p className="mb-2 text-xs text-brand-200 capitalize">
-          {auth.activeMembership?.roles.join(', ')}
+        <p className="mb-2 text-xs text-brand-200">
+          {auth.activeMembership?.roles.map((role) => t(`enums.role.${role}`)).join(', ')}
         </p>
+        <LanguageSwitcher className="mb-2 text-brand-100" />
         <Button
           variant="ghost"
           size="sm"
@@ -137,7 +152,7 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
           onClick={() => void auth.logout()}
         >
           <LogOut className="size-4" aria-hidden />
-          Sign out
+          {t('nav.signOut')}
         </Button>
       </div>
     </div>
@@ -145,6 +160,7 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
 }
 
 export function Layout() {
+  const { t } = useTranslation();
   const [menuOpen, setMenuOpen] = useState(false);
   return (
     <div className="min-h-screen lg:flex">
@@ -156,7 +172,7 @@ export function Layout() {
           variant="ghost"
           size="sm"
           className="text-white hover:bg-white/10"
-          aria-label="Open menu"
+          aria-label={t('nav.openMenu')}
           aria-expanded={menuOpen}
           onClick={() => {
             setMenuOpen(true);
@@ -164,13 +180,13 @@ export function Layout() {
         >
           <Menu className="size-5" aria-hidden />
         </Button>
-        <span className="font-semibold">Taxcy</span>
+        <span className="font-semibold">{t('app.name')}</span>
       </header>
       {menuOpen && (
         <div className="fixed inset-0 z-30 lg:hidden">
           <button
             type="button"
-            aria-label="Close menu"
+            aria-label={t('nav.closeMenu')}
             className="absolute inset-0 bg-brand-950/50"
             onClick={() => {
               setMenuOpen(false);
@@ -180,7 +196,7 @@ export function Layout() {
             <Button
               variant="ghost"
               size="sm"
-              aria-label="Close menu"
+              aria-label={t('nav.closeMenu')}
               className="absolute top-4 right-2 text-white hover:bg-white/10"
               onClick={() => {
                 setMenuOpen(false);

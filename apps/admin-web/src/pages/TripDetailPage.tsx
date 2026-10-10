@@ -1,6 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { chargePaidByDriver, isExtraFareCharge } from '@taxcy/domain';
 import { useMemo, useState, type SubmitEvent } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link, useParams } from 'react-router';
 import { RouteMap } from '../components/maps.js';
 import { DriverSelect, Photo, VehicleSelect } from '../components/shared.js';
@@ -23,15 +24,18 @@ import {
   Textarea,
   type Tone,
 } from '../components/ui.js';
+import { intlLocale } from '../i18n/index.js';
+import { en } from '../i18n/locales/en.js';
+import { alertText } from '../lib/alert-text.js';
 import { api, call, idempotencyKey } from '../lib/api.js';
 import type { DistanceCheck, Trip, TripEvent } from '../lib/api-types.js';
 import {
   fmtDateTime,
   fmtInr,
   fmtKm,
+  fmtNumber,
   fmtPhone,
   fmtRegistration,
-  humanize,
   rupeesToPaise,
 } from '../lib/format.js';
 import {
@@ -45,6 +49,16 @@ import {
 import { useApiMutation } from '../lib/mutations.js';
 
 type OdometerReading = NonNullable<Trip['startOdometer']>;
+type Role = Trip['charges'][number]['enteredRole'];
+type EventName = keyof typeof en.enums.tripEvent;
+
+const isEventName = (name: string): name is EventName => Object.hasOwn(en.enums.tripEvent, name);
+
+/** A role as it reads mid-sentence ("by the owner"). */
+function useRoleName() {
+  const { t } = useTranslation();
+  return (role: Role) => t(`enums.role.${role}`).toLocaleLowerCase(intlLocale());
+}
 
 /** Invalidate everything a trip change can affect. */
 function useTripInvalidation(tripId: string) {
@@ -59,6 +73,7 @@ function useTripInvalidation(tripId: string) {
 }
 
 function AssignModal({ trip, onClose }: { trip: Trip; onClose: () => void }) {
+  const { t } = useTranslation();
   const [vehicleId, setVehicleId] = useState(trip.vehicle?.id ?? '');
   const [driverId, setDriverId] = useState(trip.driver?.id ?? '');
   const assign = useApiMutation(
@@ -75,11 +90,11 @@ function AssignModal({ trip, onClose }: { trip: Trip; onClose: () => void }) {
     <Modal
       open
       onClose={onClose}
-      title={trip.vehicle ? 'Reassign trip' : 'Assign trip'}
+      title={trip.vehicle ? t('trips.assign.reassignTitle') : t('trips.assign.assignTitle')}
       footer={
         <>
           <Button variant="secondary" onClick={onClose}>
-            Cancel
+            {t('common.cancel')}
           </Button>
           <Button
             busy={assign.isPending}
@@ -88,21 +103,19 @@ function AssignModal({ trip, onClose }: { trip: Trip; onClose: () => void }) {
               assign.mutate(undefined, { onSuccess: onClose });
             }}
           >
-            {trip.vehicle ? 'Reassign' : 'Assign'}
+            {trip.vehicle ? t('trips.assign.reassign') : t('trips.assign.assign')}
           </Button>
         </>
       }
     >
       <div className="space-y-4">
-        <Field label="Vehicle">
+        <Field label={t('trips.vehicle')}>
           {(props) => <VehicleSelect {...props} value={vehicleId} onChange={setVehicleId} />}
         </Field>
-        <Field label="Driver">
+        <Field label={t('trips.driver')}>
           {(props) => <DriverSelect {...props} value={driverId} onChange={setDriverId} />}
         </Field>
-        <p className="text-xs text-slate-500">
-          A vehicle or driver already booked for an overlapping time can’t be assigned.
-        </p>
+        <p className="text-xs text-slate-500">{t('trips.assign.overlapHint')}</p>
         <InlineError error={assign.error} />
       </div>
     </Modal>
@@ -128,6 +141,7 @@ function ReasonModal({
   onClose: () => void;
   extra?: React.ReactNode;
 }) {
+  const { t } = useTranslation();
   const [text, setText] = useState('');
   return (
     <Modal
@@ -137,7 +151,7 @@ function ReasonModal({
       footer={
         <>
           <Button variant="secondary" onClick={onClose}>
-            Back
+            {t('trips.back')}
           </Button>
           <Button
             variant="danger"
@@ -172,6 +186,7 @@ function ReasonModal({
 }
 
 function Actions({ trip }: { trip: Trip }) {
+  const { t } = useTranslation();
   const invalidate = useTripInvalidation(trip.id);
   const [dialog, setDialog] = useState<'assign' | 'cancel' | null>(null);
   const unassign = useApiMutation(
@@ -203,7 +218,7 @@ function Actions({ trip }: { trip: Trip }) {
             setDialog('assign');
           }}
         >
-          {can('assign') ? 'Assign' : 'Reassign'}
+          {can('assign') ? t('trips.assign.assign') : t('trips.assign.reassign')}
         </Button>
       )}
       {can('unassign') && (
@@ -214,7 +229,7 @@ function Actions({ trip }: { trip: Trip }) {
             unassign.mutate(undefined, { onSuccess: () => void invalidate() });
           }}
         >
-          Unassign
+          {t('trips.assign.unassign')}
         </Button>
       )}
       {can('cancel') && (
@@ -224,7 +239,7 @@ function Actions({ trip }: { trip: Trip }) {
             setDialog('cancel');
           }}
         >
-          Cancel trip
+          {t('trips.cancelTrip')}
         </Button>
       )}
       {unassign.error ? <InlineError error={unassign.error} /> : null}
@@ -238,9 +253,9 @@ function Actions({ trip }: { trip: Trip }) {
       )}
       {dialog === 'cancel' && (
         <ReasonModal
-          title="Cancel this trip"
-          label="Reason"
-          confirm="Cancel trip"
+          title={t('trips.cancelTitle')}
+          label={t('trips.reason')}
+          confirm={t('trips.cancelTrip')}
           busy={cancel.isPending}
           error={cancel.error}
           onClose={() => {
@@ -261,6 +276,8 @@ function Actions({ trip }: { trip: Trip }) {
 }
 
 function CancellationCard({ trip }: { trip: Trip }) {
+  const { t } = useTranslation();
+  const roleName = useRoleName();
   const request = trip.cancellationRequest;
   const invalidate = useTripInvalidation(trip.id);
   const [dialog, setDialog] = useState<'approve' | 'reject' | null>(null);
@@ -295,8 +312,8 @@ function CancellationCard({ trip }: { trip: Trip }) {
 
   return (
     <Card
-      title="Cancellation request"
-      actions={<Badge tone={tone}>{humanize(request.status)}</Badge>}
+      title={t('trips.cancellation.title')}
+      actions={<Badge tone={tone}>{t(`enums.cancellationStatus.${request.status}`)}</Badge>}
       className={pending ? 'border-amber-300' : undefined}
     >
       <div className="grid gap-4 sm:grid-cols-[1fr_auto]">
@@ -305,11 +322,21 @@ function CancellationCard({ trip }: { trip: Trip }) {
             <span className="font-medium">“{request.reason}”</span>
           </p>
           <p className="text-slate-600">
-            Requested by the {request.requestedRole} on {fmtDateTime(request.createdAt)}
-            {request.endOdometer ? ` · odometer ${fmtKm(request.endOdometer.typedKm)}` : ''}
+            {request.endOdometer
+              ? t('trips.cancellation.requestedByWithOdometer', {
+                  role: roleName(request.requestedRole),
+                  when: fmtDateTime(request.createdAt),
+                  km: fmtKm(request.endOdometer.typedKm),
+                })
+              : t('trips.cancellation.requestedBy', {
+                  role: roleName(request.requestedRole),
+                  when: fmtDateTime(request.createdAt),
+                })}
           </p>
           {request.decisionNote && (
-            <p className="text-slate-600">Decision note: {request.decisionNote}</p>
+            <p className="text-slate-600">
+              {t('trips.cancellation.decisionNote', { note: request.decisionNote })}
+            </p>
           )}
           {pending && (
             <div className="flex flex-wrap gap-2 pt-2">
@@ -318,7 +345,7 @@ function CancellationCard({ trip }: { trip: Trip }) {
                   setDialog('approve');
                 }}
               >
-                Approve cancellation
+                {t('trips.cancellation.approve')}
               </Button>
               <Button
                 variant="secondary"
@@ -326,13 +353,16 @@ function CancellationCard({ trip }: { trip: Trip }) {
                   setDialog('reject');
                 }}
               >
-                Reject
+                {t('trips.cancellation.reject')}
               </Button>
             </div>
           )}
         </div>
         {request.endOdometer && (
-          <Photo mediaId={request.endOdometer.mediaId} alt="Odometer at cancellation" />
+          <Photo
+            mediaId={request.endOdometer.mediaId}
+            alt={t('trips.cancellation.odometerPhoto')}
+          />
         )}
       </div>
       {dialog === 'approve' && (
@@ -341,7 +371,7 @@ function CancellationCard({ trip }: { trip: Trip }) {
           onClose={() => {
             setDialog(null);
           }}
-          title="Approve cancellation"
+          title={t('trips.cancellation.approveTitle')}
           footer={
             <>
               <Button
@@ -350,7 +380,7 @@ function CancellationCard({ trip }: { trip: Trip }) {
                   setDialog(null);
                 }}
               >
-                Back
+                {t('trips.back')}
               </Button>
               <Button
                 busy={approve.isPending}
@@ -367,16 +397,14 @@ function CancellationCard({ trip }: { trip: Trip }) {
                   );
                 }}
               >
-                Approve
+                {t('trips.cancellation.approveButton')}
               </Button>
             </>
           }
         >
           <div className="space-y-4">
-            <p className="text-sm text-slate-600">
-              The trip becomes cancelled. You can charge for the distance already driven.
-            </p>
-            <Field label="Cancellation fare (₹)" hint="0 for no charge.">
+            <p className="text-sm text-slate-600">{t('trips.cancellation.approveHint')}</p>
+            <Field label={t('trips.cancellation.fare')} hint={t('trips.cancellation.fareHint')}>
               {(props) => (
                 <Input
                   {...props}
@@ -394,9 +422,9 @@ function CancellationCard({ trip }: { trip: Trip }) {
       )}
       {dialog === 'reject' && (
         <ReasonModal
-          title="Reject cancellation"
-          label="Note for the driver"
-          confirm="Reject — the trip continues"
+          title={t('trips.cancellation.rejectTitle')}
+          label={t('trips.cancellation.rejectNote')}
+          confirm={t('trips.cancellation.rejectConfirm')}
           busy={reject.isPending}
           error={reject.error}
           onClose={() => {
@@ -417,11 +445,12 @@ function CancellationCard({ trip }: { trip: Trip }) {
 }
 
 function OdometerCell({ label, reading }: { label: string; reading: OdometerReading | null }) {
+  const { t } = useTranslation();
   if (!reading) {
     return (
       <div>
         <p className="text-sm font-medium">{label}</p>
-        <p className="text-sm text-slate-500">Not recorded yet</p>
+        <p className="text-sm text-slate-500">{t('trips.odometer.notRecorded')}</p>
       </div>
     );
   }
@@ -429,11 +458,11 @@ function OdometerCell({ label, reading }: { label: string; reading: OdometerRead
   return (
     <div className="space-y-2">
       <p className="text-sm font-medium">{label}</p>
-      <Photo mediaId={reading.mediaId} alt={`${label} odometer photo`} />
+      <Photo mediaId={reading.mediaId} alt={t('trips.odometer.photoAlt', { label })} />
       <dl className="grid grid-cols-2 gap-2">
-        <Stat label="Typed" value={fmtKm(reading.typedKm)} />
+        <Stat label={t('trips.odometer.typed')} value={fmtKm(reading.typedKm)} />
         <Stat
-          label="Read from photo"
+          label={t('trips.odometer.readFromPhoto')}
           value={
             reading.ocrKm === null ? (
               '—'
@@ -443,33 +472,28 @@ function OdometerCell({ label, reading }: { label: string; reading: OdometerRead
               </span>
             )
           }
-          hint={mismatch ? 'Differs: sent to the review queue' : undefined}
+          hint={mismatch ? t('trips.odometer.differs') : undefined}
         />
       </dl>
-      <p className="text-xs text-slate-500">Captured {fmtDateTime(reading.capturedAt)}</p>
+      <p className="text-xs text-slate-500">
+        {t('trips.odometer.captured', { when: fmtDateTime(reading.capturedAt) })}
+      </p>
     </div>
   );
 }
 
-const VERDICT: Record<DistanceCheck['result'], { tone: Tone; label: string; text: string }> = {
-  ok: {
-    tone: 'success',
-    label: 'Odometer matches GPS',
-    text: 'The odometer distance is within the allowed difference from the GPS route.',
-  },
-  flagged: {
-    tone: 'danger',
-    label: 'Odometer higher than GPS',
-    text: 'The odometer distance is well above the GPS route. See the alert for details.',
-  },
+const VERDICT = {
+  ok: { tone: 'success', label: 'trips.verdict.ok', text: 'trips.verdict.okText' },
+  flagged: { tone: 'danger', label: 'trips.verdict.flagged', text: 'trips.verdict.flaggedText' },
   inconclusive: {
     tone: 'neutral',
-    label: 'Not enough GPS to judge',
-    text: 'The phone recorded too little of the trip (often battery-saving settings). No alert is raised in this case.',
+    label: 'trips.verdict.inconclusive',
+    text: 'trips.verdict.inconclusiveText',
   },
-};
+} as const satisfies Record<DistanceCheck['result'], { tone: Tone; label: string; text: string }>;
 
 function RouteCard({ trip }: { trip: Trip }) {
+  const { t } = useTranslation();
   const started = trip.startedAt !== null;
   const closed = trip.endedAt !== null || (trip.cancelledAt !== null && started);
   const route = useTripRoute(trip.id, started);
@@ -483,9 +507,9 @@ function RouteCard({ trip }: { trip: Trip }) {
   const to = trip.to?.point ?? null;
 
   return (
-    <Card title="Route">
+    <Card title={t('trips.route.title')}>
       {!started ? (
-        <EmptyState title="The route appears once the trip starts" />
+        <EmptyState title={t('trips.route.beforeStart')} />
       ) : (
         <div className="space-y-4">
           <QueryState query={route}>
@@ -493,56 +517,64 @@ function RouteCard({ trip }: { trip: Trip }) {
           </QueryState>
           {route.data && (
             <p className="text-xs text-slate-500">
-              {route.data.points.length} GPS points shown
+              {t('trips.route.pointsShown', { count: route.data.points.length })}
               {route.data.dropped.inaccurate +
                 route.data.dropped.mock +
                 route.data.dropped.impossibleSpeed >
                 0 &&
-                ` · removed ${String(route.data.dropped.inaccurate)} inaccurate, ${String(route.data.dropped.mock)} mock and ${String(route.data.dropped.impossibleSpeed)} impossible points`}
+                t('trips.route.removed', {
+                  inaccurate: fmtNumber(route.data.dropped.inaccurate),
+                  mock: fmtNumber(route.data.dropped.mock),
+                  impossible: fmtNumber(route.data.dropped.impossibleSpeed),
+                })}
             </p>
           )}
           {closed && check.data && (
             <div className="rounded-md border border-slate-200 p-3">
               <div className="mb-2 flex flex-wrap items-center gap-2">
                 <Badge tone={VERDICT[check.data.result].tone}>
-                  {VERDICT[check.data.result].label}
+                  {t(VERDICT[check.data.result].label)}
                 </Badge>
                 <span className="text-xs text-slate-500">
-                  checked {fmtDateTime(check.data.computedAt)}
+                  {t('trips.route.checked', { when: fmtDateTime(check.data.computedAt) })}
                 </span>
               </div>
               <dl className="mb-2 grid grid-cols-2 gap-3 sm:grid-cols-4">
-                <Stat label="Odometer" value={fmtKm(check.data.odometerKm)} />
+                <Stat label={t('trips.route.odometer')} value={fmtKm(check.data.odometerKm)} />
                 <Stat
-                  label="GPS"
+                  label={t('trips.route.gps')}
                   value={check.data.gpsKm === null ? '—' : fmtKm(check.data.gpsKm)}
                 />
                 <Stat
-                  label="GPS coverage"
+                  label={t('trips.route.coverage')}
                   value={
                     check.data.coverageRatio === null
                       ? '—'
-                      : `${String(Math.round(check.data.coverageRatio * 100))}%`
+                      : t('units.percent', {
+                          value: fmtNumber(Math.round(check.data.coverageRatio * 100)),
+                        })
                   }
                 />
                 <Stat
-                  label="Longest gap"
+                  label={t('trips.route.longestGap')}
                   value={
                     check.data.maxGapSeconds === null
                       ? '—'
-                      : `${String(Math.round(check.data.maxGapSeconds / 60))} min`
+                      : t('trips.route.minutes', {
+                          count: Math.round(check.data.maxGapSeconds / 60),
+                        })
                   }
                 />
               </dl>
               <p className="text-sm text-slate-600">
-                {alerts.data?.[0]?.explanation ?? VERDICT[check.data.result].text}
+                {alerts.data?.[0]
+                  ? alertText(alerts.data[0]).explanation
+                  : t(VERDICT[check.data.result].text)}
               </p>
             </div>
           )}
           {closed && check.isSuccess && check.data === null && (
-            <p className="text-sm text-slate-500">
-              The distance check runs a few seconds after the trip ends.
-            </p>
+            <p className="text-sm text-slate-500">{t('trips.route.checkPending')}</p>
           )}
         </div>
       )}
@@ -561,6 +593,8 @@ const CHARGE_KINDS = [
 ] as const;
 
 function ChargesCard({ trip }: { trip: Trip }) {
+  const { t } = useTranslation();
+  const roleName = useRoleName();
   const invalidate = useTripInvalidation(trip.id);
   const [adding, setAdding] = useState(false);
   const [kind, setKind] = useState<(typeof CHARGE_KINDS)[number]>('toll');
@@ -610,7 +644,7 @@ function ChargesCard({ trip }: { trip: Trip }) {
 
   return (
     <Card
-      title="Charges"
+      title={t('trips.charges.title')}
       actions={
         editable && (
           <Button
@@ -620,32 +654,34 @@ function ChargesCard({ trip }: { trip: Trip }) {
               setAdding(true);
             }}
           >
-            Add charge
+            {t('trips.charges.add')}
           </Button>
         )
       }
     >
       {trip.charges.length === 0 ? (
-        <p className="text-sm text-slate-500">No tolls, parking or other charges.</p>
+        <p className="text-sm text-slate-500">{t('trips.charges.none')}</p>
       ) : (
         <Table>
           <tbody>
             {trip.charges.map((c) => (
               <tr key={c.id} className={c.voidedAt ? 'text-slate-400 line-through' : undefined}>
                 <Td>
-                  {humanize(c.kind)}
+                  {t(`enums.chargeKind.${c.kind}`)}
                   {c.note && (
                     <span className="block text-xs text-slate-500 no-underline">{c.note}</span>
                   )}
                 </Td>
                 <Td>
                   <span className="text-xs text-slate-500">
-                    {isExtraFareCharge(c.kind)
-                      ? 'Extra fare'
-                      : c.paidByDriver
-                        ? 'Driver paid'
-                        : 'Billed only'}{' '}
-                    · by {c.enteredRole}
+                    {t('trips.charges.byRole', {
+                      type: isExtraFareCharge(c.kind)
+                        ? t('trips.charges.extraFare')
+                        : c.paidByDriver
+                          ? t('trips.charges.driverPaid')
+                          : t('trips.charges.billedOnly'),
+                      role: roleName(c.enteredRole),
+                    })}
                   </span>
                 </Td>
                 <Td align="right">{fmtInr(c.amountPaise)}</Td>
@@ -659,7 +695,7 @@ function ChargesCard({ trip }: { trip: Trip }) {
                         voidCharge.mutate(c.id, { onSuccess: () => void invalidate() });
                       }}
                     >
-                      Void
+                      {t('trips.charges.void')}
                     </Button>
                   )}
                 </Td>
@@ -675,10 +711,10 @@ function ChargesCard({ trip }: { trip: Trip }) {
           onClose={() => {
             setAdding(false);
           }}
-          title="Add a charge"
+          title={t('trips.charges.addTitle')}
         >
           <form onSubmit={submit} className="space-y-4">
-            <Field label="Kind">
+            <Field label={t('trips.charges.kind')}>
               {(props) => (
                 <Select
                   {...props}
@@ -689,13 +725,13 @@ function ChargesCard({ trip }: { trip: Trip }) {
                 >
                   {CHARGE_KINDS.map((k) => (
                     <option key={k} value={k}>
-                      {humanize(k)}
+                      {t(`enums.chargeKind.${k}`)}
                     </option>
                   ))}
                 </Select>
               )}
             </Field>
-            <Field label="Amount (₹)">
+            <Field label={t('trips.charges.amount')}>
               {(props) => (
                 <Input
                   {...props}
@@ -710,7 +746,7 @@ function ChargesCard({ trip }: { trip: Trip }) {
             </Field>
             {isExtraFareCharge(kind) ? (
               <p className="rounded-md bg-brand-50 px-3 py-2 text-sm text-brand-800">
-                Extra fare: added to what the customer pays, on top of the quoted fare.
+                {t('trips.charges.extraFareHint')}
               </p>
             ) : (
               <label className="flex items-center gap-2 text-sm">
@@ -721,10 +757,10 @@ function ChargesCard({ trip }: { trip: Trip }) {
                     setPaidByDriver(e.target.checked);
                   }}
                 />
-                The driver paid this out of pocket (reimbursed in settlement)
+                {t('trips.charges.paidByDriver')}
               </label>
             )}
-            <Field label="Note">
+            <Field label={t('trips.charges.note')}>
               {(props) => (
                 <Input
                   {...props}
@@ -743,10 +779,10 @@ function ChargesCard({ trip }: { trip: Trip }) {
                   setAdding(false);
                 }}
               >
-                Cancel
+                {t('common.cancel')}
               </Button>
               <Button type="submit" busy={add.isPending} disabled={amountPaise === null}>
-                Add charge
+                {t('trips.charges.add')}
               </Button>
             </div>
           </form>
@@ -757,6 +793,7 @@ function ChargesCard({ trip }: { trip: Trip }) {
 }
 
 function CollectionsCard({ trip }: { trip: Trip }) {
+  const { t } = useTranslation();
   const invalidate = useTripInvalidation(trip.id);
   const [adding, setAdding] = useState(false);
   const [method, setMethod] = useState<'cash' | 'upi' | 'card'>('cash');
@@ -782,7 +819,7 @@ function CollectionsCard({ trip }: { trip: Trip }) {
 
   return (
     <Card
-      title="Payments collected"
+      title={t('trips.payments.title')}
       actions={
         trip.startedAt && (
           <Button
@@ -792,19 +829,19 @@ function CollectionsCard({ trip }: { trip: Trip }) {
               setAdding(true);
             }}
           >
-            Record payment
+            {t('trips.payments.record')}
           </Button>
         )
       }
     >
       {trip.collections.length === 0 ? (
-        <p className="text-sm text-slate-500">Nothing recorded yet.</p>
+        <p className="text-sm text-slate-500">{t('trips.payments.none')}</p>
       ) : (
         <Table>
           <tbody>
             {trip.collections.map((c) => (
               <tr key={c.id}>
-                <Td>{c.method.toUpperCase()}</Td>
+                <Td>{t(`enums.collectionMethod.${c.method}`)}</Td>
                 <Td className="text-xs text-slate-500">
                   {fmtDateTime(c.collectedAt)}
                   {c.reference ? ` · ${c.reference}` : ''}
@@ -813,7 +850,7 @@ function CollectionsCard({ trip }: { trip: Trip }) {
               </tr>
             ))}
             <tr>
-              <Td className="font-medium">Total</Td>
+              <Td className="font-medium">{t('trips.payments.total')}</Td>
               <Td />
               <Td align="right" className="font-semibold">
                 {fmtInr(total)}
@@ -828,7 +865,7 @@ function CollectionsCard({ trip }: { trip: Trip }) {
           onClose={() => {
             setAdding(false);
           }}
-          title="Record a payment"
+          title={t('trips.payments.recordTitle')}
         >
           <form
             className="space-y-4"
@@ -845,7 +882,7 @@ function CollectionsCard({ trip }: { trip: Trip }) {
               });
             }}
           >
-            <Field label="Method">
+            <Field label={t('trips.payments.method')}>
               {(props) => (
                 <Select
                   {...props}
@@ -854,13 +891,13 @@ function CollectionsCard({ trip }: { trip: Trip }) {
                     setMethod(e.target.value as typeof method);
                   }}
                 >
-                  <option value="cash">Cash (driver hands it over at settlement)</option>
-                  <option value="upi">UPI (comes straight to you)</option>
-                  <option value="card">Card (comes straight to you)</option>
+                  <option value="cash">{t('trips.payments.cash')}</option>
+                  <option value="upi">{t('trips.payments.upi')}</option>
+                  <option value="card">{t('trips.payments.card')}</option>
                 </Select>
               )}
             </Field>
-            <Field label="Amount (₹)">
+            <Field label={t('trips.payments.amount')}>
               {(props) => (
                 <Input
                   {...props}
@@ -873,7 +910,7 @@ function CollectionsCard({ trip }: { trip: Trip }) {
                 />
               )}
             </Field>
-            <Field label="Reference (optional)" hint="UPI reference or card slip number.">
+            <Field label={t('trips.payments.reference')} hint={t('trips.payments.referenceHint')}>
               {(props) => (
                 <Input
                   {...props}
@@ -892,10 +929,10 @@ function CollectionsCard({ trip }: { trip: Trip }) {
                   setAdding(false);
                 }}
               >
-                Cancel
+                {t('common.cancel')}
               </Button>
               <Button type="submit" busy={add.isPending} disabled={amountPaise === null}>
-                Record
+                {t('trips.payments.submit')}
               </Button>
             </div>
           </form>
@@ -906,28 +943,34 @@ function CollectionsCard({ trip }: { trip: Trip }) {
 }
 
 function Timeline({ events }: { events: TripEvent[] }) {
+  const { t } = useTranslation();
+  const roleName = useRoleName();
   return (
     <ol className="space-y-3">
       {events.map((e) => {
         const skewMinutes = Math.round(
           (new Date(e.recordedAt).getTime() - new Date(e.occurredAt).getTime()) / 60_000,
         );
+        const name = e.eventType.replace('trip.', '');
         return (
           <li key={e.id} className="flex gap-3 text-sm">
             <span className="mt-1.5 size-2 shrink-0 rounded-full bg-brand-500" aria-hidden />
             <div>
               <p className="font-medium text-slate-900">
-                {humanize(e.eventType.replace('trip.', ''))}
-                {e.actorRole ? (
-                  <span className="font-normal text-slate-500"> by {e.actorRole}</span>
-                ) : (
-                  <span className="font-normal text-slate-500"> (system)</span>
-                )}
+                {isEventName(name) ? t(`enums.tripEvent.${name}`) : name}
+                <span className="font-normal text-slate-500">
+                  {e.actorRole
+                    ? t('trips.timeline.byRole', { role: roleName(e.actorRole) })
+                    : t('trips.timeline.system')}
+                </span>
               </p>
               <p className="text-xs text-slate-500">
-                {fmtDateTime(e.occurredAt)} on the device
+                {t('trips.timeline.onDevice', { when: fmtDateTime(e.occurredAt) })}
                 {skewMinutes >= 2
-                  ? ` · reached the server ${fmtDateTime(e.recordedAt)} (synced ${String(skewMinutes)} min later)`
+                  ? t('trips.timeline.synced', {
+                      when: fmtDateTime(e.recordedAt),
+                      minutes: fmtNumber(skewMinutes),
+                    })
                   : ''}
               </p>
             </div>
@@ -939,104 +982,127 @@ function Timeline({ events }: { events: TripEvent[] }) {
 }
 
 export function TripDetailPage() {
+  const { t } = useTranslation();
   const { id = '' } = useParams();
   const trip = useTrip(id);
   const events = useTripEvents(id);
 
   return (
     <QueryState query={trip}>
-      {(t) => (
+      {(trip) => (
         <>
           <PageHeader
-            title={t.to ? `${t.from.text} → ${t.to.text}` : `${t.from.text} (local rental)`}
+            title={
+              trip.to
+                ? t('common.route', { from: trip.from.text, to: trip.to.text })
+                : t('trips.detail.localTitle', { from: trip.from.text })
+            }
             description={
               <span className="flex flex-wrap items-center gap-2">
-                <TripStatusBadge status={t.status} />
+                <TripStatusBadge status={trip.status} />
                 <span>
-                  {humanize(t.tripType)} · {fmtDateTime(t.scheduledStartAt)} –{' '}
-                  {fmtDateTime(t.scheduledEndAt)}
+                  {t('trips.detail.schedule', {
+                    type: t(`enums.tripType.${trip.tripType}`),
+                    start: fmtDateTime(trip.scheduledStartAt),
+                    end: fmtDateTime(trip.scheduledEndAt),
+                  })}
                 </span>
               </span>
             }
-            actions={<Actions trip={t} />}
+            actions={<Actions trip={trip} />}
           />
           <div className="grid gap-4 lg:grid-cols-3">
             <div className="space-y-4 lg:col-span-2">
-              <CancellationCard trip={t} />
-              <Card title="Trip">
+              <CancellationCard trip={trip} />
+              <Card title={t('trips.detail.trip')}>
                 <dl className="grid grid-cols-2 gap-4 sm:grid-cols-3">
                   <Stat
-                    label="Customer"
-                    value={t.customer?.name ?? '—'}
-                    hint={t.customer?.phone ? fmtPhone(t.customer.phone) : undefined}
+                    label={t('trips.detail.customer')}
+                    value={trip.customer?.name ?? '—'}
+                    hint={trip.customer?.phone ? fmtPhone(trip.customer.phone) : undefined}
                   />
                   <Stat
-                    label="Vehicle"
+                    label={t('trips.detail.vehicle')}
                     value={
-                      t.vehicle ? (
+                      trip.vehicle ? (
                         <Link
                           className="text-brand-700 hover:underline"
-                          to={`/vehicles/${t.vehicle.id}`}
+                          to={`/vehicles/${trip.vehicle.id}`}
                         >
-                          {fmtRegistration(t.vehicle.registrationNo)}
+                          {fmtRegistration(trip.vehicle.registrationNo)}
                         </Link>
                       ) : (
-                        'Unassigned'
+                        t('common.unassigned')
                       )
                     }
-                    hint={t.vehicle?.model}
+                    hint={trip.vehicle?.model}
                   />
-                  <Stat label="Driver" value={t.driver?.name ?? 'Unassigned'} />
-                  <Stat label="Quoted fare" value={fmtInr(t.quotedFarePaise)} />
                   <Stat
-                    label="Included km"
-                    value={t.includedKm === null ? 'Not set' : `${String(t.includedKm)} km`}
+                    label={t('trips.detail.driver')}
+                    value={trip.driver?.name ?? t('common.unassigned')}
+                  />
+                  <Stat label={t('trips.detail.quotedFare')} value={fmtInr(trip.quotedFarePaise)} />
+                  <Stat
+                    label={t('trips.detail.includedKm')}
+                    value={
+                      trip.includedKm === null ? t('trips.detail.notSet') : fmtKm(trip.includedKm)
+                    }
                     hint={(() => {
                       const driven =
-                        t.startOdometer && t.endOdometer
-                          ? t.endOdometer.typedKm - t.startOdometer.typedKm
+                        trip.startOdometer && trip.endOdometer
+                          ? trip.endOdometer.typedKm - trip.startOdometer.typedKm
                           : null;
-                      if (t.includedKm === null || driven === null) return undefined;
-                      return driven > t.includedKm
-                        ? `${String(driven - t.includedKm)} km over (driven ${String(driven)} km)`
-                        : `Driven ${String(driven)} km`;
+                      if (trip.includedKm === null || driven === null) return undefined;
+                      return driven > trip.includedKm
+                        ? t('trips.detail.kmOver', {
+                            over: fmtKm(driven - trip.includedKm),
+                            driven: fmtKm(driven),
+                          })
+                        : t('trips.detail.driven', { driven: fmtKm(driven) });
                     })()}
                   />
-                  {t.cancellationFarePaise !== null && (
-                    <Stat label="Cancellation fare" value={fmtInr(t.cancellationFarePaise)} />
-                  )}
-                  <Stat label="Started" value={fmtDateTime(t.startedAt)} />
-                  <Stat label="Ended" value={fmtDateTime(t.endedAt)} />
-                  {t.cancelledAt && (
+                  {trip.cancellationFarePaise !== null && (
                     <Stat
-                      label="Cancelled"
-                      value={fmtDateTime(t.cancelledAt)}
-                      hint={t.cancelReason ?? undefined}
+                      label={t('trips.detail.cancellationFare')}
+                      value={fmtInr(trip.cancellationFarePaise)}
                     />
                   )}
-                  {t.startOdometer && t.endOdometer && (
+                  <Stat label={t('trips.detail.started')} value={fmtDateTime(trip.startedAt)} />
+                  <Stat label={t('trips.detail.ended')} value={fmtDateTime(trip.endedAt)} />
+                  {trip.cancelledAt && (
                     <Stat
-                      label="Odometer distance"
-                      value={fmtKm(t.endOdometer.typedKm - t.startOdometer.typedKm)}
+                      label={t('trips.detail.cancelled')}
+                      value={fmtDateTime(trip.cancelledAt)}
+                      hint={trip.cancelReason ?? undefined}
+                    />
+                  )}
+                  {trip.startOdometer && trip.endOdometer && (
+                    <Stat
+                      label={t('trips.detail.odometerDistance')}
+                      value={fmtKm(trip.endOdometer.typedKm - trip.startOdometer.typedKm)}
                     />
                   )}
                 </dl>
               </Card>
-              <Card title="Odometer evidence">
+              <Card title={t('trips.odometer.evidence')}>
                 <div className="grid gap-6 sm:grid-cols-2">
-                  <OdometerCell label="Start" reading={t.startOdometer} />
-                  <OdometerCell label="End" reading={t.endOdometer} />
+                  <OdometerCell label={t('trips.odometer.start')} reading={trip.startOdometer} />
+                  <OdometerCell label={t('trips.odometer.end')} reading={trip.endOdometer} />
                 </div>
               </Card>
-              <RouteCard trip={t} />
+              <RouteCard trip={trip} />
             </div>
             <div className="space-y-4">
-              <CollectionsCard trip={t} />
-              <ChargesCard trip={t} />
-              <Card title="Timeline">
+              <CollectionsCard trip={trip} />
+              <ChargesCard trip={trip} />
+              <Card title={t('trips.timeline.title')}>
                 <QueryState query={events}>
                   {(list) =>
-                    list.length ? <Timeline events={list} /> : <EmptyState title="No events" />
+                    list.length ? (
+                      <Timeline events={list} />
+                    ) : (
+                      <EmptyState title={t('trips.timeline.none')} />
+                    )
                   }
                 </QueryState>
               </Card>

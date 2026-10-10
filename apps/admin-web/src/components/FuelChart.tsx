@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import {
   Area,
   CartesianGrid,
@@ -9,8 +10,9 @@ import {
   YAxis,
   type TooltipContentProps,
 } from 'recharts';
+import { intlLocale } from '../i18n/index.js';
 import type { ChartPoint } from '../lib/fuel-chart.js';
-import { fmtDayShort } from '../lib/format.js';
+import { fmtDayShort, fmtDecimal1, fmtInrExact, fmtKm, fmtNumber } from '../lib/format.js';
 
 // Reference palette (dataviz skill): one series hue, status steps for verdicts,
 // recessive blue-grey chrome to match the console theme. Light-only.
@@ -27,8 +29,41 @@ const COLORS = {
   secondary: '#4a5a77',
 };
 
-const fmtValue = (v: number, unitLabel: string) =>
-  unitLabel === '₹/km' ? `₹${v.toFixed(2)}/km` : `${v.toFixed(1)} ${unitLabel}`;
+/** What the chart plots: km per litre/kg, or running cost (points are in ₹/km). */
+interface ChartUnit {
+  metric: 'km_per_unit' | 'paise_per_km';
+  unit: 'L' | 'kg';
+}
+
+interface ChartFormat {
+  /** "km/L", "₹/km" in the user's language. */
+  unitText: string;
+  value: (v: number) => string;
+  tick: (v: number) => string;
+}
+
+function useChartFormat({ metric, unit }: ChartUnit): ChartFormat {
+  const { t } = useTranslation();
+  if (metric === 'paise_per_km') {
+    const tick = new Intl.NumberFormat(intlLocale(), {
+      style: 'currency',
+      currency: 'INR',
+      minimumFractionDigits: 1,
+      maximumFractionDigits: 1,
+    });
+    return {
+      unitText: t('fleet.chart.unitPerKm'),
+      value: (v) => t('units.perKm', { amount: fmtInrExact(Math.round(v * 100)) }),
+      tick: (v) => tick.format(v),
+    };
+  }
+  const unitName = t(`units.${unit}`);
+  return {
+    unitText: t('fleet.chart.unitKmPer', { unit: unitName }),
+    value: (v) => t('units.kmPerUnit', { value: fmtDecimal1(v), unit: unitName }),
+    tick: (v) => fmtNumber(v),
+  };
+}
 
 function VerdictMarker({
   cx,
@@ -71,24 +106,28 @@ function VerdictMarker({
 function ChartTooltip({
   active,
   payload,
-  unitLabel,
+  format,
 }: {
   active: boolean | undefined;
   payload: readonly { payload?: unknown }[] | undefined;
-  unitLabel: string;
+  format: ChartFormat;
 }) {
+  const { t } = useTranslation();
   const point = payload?.[0]?.payload as ChartPoint | undefined;
   if (!active || !point) return null;
   const verdict =
     point.verdict === 'flagged'
-      ? '⚠ Flagged'
+      ? t('fleet.chart.flagged')
       : point.verdict === 'invalid'
-        ? '◆ Invalid (sent to review)'
-        : 'Within normal range';
+        ? t('fleet.chart.invalid')
+        : t('fleet.chart.withinRange');
   return (
     <div className="rounded-md border border-slate-200 bg-white px-3 py-2 text-xs shadow-md">
       <p className="mb-1 font-medium" style={{ color: COLORS.secondary }}>
-        Cycle ending {fmtDayShort(new Date(point.t).toISOString())} · {point.distanceKm} km
+        {t('fleet.chart.cycleEnding', {
+          date: fmtDayShort(new Date(point.t).toISOString()),
+          distance: fmtKm(point.distanceKm),
+        })}
       </p>
       <p className="flex items-center gap-2">
         <span
@@ -96,12 +135,16 @@ function ChartTooltip({
           style={{ background: COLORS.series }}
           aria-hidden
         />
-        <strong style={{ color: COLORS.ink }}>{fmtValue(point.value, unitLabel)}</strong>
+        <strong style={{ color: COLORS.ink }}>{format.value(point.value)}</strong>
       </p>
       {point.band && (
         <p style={{ color: COLORS.secondary }}>
-          Normal range {fmtValue(point.band[0], unitLabel)} – {fmtValue(point.band[1], unitLabel)} (
-          {point.method === 'sigma' ? 'kσ' : '% rule, new vehicle'})
+          {t('fleet.chart.normalRange', {
+            low: format.value(point.band[0]),
+            high: format.value(point.band[1]),
+            rule:
+              point.method === 'sigma' ? t('fleet.chart.ruleSigma') : t('fleet.chart.rulePercent'),
+          })}
         </p>
       )}
       <p style={{ color: COLORS.secondary }}>{verdict}</p>
@@ -115,17 +158,24 @@ function ChartTooltip({
  */
 export function FuelChart({
   points,
-  unitLabel,
+  metric,
+  unit,
   higherIsBetter,
-}: {
+}: ChartUnit & {
   points: ChartPoint[];
-  unitLabel: string;
   higherIsBetter: boolean;
 }) {
+  const { t } = useTranslation();
+  const format = useChartFormat({ metric, unit });
   return (
     <figure>
       <figcaption className="mb-2 text-xs text-slate-500">
-        {unitLabel} per full-tank cycle · {higherIsBetter ? 'higher is better' : 'lower is better'}
+        {t('fleet.chart.caption', {
+          unit: format.unitText,
+          direction: higherIsBetter
+            ? t('fleet.chart.higherIsBetter')
+            : t('fleet.chart.lowerIsBetter'),
+        })}
       </figcaption>
       <div className="h-72 rounded-md" style={{ background: COLORS.surface }}>
         <ResponsiveContainer width="100%" height="100%">
@@ -148,9 +198,7 @@ export function FuelChart({
               axisLine={false}
               width={48}
               domain={['auto', 'auto']}
-              tickFormatter={(v: number) =>
-                unitLabel === '₹/km' ? `₹${v.toFixed(1)}` : v.toFixed(0)
-              }
+              tickFormatter={format.tick}
             />
             <Area
               dataKey="band"
@@ -179,7 +227,7 @@ export function FuelChart({
             <Tooltip
               cursor={{ stroke: COLORS.axis, strokeWidth: 1 }}
               content={(props: TooltipContentProps) => (
-                <ChartTooltip active={props.active} payload={props.payload} unitLabel={unitLabel} />
+                <ChartTooltip active={props.active} payload={props.payload} format={format} />
               )}
             />
           </ComposedChart>
@@ -188,7 +236,7 @@ export function FuelChart({
       <ul
         className="mt-2 flex flex-wrap gap-4 text-xs"
         style={{ color: COLORS.secondary }}
-        aria-label="Chart key"
+        aria-label={t('fleet.chart.key')}
       >
         <li className="flex items-center gap-1.5">
           <span
@@ -196,7 +244,7 @@ export function FuelChart({
             style={{ background: COLORS.series }}
             aria-hidden
           />
-          Cycle value
+          {t('fleet.chart.keyValue')}
         </li>
         <li className="flex items-center gap-1.5">
           <span
@@ -204,7 +252,7 @@ export function FuelChart({
             style={{ background: COLORS.band }}
             aria-hidden
           />
-          Normal range at the time
+          {t('fleet.chart.keyBand')}
         </li>
         <li className="flex items-center gap-1.5">
           <span
@@ -212,7 +260,7 @@ export function FuelChart({
             style={{ background: COLORS.critical }}
             aria-hidden
           />
-          Flagged
+          {t('fleet.chart.keyFlagged')}
         </li>
         <li className="flex items-center gap-1.5">
           <span
@@ -220,7 +268,7 @@ export function FuelChart({
             style={{ background: COLORS.serious }}
             aria-hidden
           />
-          Invalid (in review queue)
+          {t('fleet.chart.keyInvalid')}
         </li>
       </ul>
     </figure>

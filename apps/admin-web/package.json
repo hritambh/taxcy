@@ -17,10 +17,12 @@
     "@taxcy/contracts": "workspace:*",
     "@taxcy/domain": "workspace:*",
     "@taxcy/ui": "workspace:*",
+    "i18next": "^26.4.3",
     "lucide-react": "^1.54.0",
     "maplibre-gl": "^6.13.0",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
+    "react-i18next": "^17.0.16",
     "react-router": "^8.4.0",
     "recharts": "^3.10.1",
     "zod": "^4.6.5"

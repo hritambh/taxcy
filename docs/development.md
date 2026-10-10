@@ -119,6 +119,23 @@ Run one project's target with `bunx nx run @taxcy/domain:test`. Nx caches result
 | `@taxcy/api-client` | `libs/api-client` | Generated TypeScript client (openapi-fetch)                                                                                                                                                                                                                                                                                                                                                                                           |
 | `@taxcy/ui`         | `libs/ui`         | Shared React UI                                                                                                                                                                                                                                                                                                                                                                                                                       |
 
+## Translations (admin web)
+
+The admin web ships in English (default) and Hindi, with [i18next](https://www.i18next.com/) and `react-i18next`.
+
+- **Resources:** one file per language in `apps/admin-web/src/i18n/locales/`. `en.ts` is the source (`as const`); every other language is typed `Translation`, so a missing or extra key fails typecheck. `src/i18n/i18next.d.ts` types `t()` against English, so an unknown key or a wrong `{{placeholder}}` name fails typecheck too. `src/i18n/i18n.test.tsx` also checks key and placeholder parity at runtime.
+- **Using it:** in components, `const { t } = useTranslation()`; in plain helpers, `i18n.t` from `src/i18n`. Enum labels live under `enums.*` and are looked up with template keys, e.g. ``t(`enums.tripStatus.${status}`)``. Don't `humanize()` enum values.
+- **Plurals:** i18next suffixes with CLDR categories from `Intl.PluralRules`: write `key_one` and `key_other` and pass `{ count }`. Hindi treats 0 and 1 as `one`.
+- **Numbers, money and dates:** the helpers in `src/lib/format.ts` (`fmtInr`, `fmtKm`, `fmtDate`, `fmtNumber`, `fmtList`, …) format for the current language's Intl locale (`en-IN` / `hi-IN`, Indian grouping, IST). Format values first and pass the strings into `t()`.
+- **Server text:** the API sends codes and values, not translated text. Alerts are rendered from `message` (`src/lib/alert-text.ts`), settlement lines from `item` (`src/lib/settlement-text.ts`), review reasons from `context.reasonCode` (`src/lib/review-text.ts`) and errors from `error.code` (`src/lib/errors.ts`). Each falls back to the server's English when the code is missing.
+- **Choosing a language:** the switcher in the sidebar footer and on the sign-in page saves the choice in `localStorage` (`taxcy.language`); otherwise the first supported browser language is used. `<html lang>` follows the choice, which also turns off letter-spacing for Devanagari. Fonts: Inter with Noto Sans Devanagari as the fallback for Hindi glyphs.
+
+### Adding a language
+
+1. Copy `src/i18n/locales/hi.ts` to `<code>.ts` (e.g. `mr.ts`), rename the export, and translate every string. Keep each `{{placeholder}}`, and add the plural suffixes the language needs (check `new Intl.PluralRules('<code>').resolvedOptions().pluralCategories`).
+2. Add it to `LANGUAGES` in `src/i18n/index.ts` with its own name and Intl locale (e.g. `mr: { name: 'मराठी', intl: 'mr-IN', resources: mr }`).
+3. Run `bun run verify`. `src/i18n/i18n.test.tsx` checks every registered language for missing keys, empty strings and the plural forms the language needs.
+
 ## Testing
 
 | Suite                 | Where                            | What it covers                                                                                                                                                                                                   |

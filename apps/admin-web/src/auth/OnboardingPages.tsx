@@ -1,4 +1,5 @@
 import { useState, type SubmitEvent } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button, Field, InlineError, Input } from '../components/ui.js';
 import { cn } from '@taxcy/ui';
 import { AuthShell } from './LoginPage.js';
@@ -6,6 +7,7 @@ import { useAuth } from './context.js';
 
 /** First sign-in with no organization yet: create a fleet or register as an owner-driver. */
 export function CreateOrgPage() {
+  const { t } = useTranslation();
   const auth = useAuth();
   const [name, setName] = useState('');
   const [kind, setKind] = useState<'fleet' | 'dco'>('fleet');
@@ -26,17 +28,14 @@ export function CreateOrgPage() {
   }
 
   return (
-    <AuthShell
-      title="Set up your business"
-      subtitle="You’re signed in, but not part of a fleet yet."
-    >
+    <AuthShell title={t('auth.setUpBusiness')} subtitle={t('auth.notInFleet')}>
       <form onSubmit={(e) => void submit(e)} className="space-y-4">
         <fieldset className="space-y-2">
-          <legend className="text-sm font-medium text-slate-700">I am…</legend>
+          <legend className="text-sm font-medium text-slate-700">{t('auth.iAm')}</legend>
           {(
             [
-              ['fleet', 'A fleet owner', 'I own cars and employ drivers.'],
-              ['dco', 'An owner-driver', 'I drive my own car (you can add drivers later).'],
+              ['fleet', t('auth.fleetOwner'), t('auth.fleetOwnerHelp')],
+              ['dco', t('auth.ownerDriver'), t('auth.ownerDriverHelp')],
             ] as const
           ).map(([value, label, help]) => (
             <label
@@ -63,13 +62,13 @@ export function CreateOrgPage() {
             </label>
           ))}
         </fieldset>
-        <Field label="Business name">
+        <Field label={t('auth.businessName')}>
           {(props) => (
             <Input
               {...props}
               required
               minLength={2}
-              placeholder="Sharma Travels"
+              placeholder={t('auth.businessNamePlaceholder')}
               value={name}
               onChange={(e) => {
                 setName(e.target.value);
@@ -79,10 +78,10 @@ export function CreateOrgPage() {
         </Field>
         <InlineError error={error} />
         <Button type="submit" busy={busy} disabled={name.trim().length < 2} className="w-full">
-          Create
+          {t('auth.create')}
         </Button>
         <Button variant="ghost" className="w-full" onClick={() => void auth.logout()}>
-          Sign out
+          {t('nav.signOut')}
         </Button>
       </form>
     </AuthShell>
@@ -91,6 +90,7 @@ export function CreateOrgPage() {
 
 /** Signed in with only a driver role in the active org: the console isn't for them. */
 export function NotStaffPage() {
+  const { t } = useTranslation();
   const auth = useAuth();
   const staffOrgs =
     auth.session?.memberships.filter(
@@ -98,8 +98,10 @@ export function NotStaffPage() {
     ) ?? [];
   return (
     <AuthShell
-      title="This console is for owners and managers"
-      subtitle={`You’re a driver at ${auth.activeMembership?.orgName ?? 'this organization'}. Use the Taxcy Driver app on your phone for your trips and fuel.`}
+      title={t('auth.staffOnly')}
+      subtitle={t('auth.driverHere', {
+        org: auth.activeMembership?.orgName ?? t('auth.thisOrganization'),
+      })}
     >
       <div className="space-y-2">
         {staffOrgs.map((m) => (
@@ -109,11 +111,11 @@ export function NotStaffPage() {
             className="w-full"
             onClick={() => void auth.switchOrg(m.orgId)}
           >
-            Switch to {m.orgName}
+            {t('auth.switchTo', { org: m.orgName })}
           </Button>
         ))}
         <Button variant="ghost" className="w-full" onClick={() => void auth.logout()}>
-          Sign out
+          {t('nav.signOut')}
         </Button>
       </div>
     </AuthShell>

@@ -1,5 +1,6 @@
 import { Plus } from 'lucide-react';
 import { useState, type SubmitEvent } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useSearchParams } from 'react-router';
 import { PointPicker, type LatLng } from '../components/maps.js';
 import { DriverSelect, VehicleSelect } from '../components/shared.js';
@@ -34,13 +35,10 @@ import { keys, useTrips, type TripFilter } from '../lib/queries.js';
 import { useApiMutation } from '../lib/mutations.js';
 
 const STATUSES: TripStatus[] = ['created', 'assigned', 'started', 'ended', 'settled', 'cancelled'];
-const TRIP_TYPES: { id: Trip['tripType']; label: string }[] = [
-  { id: 'one_way', label: 'One way' },
-  { id: 'round_trip', label: 'Round trip' },
-  { id: 'local_rental', label: 'Local rental' },
-];
+const TRIP_TYPES: Trip['tripType'][] = ['one_way', 'round_trip', 'local_rental'];
 
 function CreateTripModal({ onClose }: { onClose: () => void }) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [tripType, setTripType] = useState<Trip['tripType']>('one_way');
   const [customerName, setCustomerName] = useState('');
@@ -68,13 +66,13 @@ function CreateTripModal({ onClose }: { onClose: () => void }) {
     const km = includedKm.trim() === '' ? null : Number(includedKm.trim());
     const problemText =
       quotedFarePaise === null
-        ? 'Enter the fare in rupees, e.g. 3500'
+        ? t('trips.create.fareInvalid')
         : km !== null && (!Number.isInteger(km) || km < 1 || km > 20_000)
-          ? 'Included km must be a whole number of km, or left empty'
+          ? t('trips.create.includedKmInvalid')
           : !start || !end || end <= start
-            ? 'The end time must be after the start time'
+            ? t('trips.create.endBeforeStart')
             : Boolean(vehicleId) !== Boolean(driverId)
-              ? 'Pick both a vehicle and a driver, or neither'
+              ? t('trips.create.pickBoth')
               : null;
     if (problemText !== null || quotedFarePaise === null) {
       setProblem(problemText);
@@ -111,9 +109,9 @@ function CreateTripModal({ onClose }: { onClose: () => void }) {
   }
 
   return (
-    <Modal open wide onClose={onClose} title="New trip">
+    <Modal open wide onClose={onClose} title={t('trips.newTrip')}>
       <form onSubmit={submit} className="grid gap-4 sm:grid-cols-2">
-        <Field label="Trip type">
+        <Field label={t('trips.create.tripType')}>
           {(props) => (
             <Select
               {...props}
@@ -122,15 +120,15 @@ function CreateTripModal({ onClose }: { onClose: () => void }) {
                 setTripType(e.target.value as Trip['tripType']);
               }}
             >
-              {TRIP_TYPES.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.label}
+              {TRIP_TYPES.map((type) => (
+                <option key={type} value={type}>
+                  {t(`enums.tripType.${type}`)}
                 </option>
               ))}
             </Select>
           )}
         </Field>
-        <Field label="Quoted fare (₹)">
+        <Field label={t('trips.create.quotedFare')}>
           {(props) => (
             <Input
               {...props}
@@ -144,10 +142,7 @@ function CreateTripModal({ onClose }: { onClose: () => void }) {
             />
           )}
         </Field>
-        <Field
-          label="Included km (optional)"
-          hint="Km covered by the fare, e.g. 300 for a 300 km package. Beyond it, add an extra km charge."
-        >
+        <Field label={t('trips.create.includedKm')} hint={t('trips.create.includedKmHint')}>
           {(props) => (
             <Input
               {...props}
@@ -160,7 +155,7 @@ function CreateTripModal({ onClose }: { onClose: () => void }) {
             />
           )}
         </Field>
-        <Field label="Customer name">
+        <Field label={t('trips.create.customerName')}>
           {(props) => (
             <Input
               {...props}
@@ -171,7 +166,7 @@ function CreateTripModal({ onClose }: { onClose: () => void }) {
             />
           )}
         </Field>
-        <Field label="Customer mobile">
+        <Field label={t('trips.create.customerMobile')}>
           {(props) => (
             <Input
               {...props}
@@ -183,43 +178,47 @@ function CreateTripModal({ onClose }: { onClose: () => void }) {
             />
           )}
         </Field>
-        <Field label="Pickup">
+        <Field label={t('trips.create.pickup')}>
           {(props) => (
             <div className="space-y-2">
               <Input
                 {...props}
                 required
-                placeholder="Pune Station"
+                placeholder={t('trips.create.pickupPlaceholder')}
                 value={fromText}
                 onChange={(e) => {
                   setFromText(e.target.value);
                 }}
               />
-              <PointPicker value={fromPoint} onChange={setFromPoint} label="Pickup" />
+              <PointPicker
+                value={fromPoint}
+                onChange={setFromPoint}
+                label={t('trips.create.pickup')}
+              />
             </div>
           )}
         </Field>
         {tripType !== 'local_rental' ? (
-          <Field label="Drop">
+          <Field label={t('trips.create.drop')}>
             {(props) => (
               <div className="space-y-2">
                 <Input
                   {...props}
                   required
-                  placeholder="Mumbai Airport T2"
+                  placeholder={t('trips.create.dropPlaceholder')}
                   value={toText}
                   onChange={(e) => {
                     setToText(e.target.value);
                   }}
                 />
-                <PointPicker value={toPoint} onChange={setToPoint} label="Drop" />
+                <PointPicker value={toPoint} onChange={setToPoint} label={t('trips.create.drop')} />
               </div>
             )}
           </Field>
         ) : (
           <div />
         )}
-        <Field label="Starts (IST)">
+        <Field label={t('trips.create.starts')}>
           {(props) => (
             <Input
               {...props}
@@ -232,7 +231,7 @@ function CreateTripModal({ onClose }: { onClose: () => void }) {
             />
           )}
         </Field>
-        <Field label="Ends (IST)">
+        <Field label={t('trips.create.ends')}>
           {(props) => (
             <Input
               {...props}
@@ -245,23 +244,23 @@ function CreateTripModal({ onClose }: { onClose: () => void }) {
             />
           )}
         </Field>
-        <Field label="Vehicle (optional)">
+        <Field label={t('trips.create.vehicleOptional')}>
           {(props) => (
             <VehicleSelect
               {...props}
               value={vehicleId}
               onChange={setVehicleId}
-              placeholder="Assign later"
+              placeholder={t('trips.create.assignLater')}
             />
           )}
         </Field>
-        <Field label="Driver (optional)">
+        <Field label={t('trips.create.driverOptional')}>
           {(props) => (
             <DriverSelect
               {...props}
               value={driverId}
               onChange={setDriverId}
-              placeholder="Assign later"
+              placeholder={t('trips.create.assignLater')}
             />
           )}
         </Field>
@@ -271,10 +270,10 @@ function CreateTripModal({ onClose }: { onClose: () => void }) {
         </div>
         <div className="flex justify-end gap-2 sm:col-span-2">
           <Button variant="secondary" onClick={onClose}>
-            Cancel
+            {t('common.cancel')}
           </Button>
           <Button type="submit" busy={create.isPending}>
-            Create trip
+            {t('trips.create.submit')}
           </Button>
         </div>
       </form>
@@ -283,6 +282,7 @@ function CreateTripModal({ onClose }: { onClose: () => void }) {
 }
 
 export function TripsPage() {
+  const { t } = useTranslation();
   const [params, setParams] = useSearchParams();
   const [creating, setCreating] = useState(false);
   const status = (params.get('status') ?? '') as TripStatus | '';
@@ -307,7 +307,7 @@ export function TripsPage() {
   return (
     <>
       <PageHeader
-        title="Trips"
+        title={t('trips.title')}
         actions={
           <Button
             onClick={() => {
@@ -315,27 +315,27 @@ export function TripsPage() {
             }}
           >
             <Plus className="size-4" aria-hidden />
-            New trip
+            {t('trips.newTrip')}
           </Button>
         }
       />
       <div className="mb-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
         <Select
-          aria-label="Status"
+          aria-label={t('common.status')}
           value={status}
           onChange={(e) => {
             setParam('status', e.target.value);
           }}
         >
-          <option value="">All statuses</option>
+          <option value="">{t('trips.allStatuses')}</option>
           {STATUSES.map((s) => (
-            <option key={s} value={s} className="capitalize">
-              {s}
+            <option key={s} value={s}>
+              {t(`enums.tripStatus.${s}`)}
             </option>
           ))}
         </Select>
         <Input
-          aria-label="Date (IST)"
+          aria-label={t('trips.dateIst')}
           type="date"
           value={date}
           max={istToday()}
@@ -344,17 +344,17 @@ export function TripsPage() {
           }}
         />
         <DriverSelect
-          aria-label="Driver"
+          aria-label={t('trips.driver')}
           value={driverId}
-          placeholder="All drivers"
+          placeholder={t('trips.allDrivers')}
           onChange={(v) => {
             setParam('driverId', v);
           }}
         />
         <VehicleSelect
-          aria-label="Vehicle"
+          aria-label={t('trips.vehicle')}
           value={vehicleId}
-          placeholder="All vehicles"
+          placeholder={t('trips.allVehicles')}
           onChange={(v) => {
             setParam('vehicleId', v);
           }}
@@ -364,43 +364,44 @@ export function TripsPage() {
         <QueryState query={trips}>
           {(list) =>
             list.length === 0 ? (
-              <EmptyState title="No trips match these filters" />
+              <EmptyState title={t('trips.noneMatch')} />
             ) : (
               <Table>
                 <thead>
                   <tr>
-                    <Th>Scheduled (IST)</Th>
-                    <Th>Route</Th>
-                    <Th>Customer</Th>
-                    <Th>Vehicle · Driver</Th>
-                    <Th align="right">Fare</Th>
-                    <Th>Status</Th>
+                    <Th>{t('trips.col.scheduled')}</Th>
+                    <Th>{t('trips.col.route')}</Th>
+                    <Th>{t('trips.col.customer')}</Th>
+                    <Th>{t('trips.col.vehicleDriver')}</Th>
+                    <Th align="right">{t('trips.col.fare')}</Th>
+                    <Th>{t('trips.col.status')}</Th>
                   </tr>
                 </thead>
                 <tbody>
-                  {list.map((t) => (
-                    <tr key={t.id} className="hover:bg-slate-50">
-                      <Td className="whitespace-nowrap">{fmtDateTime(t.scheduledStartAt)}</Td>
+                  {list.map((trip) => (
+                    <tr key={trip.id} className="hover:bg-slate-50">
+                      <Td className="whitespace-nowrap">{fmtDateTime(trip.scheduledStartAt)}</Td>
                       <Td>
                         <Link
                           className="font-medium text-brand-700 hover:underline"
-                          to={`/trips/${t.id}`}
+                          to={`/trips/${trip.id}`}
                         >
-                          {t.from.text}
-                          {t.to ? ` → ${t.to.text}` : ' (local)'}
+                          {trip.to
+                            ? t('common.route', { from: trip.from.text, to: trip.to.text })
+                            : t('trips.localRoute', { from: trip.from.text })}
                         </Link>
                       </Td>
-                      <Td>{t.customer?.name ?? '—'}</Td>
+                      <Td>{trip.customer?.name ?? '—'}</Td>
                       <Td>
-                        {t.vehicle ? (
-                          `${fmtRegistration(t.vehicle.registrationNo)} · ${t.driver?.name ?? ''}`
+                        {trip.vehicle ? (
+                          `${fmtRegistration(trip.vehicle.registrationNo)} · ${trip.driver?.name ?? ''}`
                         ) : (
-                          <span className="text-slate-500">Unassigned</span>
+                          <span className="text-slate-500">{t('common.unassigned')}</span>
                         )}
                       </Td>
-                      <Td align="right">{fmtInr(t.quotedFarePaise)}</Td>
+                      <Td align="right">{fmtInr(trip.quotedFarePaise)}</Td>
                       <Td>
-                        <TripStatusBadge status={t.status} />
+                        <TripStatusBadge status={trip.status} />
                       </Td>
                     </tr>
                   ))}
