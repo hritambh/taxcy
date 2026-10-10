@@ -9,9 +9,11 @@ import 'package:taxcy_driver/app/providers.dart';
 import 'package:taxcy_driver/core/api/models.dart';
 import 'package:taxcy_driver/core/auth/session_store.dart';
 import 'package:taxcy_driver/core/sync/sync_engine.dart';
+import 'package:taxcy_driver/features/owner/trips/route_map.dart';
 import 'package:taxcy_driver/l10n/app_localizations.dart';
 
 import 'fakes.dart';
+import 'owner_fakes.dart';
 
 /// Everything a widget test needs: in-memory database, fake API, a session and
 /// saved preferences (English unless a test asks for another language).
@@ -35,6 +37,7 @@ class Harness {
 
   final db = memoryDb();
   final api = FakeApi();
+  final owner = FakeOwnerApi();
   final InMemorySessionStore sessions;
   final SharedPreferences prefs;
   late final engine = SyncEngine(
@@ -51,6 +54,8 @@ class Harness {
     overrides: [
       databaseProvider.overrideWithValue(db),
       apiProvider.overrideWithValue(api),
+      ownerApiProvider.overrideWithValue(owner),
+      mapTilesProvider.overrideWithValue(false),
       sessionStoreProvider.overrideWithValue(sessions),
       syncEngineProvider.overrideWithValue(engine),
       backgroundWorkProvider.overrideWithValue(false),

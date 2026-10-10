@@ -659,5 +659,1375 @@
         "type": "String"
       }
     }
+  },
+  "navDashboard": "Dashboard",
+  "@navDashboard": {},
+  "navTrips": "Trips",
+  "@navTrips": {},
+  "navAlerts": "Alerts",
+  "@navAlerts": {},
+  "navMore": "More",
+  "@navMore": {},
+  "vehicles": "Vehicles",
+  "@vehicles": {},
+  "drivers": "Drivers",
+  "@drivers": {},
+  "members": "Members",
+  "@members": {},
+  "documents": "Documents",
+  "@documents": {},
+  "review": "Review",
+  "@review": {},
+  "settlements": "Settlements",
+  "@settlements": {},
+  "settings": "Settings",
+  "@settings": {},
+  "loadFailed": "Could not load this.",
+  "@loadFailed": {},
+  "edit": "Edit",
+  "@edit": {},
+  "all": "All",
+  "@all": {},
+  "unassigned": "Unassigned",
+  "@unassigned": {},
+  "required": "Required",
+  "@required": {},
+  "roleOwner": "Owner",
+  "@roleOwner": {},
+  "roleManager": "Manager",
+  "@roleManager": {},
+  "roleDriver": "Driver",
+  "@roleDriver": {},
+  "ownerOnly": "Only the owner can change this.",
+  "@ownerOnly": {},
+  "severityCritical": "Critical",
+  "@severityCritical": {},
+  "severityWarning": "Warning",
+  "@severityWarning": {},
+  "severityInfo": "Info",
+  "@severityInfo": {},
+  "seeAll": "See all",
+  "@seeAll": {},
+  "pickDate": "Pick a date",
+  "@pickDate": {},
+  "status": "Status",
+  "@status": {},
+  "name": "Name",
+  "@name": {},
+  "note": "Note",
+  "@note": {},
+  "total": "Total",
+  "@total": {},
+  "active": "Active",
+  "@active": {},
+  "inactive": "Inactive",
+  "@inactive": {},
+  "percentValue": "{value}%",
+  "@percentValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "minutesShort": "{count} min",
+  "@minutesShort": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "listAnd": "{first} and {last}",
+  "@listAnd": {
+    "placeholders": {
+      "first": {
+        "type": "String"
+      },
+      "last": {
+        "type": "String"
+      }
+    }
+  },
+  "todaysTrips": "Today’s trips",
+  "@todaysTrips": {},
+  "noTripsToday": "No trips scheduled today",
+  "@noTripsToday": {},
+  "needsAttention": "Needs your attention",
+  "@needsAttention": {},
+  "criticalAlerts": "Critical alerts",
+  "@criticalAlerts": {},
+  "openAlerts": "Open alerts",
+  "@openAlerts": {},
+  "toReview": "To review",
+  "@toReview": {},
+  "documentsDueSoon": "Documents due soon",
+  "@documentsDueSoon": {},
+  "nothingExpiring": "Nothing expiring in the next 30 days",
+  "@nothingExpiring": {},
+  "noOpenAlerts": "No open alerts",
+  "@noOpenAlerts": {},
+  "allStatuses": "All statuses",
+  "@allStatuses": {},
+  "anyDate": "Any date",
+  "@anyDate": {},
+  "allDrivers": "All drivers",
+  "@allDrivers": {},
+  "allVehicles": "All vehicles",
+  "@allVehicles": {},
+  "noTripsMatch": "No trips match these filters",
+  "@noTripsMatch": {},
+  "localTrip": "{from} (local)",
+  "@localTrip": {
+    "placeholders": {
+      "from": {
+        "type": "String"
+      }
+    }
+  },
+  "tripType": "Trip type",
+  "@tripType": {},
+  "quotedFare": "Quoted fare",
+  "@quotedFare": {},
+  "includedKmHint": "Km covered by the fare, e.g. 300 for a 300 km package",
+  "@includedKmHint": {},
+  "customerName": "Customer name",
+  "@customerName": {},
+  "customerMobile": "Customer mobile",
+  "@customerMobile": {},
+  "ends": "Ends",
+  "@ends": {},
+  "vehicleOptional": "Vehicle (optional)",
+  "@vehicleOptional": {},
+  "driverOptional": "Driver (optional)",
+  "@driverOptional": {},
+  "assignLater": "Assign later",
+  "@assignLater": {},
+  "pickBothOrNeither": "Pick both a vehicle and a driver, or neither",
+  "@pickBothOrNeither": {},
+  "tripDetails": "Trip",
+  "@tripDetails": {},
+  "customer": "Customer",
+  "@customer": {},
+  "driver": "Driver",
+  "@driver": {},
+  "startedAt": "Started",
+  "@startedAt": {},
+  "endedAt": "Ended",
+  "@endedAt": {},
+  "cancelledAt": "Cancelled",
+  "@cancelledAt": {},
+  "odometerDistance": "Odometer distance",
+  "@odometerDistance": {},
+  "kmOverDriven": "{over} km over (driven {driven} km)",
+  "@kmOverDriven": {
+    "placeholders": {
+      "over": {
+        "type": "String"
+      },
+      "driven": {
+        "type": "String"
+      }
+    }
+  },
+  "drivenKm": "Driven {km} km",
+  "@drivenKm": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "cancellationFare": "Cancellation fare",
+  "@cancellationFare": {},
+  "assign": "Assign",
+  "@assign": {},
+  "reassign": "Reassign",
+  "@reassign": {},
+  "unassign": "Unassign",
+  "@unassign": {},
+  "cancelTrip": "Cancel trip",
+  "@cancelTrip": {},
+  "cancelTripTitle": "Cancel this trip",
+  "@cancelTripTitle": {},
+  "assignTripTitle": "Assign trip",
+  "@assignTripTitle": {},
+  "reassignTripTitle": "Reassign trip",
+  "@reassignTripTitle": {},
+  "overlapNote": "A vehicle or driver already booked for an overlapping time can’t be assigned.",
+  "@overlapNote": {},
+  "cancellationRequestTitle": "Cancellation request",
+  "@cancellationRequestTitle": {},
+  "requestedBy": "Requested by the {role} on {when}",
+  "@requestedBy": {
+    "placeholders": {
+      "role": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "odometerAtKm": "Odometer {km}",
+  "@odometerAtKm": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "decisionNote": "Decision note: {note}",
+  "@decisionNote": {
+    "placeholders": {
+      "note": {
+        "type": "String"
+      }
+    }
+  },
+  "approveCancellation": "Approve cancellation",
+  "@approveCancellation": {},
+  "reject": "Reject",
+  "@reject": {},
+  "approve": "Approve",
+  "@approve": {},
+  "approveIntro": "The trip becomes cancelled. You can charge for the distance already driven.",
+  "@approveIntro": {},
+  "cancellationFareHint": "0 for no charge",
+  "@cancellationFareHint": {},
+  "rejectTitle": "Reject cancellation",
+  "@rejectTitle": {},
+  "noteForDriver": "Note for the driver",
+  "@noteForDriver": {},
+  "rejectConfirm": "Reject — the trip continues",
+  "@rejectConfirm": {},
+  "requestPending": "Pending",
+  "@requestPending": {},
+  "requestApproved": "Approved",
+  "@requestApproved": {},
+  "requestRejected": "Rejected",
+  "@requestRejected": {},
+  "requestWithdrawn": "Withdrawn",
+  "@requestWithdrawn": {},
+  "odometerEvidence": "Odometer evidence",
+  "@odometerEvidence": {},
+  "startLabel": "Start",
+  "@startLabel": {},
+  "endLabel": "End",
+  "@endLabel": {},
+  "notRecordedYet": "Not recorded yet",
+  "@notRecordedYet": {},
+  "typed": "Typed",
+  "@typed": {},
+  "readFromPhoto": "Read from photo",
+  "@readFromPhoto": {},
+  "differsSentToReview": "Differs: sent to the review queue",
+  "@differsSentToReview": {},
+  "capturedAt": "Captured {when}",
+  "@capturedAt": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "photoNotUploaded": "Photo not uploaded yet (the phone may still be offline).",
+  "@photoNotUploaded": {},
+  "routeTitle": "Route",
+  "@routeTitle": {},
+  "routeAfterStart": "The route appears once the trip starts",
+  "@routeAfterStart": {},
+  "gpsPointsShown": "{count} GPS points shown",
+  "@gpsPointsShown": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pointsRemoved": "Removed {inaccurate} inaccurate, {mock} mock and {impossible} impossible points",
+  "@pointsRemoved": {
+    "placeholders": {
+      "inaccurate": {
+        "type": "String"
+      },
+      "mock": {
+        "type": "String"
+      },
+      "impossible": {
+        "type": "String"
+      }
+    }
+  },
+  "verdictOkLabel": "Odometer matches GPS",
+  "@verdictOkLabel": {},
+  "verdictOkText": "The odometer distance is within the allowed difference from the GPS route.",
+  "@verdictOkText": {},
+  "verdictFlaggedLabel": "Odometer higher than GPS",
+  "@verdictFlaggedLabel": {},
+  "verdictFlaggedText": "The odometer distance is well above the GPS route. See the alert for details.",
+  "@verdictFlaggedText": {},
+  "verdictInconclusiveLabel": "Not enough GPS to judge",
+  "@verdictInconclusiveLabel": {},
+  "verdictInconclusiveText": "The phone recorded too little of the trip (often battery-saving settings). No alert is raised in this case.",
+  "@verdictInconclusiveText": {},
+  "checkedAt": "checked {when}",
+  "@checkedAt": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "gps": "GPS",
+  "@gps": {},
+  "odometer": "Odometer",
+  "@odometer": {},
+  "gpsCoverage": "GPS coverage",
+  "@gpsCoverage": {},
+  "longestGap": "Longest gap",
+  "@longestGap": {},
+  "distanceCheckPending": "The distance check runs a few seconds after the trip ends.",
+  "@distanceCheckPending": {},
+  "noCharges": "No tolls, parking or other charges.",
+  "@noCharges": {},
+  "addChargeTitle": "Add a charge",
+  "@addChargeTitle": {},
+  "driverPaidCheckbox": "The driver paid this out of pocket (reimbursed in settlement)",
+  "@driverPaidCheckbox": {},
+  "extraFareInfo": "Extra fare: added to what the customer pays, on top of the quoted fare.",
+  "@extraFareInfo": {},
+  "driverPaid": "Driver paid",
+  "@driverPaid": {},
+  "billedOnly": "Billed only",
+  "@billedOnly": {},
+  "byRole": "{text} · by {role}",
+  "@byRole": {
+    "placeholders": {
+      "text": {
+        "type": "String"
+      },
+      "role": {
+        "type": "String"
+      }
+    }
+  },
+  "voidAction": "Void",
+  "@voidAction": {},
+  "paymentsCollected": "Payments collected",
+  "@paymentsCollected": {},
+  "recordPayment": "Record payment",
+  "@recordPayment": {},
+  "nothingRecorded": "Nothing recorded yet.",
+  "@nothingRecorded": {},
+  "method": "Method",
+  "@method": {},
+  "methodCashOption": "Cash (driver hands it over at settlement)",
+  "@methodCashOption": {},
+  "methodUpiOption": "UPI (comes straight to you)",
+  "@methodUpiOption": {},
+  "methodCardOption": "Card (comes straight to you)",
+  "@methodCardOption": {},
+  "referenceOptional": "Reference (optional)",
+  "@referenceOptional": {},
+  "referenceHint": "UPI reference or card slip number",
+  "@referenceHint": {},
+  "record": "Record",
+  "@record": {},
+  "timeline": "Timeline",
+  "@timeline": {},
+  "noEvents": "No events",
+  "@noEvents": {},
+  "eventBy": "{event} by {role}",
+  "@eventBy": {
+    "placeholders": {
+      "event": {
+        "type": "String"
+      },
+      "role": {
+        "type": "String"
+      }
+    }
+  },
+  "eventBySystem": "{event} (system)",
+  "@eventBySystem": {
+    "placeholders": {
+      "event": {
+        "type": "String"
+      }
+    }
+  },
+  "onDevice": "{when} on the device",
+  "@onDevice": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "syncedLater": "reached the server {when} ({count} min later)",
+  "@syncedLater": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "eventCreated": "Created",
+  "@eventCreated": {},
+  "eventAssigned": "Assigned",
+  "@eventAssigned": {},
+  "eventReassigned": "Reassigned",
+  "@eventReassigned": {},
+  "eventUnassigned": "Unassigned",
+  "@eventUnassigned": {},
+  "eventStarted": "Started",
+  "@eventStarted": {},
+  "eventEnded": "Ended",
+  "@eventEnded": {},
+  "eventCancellationRequested": "Cancellation requested",
+  "@eventCancellationRequested": {},
+  "eventCancellationApproved": "Cancellation approved",
+  "@eventCancellationApproved": {},
+  "eventCancellationRejected": "Cancellation rejected",
+  "@eventCancellationRejected": {},
+  "eventCancellationWithdrawn": "Cancellation withdrawn",
+  "@eventCancellationWithdrawn": {},
+  "eventCancelled": "Cancelled",
+  "@eventCancelled": {},
+  "eventSettled": "Settled",
+  "@eventSettled": {},
+  "addVehicle": "Add vehicle",
+  "@addVehicle": {},
+  "editVehicle": "Edit vehicle",
+  "@editVehicle": {},
+  "registrationNumber": "Registration number",
+  "@registrationNumber": {},
+  "registrationInvalid": "Use a registration number like MH 12 AB 1234",
+  "@registrationInvalid": {},
+  "knownModel": "Known model",
+  "@knownModel": {},
+  "knownModelHint": "Picking one seeds the fuel baseline for a new vehicle",
+  "@knownModelHint": {},
+  "otherModel": "Other / not listed",
+  "@otherModel": {},
+  "make": "Make",
+  "@make": {},
+  "model": "Model",
+  "@model": {},
+  "fuelType": "Fuel type",
+  "@fuelType": {},
+  "year": "Year",
+  "@year": {},
+  "currentOdometer": "Current odometer",
+  "@currentOdometer": {},
+  "inactiveVehicleOption": "Inactive (hidden from assignment)",
+  "@inactiveVehicleOption": {},
+  "deactivate": "Deactivate",
+  "@deactivate": {},
+  "activate": "Activate",
+  "@activate": {},
+  "noVehiclesYet": "No vehicles yet. Add your first car to start assigning trips.",
+  "@noVehiclesYet": {},
+  "lastOdometer": "Last odometer",
+  "@lastOdometer": {},
+  "recentTrips": "Recent trips",
+  "@recentTrips": {},
+  "noTripsShort": "No trips yet",
+  "@noTripsShort": {},
+  "fuelAudit": "Fuel audit",
+  "@fuelAudit": {},
+  "inviteDriver": "Invite driver",
+  "@inviteDriver": {},
+  "inviteDriverIntro": "The driver signs in to the Taxcy app with this number; no password needed.",
+  "@inviteDriverIntro": {},
+  "enterIndianMobile": "Enter a 10-digit Indian mobile number",
+  "@enterIndianMobile": {},
+  "sendInvite": "Send invite",
+  "@sendInvite": {},
+  "noDriversYet": "No drivers yet. Invite drivers by phone; they sign in with an OTP.",
+  "@noDriversYet": {},
+  "payDefault": "Default · {rule}",
+  "@payDefault": {
+    "placeholders": {
+      "rule": {
+        "type": "String"
+      }
+    }
+  },
+  "notSignedInYet": "Hasn’t signed in yet",
+  "@notSignedInYet": {},
+  "inactiveDriverOption": "Inactive (can’t be assigned)",
+  "@inactiveDriverOption": {},
+  "pay": "Pay",
+  "@pay": {},
+  "onlyOwnerPay": "Only the owner can change pay.",
+  "@onlyOwnerPay": {},
+  "payDifferently": "Pay this driver differently from the default",
+  "@payDifferently": {},
+  "checkPayRule": "Check the pay rule values",
+  "@checkPayRule": {},
+  "payRuleHow": "How the driver is paid",
+  "@payRuleHow": {},
+  "payNone": "None (salaried, paid outside Taxcy)",
+  "@payNone": {},
+  "payPercent": "Percent of fare",
+  "@payPercent": {},
+  "payPerTrip": "Fixed amount per trip",
+  "@payPerTrip": {},
+  "payPerKm": "Per km driven",
+  "@payPerKm": {},
+  "payFixedDaily": "Fixed amount per working day",
+  "@payFixedDaily": {},
+  "percent": "Percent",
+  "@percent": {},
+  "ofBase": "Of",
+  "@ofBase": {},
+  "baseQuoted": "Quoted fare",
+  "@baseQuoted": {},
+  "baseExpected": "Fare including charges",
+  "@baseExpected": {},
+  "amountPerTrip": "Amount per trip",
+  "@amountPerTrip": {},
+  "ratePerKm": "Rate per km",
+  "@ratePerKm": {},
+  "amountPerDay": "Amount per working day",
+  "@amountPerDay": {},
+  "allowanceToDriver": "Driver allowance goes to the driver",
+  "@allowanceToDriver": {},
+  "allowanceHint": "The bata a customer pays is added to the driver’s earnings.",
+  "@allowanceHint": {},
+  "ruleNoPay": "No pay in settlements",
+  "@ruleNoPay": {},
+  "rulePercentQuoted": "{percent}% of quoted fare",
+  "@rulePercentQuoted": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "rulePercentExpected": "{percent}% of fare incl. charges",
+  "@rulePercentExpected": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "rulePerTrip": "{amount} per trip",
+  "@rulePerTrip": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "rulePerKm": "{amount} per km",
+  "@rulePerKm": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "ruleFixedDaily": "{amount} per working day",
+  "@ruleFixedDaily": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "rulePlusAllowance": "{rule} + driver allowance",
+  "@rulePlusAllowance": {
+    "placeholders": {
+      "rule": {
+        "type": "String"
+      }
+    }
+  },
+  "inviteManager": "Invite manager",
+  "@inviteManager": {},
+  "inviteManagerIntro": "Managers run trips, alerts and settlements, but can’t change settings or pay.",
+  "@inviteManagerIntro": {},
+  "removeManager": "Remove manager access",
+  "@removeManager": {},
+  "removeManagerConfirm": "Remove manager access for {name}? Their other roles stay.",
+  "@removeManagerConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "remove": "Remove",
+  "@remove": {},
+  "memberInvited": "Invited",
+  "@memberInvited": {},
+  "memberActive": "Active",
+  "@memberActive": {},
+  "memberSuspended": "Suspended",
+  "@memberSuspended": {},
+  "membersIntro": "People with access to this fleet.",
+  "@membersIntro": {},
+  "addDocument": "Add document",
+  "@addDocument": {},
+  "renew": "Renew",
+  "@renew": {},
+  "renewTitle": "Renew {doc}",
+  "@renewTitle": {
+    "placeholders": {
+      "doc": {
+        "type": "String"
+      }
+    }
+  },
+  "renewIntro": "The renewed copy replaces the current one (it stays in history), and its expiry alerts are cleared.",
+  "@renewIntro": {},
+  "documentType": "Document",
+  "@documentType": {},
+  "documentFor": "For",
+  "@documentFor": {},
+  "documentNumber": "Number",
+  "@documentNumber": {},
+  "validFrom": "Valid from",
+  "@validFrom": {},
+  "expiresOn": "Expires on",
+  "@expiresOn": {},
+  "expiresOnHint": "Alerts are raised before expiry, and on expiry.",
+  "@expiresOnHint": {},
+  "saveRenewal": "Save renewal",
+  "@saveRenewal": {},
+  "noDocuments": "No documents. Add RC, insurance, permit and PUC for vehicles, and licences for drivers.",
+  "@noDocuments": {},
+  "docRc": "Registration (RC)",
+  "@docRc": {},
+  "docInsurance": "Insurance",
+  "@docInsurance": {},
+  "docPermit": "Permit",
+  "@docPermit": {},
+  "docPuc": "Pollution (PUC)",
+  "@docPuc": {},
+  "docLicence": "Driving licence",
+  "@docLicence": {},
+  "docValid": "Valid",
+  "@docValid": {},
+  "docExpiresIn": "{count, plural, =0{Expires today} =1{Expires tomorrow} other{Expires in {count} days}}",
+  "@docExpiresIn": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "docExpired": "Expired",
+  "@docExpired": {},
+  "docSuperseded": "Renewed",
+  "@docSuperseded": {},
+  "filterAllDocs": "All current documents",
+  "@filterAllDocs": {},
+  "filterDue30": "Due in 30 days or expired",
+  "@filterDue30": {},
+  "filterDue7": "Due in 7 days or expired",
+  "@filterDue7": {},
+  "filterDue0": "Expired or due today",
+  "@filterDue0": {},
+  "viewPhoto": "View photo",
+  "@viewPhoto": {},
+  "documentPhotoOptional": "Photo (optional)",
+  "@documentPhotoOptional": {},
+  "pickVehicleOrDriver": "Pick who it is for",
+  "@pickVehicleOrDriver": {},
+  "fuelIntro": "Each vehicle is compared with its own history, cycle by cycle (full tank to full tank).",
+  "@fuelIntro": {},
+  "efficiencyByCycle": "Fuel efficiency by cycle",
+  "@efficiencyByCycle": {},
+  "costByCycle": "Running cost by cycle",
+  "@costByCycle": {},
+  "noCycles": "No full-tank cycles yet. Efficiency is measured between two full-tank fills.",
+  "@noCycles": {},
+  "usual": "Usual",
+  "@usual": {},
+  "usualValue": "usual {value}",
+  "@usualValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "cyclesInBaseline": "Cycles in baseline",
+  "@cyclesInBaseline": {},
+  "verdictOk": "OK",
+  "@verdictOk": {},
+  "verdictFlagged": "Flagged",
+  "@verdictFlagged": {},
+  "verdictInvalid": "Invalid",
+  "@verdictInvalid": {},
+  "fuelFills": "Fuel fills",
+  "@fuelFills": {},
+  "noFills": "No fills recorded",
+  "@noFills": {},
+  "fullTankShort": "Full",
+  "@fullTankShort": {},
+  "partialTank": "Partial",
+  "@partialTank": {},
+  "voidFill": "Void fill",
+  "@voidFill": {},
+  "voidFillTitle": "Void this fill",
+  "@voidFillTitle": {},
+  "voidFillIntro": "{quantity} for {amount} on {when}. The vehicle’s fuel audit is recomputed without it.",
+  "@voidFillIntro": {
+    "placeholders": {
+      "quantity": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "voidReasonHint": "e.g. Typed 60 L instead of 40 L",
+  "@voidReasonHint": {},
+  "keepIt": "Keep it",
+  "@keepIt": {},
+  "receiptAmount": "receipt: {amount}",
+  "@receiptAmount": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "sigmaRule": "{value}σ",
+  "@sigmaRule": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "percentRule": "{value}% (new vehicle)",
+  "@percentRule": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "cycleRange": "{from} → {to}",
+  "@cycleRange": {
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "noCyclesShort": "No cycles",
+  "@noCyclesShort": {},
+  "chartThisCycle": "Each cycle",
+  "@chartThisCycle": {},
+  "perKmValue": "{amount}/km",
+  "@perKmValue": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "allKinds": "All kinds",
+  "@allKinds": {},
+  "alertOpen": "Open",
+  "@alertOpen": {},
+  "alertAcknowledged": "Acknowledged",
+  "@alertAcknowledged": {},
+  "alertResolved": "Resolved",
+  "@alertResolved": {},
+  "alertDismissed": "Dismissed",
+  "@alertDismissed": {},
+  "acknowledge": "Acknowledge",
+  "@acknowledge": {},
+  "dismiss": "Dismiss",
+  "@dismiss": {},
+  "dismissFalseAlarm": "Dismiss as false alarm",
+  "@dismissFalseAlarm": {},
+  "markResolved": "Mark resolved",
+  "@markResolved": {},
+  "falseAlarm": "False alarm",
+  "@falseAlarm": {},
+  "allClear": "All clear: no open alerts",
+  "@allClear": {},
+  "noAlertsMatch": "No alerts match",
+  "@noAlertsMatch": {},
+  "openTrip": "Open trip",
+  "@openTrip": {},
+  "openFuelHistory": "Open fuel history",
+  "@openFuelHistory": {},
+  "openVehicle": "Open vehicle",
+  "@openVehicle": {},
+  "openDocuments": "Open documents",
+  "@openDocuments": {},
+  "alertsIntro": "Dismissing a fuel alert as a false alarm lets that cycle count towards the vehicle’s normal range.",
+  "@alertsIntro": {},
+  "kindFuelEfficiencyLow": "Fuel use higher than usual",
+  "@kindFuelEfficiencyLow": {},
+  "kindFuelCostHigh": "Running cost higher than usual",
+  "@kindFuelCostHigh": {},
+  "kindOdoGps": "Odometer higher than GPS",
+  "@kindOdoGps": {},
+  "kindDocExpiring": "Document expiring",
+  "@kindDocExpiring": {},
+  "kindDocExpired": "Document expired",
+  "@kindDocExpired": {},
+  "kindCancellationRequested": "Cancellation requested",
+  "@kindCancellationRequested": {},
+  "kindGpsCoverageLow": "Poor GPS coverage",
+  "@kindGpsCoverageLow": {},
+  "alertVehicle": "{registrationNo} ({model}, {fuel})",
+  "@alertVehicle": {
+    "placeholders": {
+      "registrationNo": {
+        "type": "String"
+      },
+      "model": {
+        "type": "String"
+      },
+      "fuel": {
+        "type": "String"
+      }
+    }
+  },
+  "alertFuelPetrol": "petrol",
+  "@alertFuelPetrol": {},
+  "alertFuelDiesel": "diesel",
+  "@alertFuelDiesel": {},
+  "alertFuelCng": "CNG",
+  "@alertFuelCng": {},
+  "alertFuelPetrolCng": "petrol + CNG",
+  "@alertFuelPetrolCng": {},
+  "alertFuelEfficiencyTitle": "{vehicle} used more fuel than usual",
+  "@alertFuelEfficiencyTitle": {
+    "placeholders": {
+      "vehicle": {
+        "type": "String"
+      }
+    }
+  },
+  "alertFuelEfficiencyBody": "Between {from} and {to} it ran {km} km on {used} {unit} of {fuel}, which is {value} km/{unit}. This car usually does about {baseline} km/{unit}, so this is {worse}% worse than normal. That's roughly {extra} {unit} (about {extraCost}) more {fuel} than expected.",
+  "@alertFuelEfficiencyBody": {
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      },
+      "km": {
+        "type": "String"
+      },
+      "used": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      },
+      "fuel": {
+        "type": "String"
+      },
+      "value": {
+        "type": "String"
+      },
+      "baseline": {
+        "type": "String"
+      },
+      "worse": {
+        "type": "String"
+      },
+      "extra": {
+        "type": "String"
+      },
+      "extraCost": {
+        "type": "String"
+      }
+    }
+  },
+  "alertFuelCostTitle": "{vehicle} cost more to run than usual",
+  "@alertFuelCostTitle": {
+    "placeholders": {
+      "vehicle": {
+        "type": "String"
+      }
+    }
+  },
+  "alertFuelCostBody": "Between {from} and {to} it ran {km} km for {cost} of fuel, which is {perKm}/km. This car usually costs about {usualPerKm}/km, so this is {worse}% more than normal.",
+  "@alertFuelCostBody": {
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      },
+      "km": {
+        "type": "String"
+      },
+      "cost": {
+        "type": "String"
+      },
+      "perKm": {
+        "type": "String"
+      },
+      "usualPerKm": {
+        "type": "String"
+      },
+      "worse": {
+        "type": "String"
+      }
+    }
+  },
+  "alertPetrolShare": "{amount} of that was petrol.",
+  "@alertPetrolShare": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "alertFillsLoggedBy": "Fills in this period were logged by {names}.",
+  "@alertFillsLoggedBy": {
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "alertCheckReceiptsOdometer": "Check the receipts and odometer photos.",
+  "@alertCheckReceiptsOdometer": {},
+  "alertCheckPetrolReceipts": "Check whether the car was run on petrol unnecessarily, and check the receipts.",
+  "@alertCheckPetrolReceipts": {},
+  "alertOdoGpsTitle": "Trip on {date} ({route}, {vehicle}) shows more km on the odometer than the GPS route",
+  "@alertOdoGpsTitle": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "route": {
+        "type": "String"
+      },
+      "vehicle": {
+        "type": "String"
+      }
+    }
+  },
+  "alertOdoGpsVehicleUnknown": "vehicle",
+  "@alertOdoGpsVehicleUnknown": {},
+  "alertOdoGpsBody": "The odometer readings say {odometer} km, but the phone's GPS recorded {gps} km. The odometer distance is {excess}% higher; the allowed difference is {tolerance}%. Check the start and end odometer photos.",
+  "@alertOdoGpsBody": {
+    "placeholders": {
+      "odometer": {
+        "type": "String"
+      },
+      "gps": {
+        "type": "String"
+      },
+      "excess": {
+        "type": "String"
+      },
+      "tolerance": {
+        "type": "String"
+      }
+    }
+  },
+  "alertDocExpiredTitle": "{doc} for {subject} has expired",
+  "@alertDocExpiredTitle": {
+    "placeholders": {
+      "doc": {
+        "type": "String"
+      },
+      "subject": {
+        "type": "String"
+      }
+    }
+  },
+  "alertDocExpiredBody": "{doc} for {subject} expired on {date}. Operating without it risks fines and insurance claims being rejected. Renew it and upload the new copy.",
+  "@alertDocExpiredBody": {
+    "placeholders": {
+      "doc": {
+        "type": "String"
+      },
+      "subject": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "alertDocExpiringTitle": "{count, plural, =0{{doc} for {subject} expires today} =1{{doc} for {subject} expires tomorrow} other{{doc} for {subject} expires in {count} days}}",
+  "@alertDocExpiringTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "doc": {
+        "type": "String"
+      },
+      "subject": {
+        "type": "String"
+      }
+    }
+  },
+  "alertDocExpiringBody": "{doc} for {subject} expires on {date}. Renew it and upload the new copy before then.",
+  "@alertDocExpiringBody": {
+    "placeholders": {
+      "doc": {
+        "type": "String"
+      },
+      "subject": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "alertCancellationTitle": "Cancellation requested for the trip from {from}",
+  "@alertCancellationTitle": {
+    "placeholders": {
+      "from": {
+        "type": "String"
+      }
+    }
+  },
+  "alertCancellationBody": "{driver} asked to cancel this running trip: \"{reason}\". The odometer read {km} km. Approve (optionally with a cancellation fare) or reject it on the trip page.",
+  "@alertCancellationBody": {
+    "placeholders": {
+      "driver": {
+        "type": "String"
+      },
+      "reason": {
+        "type": "String"
+      },
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "alertTheDriver": "The driver",
+  "@alertTheDriver": {},
+  "reviewIntro": "Items where Taxcy isn’t sure. Nothing here blocked the driver; your decision corrects the record.",
+  "@reviewIntro": {},
+  "nothingToReview": "Nothing to review",
+  "@nothingToReview": {},
+  "noItems": "No items",
+  "@noItems": {},
+  "reviewOcrOdometer": "Odometer photo doesn’t match the typed reading",
+  "@reviewOcrOdometer": {},
+  "reviewOcrReceipt": "Receipt doesn’t match the typed amount",
+  "@reviewOcrReceipt": {},
+  "reviewOdometerRegression": "Odometer went backwards",
+  "@reviewOdometerRegression": {},
+  "reviewImplausibleEfficiency": "Fuel figures look implausible",
+  "@reviewImplausibleEfficiency": {},
+  "reviewMockLocation": "Fake GPS location detected",
+  "@reviewMockLocation": {},
+  "reviewOrphanEvidence": "Photo from a cancelled trip",
+  "@reviewOrphanEvidence": {},
+  "reviewClockSkew": "Phone clock was wrong",
+  "@reviewClockSkew": {},
+  "reviewUploadMismatch": "Uploaded file didn’t match",
+  "@reviewUploadMismatch": {},
+  "reviewKeptTyped": "Kept typed value",
+  "@reviewKeptTyped": {},
+  "reviewUsedPhoto": "Used photo value",
+  "@reviewUsedPhoto": {},
+  "reviewCorrected": "Corrected",
+  "@reviewCorrected": {},
+  "typedByDriver": "Typed by the driver",
+  "@typedByDriver": {},
+  "readFromThePhoto": "Read from the photo",
+  "@readFromThePhoto": {},
+  "keepTyped": "Keep typed value",
+  "@keepTyped": {},
+  "usePhotoValue": "Use value from photo",
+  "@usePhotoValue": {},
+  "enterCorrectValue": "Enter correct value",
+  "@enterCorrectValue": {},
+  "markReviewed": "Mark reviewed",
+  "@markReviewed": {},
+  "correctValueTitle": "Enter the correct value",
+  "@correctValueTitle": {},
+  "odometerKmLabel": "Odometer (km)",
+  "@odometerKmLabel": {},
+  "correctionHint": "Fuel and distance checks are recalculated with this value.",
+  "@correctionHint": {},
+  "saveCorrection": "Save correction",
+  "@saveCorrection": {},
+  "reasonOdometerNotIncreasing": "The odometer reading at the closing fill is not higher than at the opening fill.",
+  "@reasonOdometerNotIncreasing": {},
+  "reasonDistanceTooLong": "More than 3,000 km passed between two full-tank fills, so some fills were probably not logged.",
+  "@reasonDistanceTooLong": {},
+  "reasonImplausiblyGood": "The efficiency is far better than this car normally manages, which usually means a fill was not logged.",
+  "@reasonImplausiblyGood": {},
+  "reasonNoFuel": "No fuel was recorded between the two full-tank fills.",
+  "@reasonNoFuel": {},
+  "settlementsIntro": "One row per driver for the day (IST). Drafts update as trips and payments sync.",
+  "@settlementsIntro": {},
+  "noActivity": "No driver activity on {date}",
+  "@noActivity": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "tripsCount": "{count, plural, =1{1 trip} other{{count} trips}}",
+  "@tripsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "expected": "Expected",
+  "@expected": {},
+  "online": "Online",
+  "@online": {},
+  "expenses": "Expenses",
+  "@expenses": {},
+  "earnings": "Earnings",
+  "@earnings": {},
+  "lateItems": "Late items",
+  "@lateItems": {},
+  "net": "Net",
+  "@net": {},
+  "draft": "Draft",
+  "@draft": {},
+  "shortfall": "Shortfall {amount}",
+  "@shortfall": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "expectedFare": "Expected fare",
+  "@expectedFare": {},
+  "cashCollected": "Cash collected",
+  "@cashCollected": {},
+  "onlineToYou": "Online (to you)",
+  "@onlineToYou": {},
+  "driversExpenses": "Driver’s expenses",
+  "@driversExpenses": {},
+  "driversEarnings": "Driver’s earnings",
+  "@driversEarnings": {},
+  "shortfallLabel": "Shortfall",
+  "@shortfallLabel": {},
+  "shortfallHint": "Expected fare minus everything collected",
+  "@shortfallHint": {},
+  "settlementLabel": "Settlement",
+  "@settlementLabel": {},
+  "netFormula": "Net = cash collected − expenses the driver paid − driver’s earnings ± late items from already-settled days.",
+  "@netFormula": {},
+  "driverPaysYou": "Driver pays you {amount}",
+  "@driverPaysYou": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "youPayDriver": "You pay the driver {amount}",
+  "@youPayDriver": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "nothingToHandOver": "Nothing to hand over",
+  "@nothingToHandOver": {},
+  "settledOn": "Settled {when}. Later changes carry into the next day.",
+  "@settledOn": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "markSettledHint": "Mark settled once you’ve received the cash. This locks the day.",
+  "@markSettledHint": {},
+  "markSettled": "Mark settled",
+  "@markSettled": {},
+  "lateFrom": "From {date}, synced after that day was settled",
+  "@lateFrom": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "lineTrip": "Trip",
+  "@lineTrip": {},
+  "lineCharge": "Charge",
+  "@lineCharge": {},
+  "linePayment": "Payment",
+  "@linePayment": {},
+  "lineFuel": "Fuel",
+  "@lineFuel": {},
+  "lineAdjustment": "Late item",
+  "@lineAdjustment": {},
+  "itemTripVehicle": "{route} ({registrationNo})",
+  "@itemTripVehicle": {
+    "placeholders": {
+      "route": {
+        "type": "String"
+      },
+      "registrationNo": {
+        "type": "String"
+      }
+    }
+  },
+  "itemCancelled": "{text} · cancelled",
+  "@itemCancelled": {
+    "placeholders": {
+      "text": {
+        "type": "String"
+      }
+    }
+  },
+  "itemChargeDriverPaid": "{kind}, paid by the driver",
+  "@itemChargeDriverPaid": {
+    "placeholders": {
+      "kind": {
+        "type": "String"
+      }
+    }
+  },
+  "itemChargeBilled": "{kind}, billed to the customer",
+  "@itemChargeBilled": {
+    "placeholders": {
+      "kind": {
+        "type": "String"
+      }
+    }
+  },
+  "itemChargeExtraFare": "{kind}, extra fare",
+  "@itemChargeExtraFare": {
+    "placeholders": {
+      "kind": {
+        "type": "String"
+      }
+    }
+  },
+  "itemOnTrip": "{text} · {route}",
+  "@itemOnTrip": {
+    "placeholders": {
+      "text": {
+        "type": "String"
+      },
+      "route": {
+        "type": "String"
+      }
+    }
+  },
+  "itemPayment": "{method} payment",
+  "@itemPayment": {
+    "placeholders": {
+      "method": {
+        "type": "String"
+      }
+    }
+  },
+  "itemReference": "{text} (ref {reference})",
+  "@itemReference": {
+    "placeholders": {
+      "text": {
+        "type": "String"
+      },
+      "reference": {
+        "type": "String"
+      }
+    }
+  },
+  "itemFuel": "{fuel} {quantity}, {amount}, {payer}",
+  "@itemFuel": {
+    "placeholders": {
+      "fuel": {
+        "type": "String"
+      },
+      "quantity": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      },
+      "payer": {
+        "type": "String"
+      }
+    }
+  },
+  "auditThresholds": "Audit thresholds",
+  "@auditThresholds": {},
+  "fuelKSigma": "Fuel alert sensitivity (k σ)",
+  "@fuelKSigma": {},
+  "fuelKSigmaHint": "Flag a cycle this many standard deviations worse than usual. Lower = more alerts.",
+  "@fuelKSigmaHint": {},
+  "fuelMinCycles": "Cycles before using σ",
+  "@fuelMinCycles": {},
+  "fuelMinCyclesHint": "New vehicles use the percent rule until they have this many normal cycles.",
+  "@fuelMinCyclesHint": {},
+  "fuelPct": "New-vehicle threshold (%)",
+  "@fuelPct": {},
+  "fuelPctHint": "For new vehicles, flag a cycle this much worse than the usual figure.",
+  "@fuelPctHint": {},
+  "fuelAlpha": "Baseline responsiveness (α)",
+  "@fuelAlpha": {},
+  "fuelAlphaHint": "How quickly the usual figure follows recent cycles (0.05–0.9).",
+  "@fuelAlphaHint": {},
+  "odoTolerance": "Odometer vs GPS tolerance (%)",
+  "@odoTolerance": {},
+  "odoToleranceHint": "Flag trips whose odometer distance exceeds the GPS route by more than this.",
+  "@odoToleranceHint": {},
+  "docAlertDays": "Document alert days",
+  "@docAlertDays": {},
+  "docAlertDaysHint": "Comma-separated, e.g. 30, 7, 1. An alert is also raised on expiry.",
+  "@docAlertDaysHint": {},
+  "checkThresholds": "Check the values: some are outside the allowed range.",
+  "@checkThresholds": {},
+  "savedThresholds": "Saved. Fuel audits use the new thresholds from the next recompute.",
+  "@savedThresholds": {},
+  "saveThresholds": "Save thresholds",
+  "@saveThresholds": {},
+  "defaultDriverPay": "Default driver pay",
+  "@defaultDriverPay": {},
+  "defaultPayIntro": "Used in settlements for every driver without their own pay rule.",
+  "@defaultPayIntro": {},
+  "savedPay": "Saved. Days that are already settled don’t change.",
+  "@savedPay": {},
+  "saveDefaultPay": "Save default pay",
+  "@saveDefaultPay": {},
+  "settingsOwnerOnly": "Only the owner can change settings.",
+  "@settingsOwnerOnly": {},
+  "signedInAs": "{name} · {roles}",
+  "@signedInAs": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "roles": {
+        "type": "String"
+      }
+    }
   }
 }

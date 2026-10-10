@@ -812,4 +812,1491 @@ class AppLocalizationsHi extends AppLocalizations {
   String rejectWrongState({required String status}) {
     return 'ट्रिप \"$status\" होने पर यह नहीं हो सकता';
   }
+
+  @override
+  String get navDashboard => 'डैशबोर्ड';
+
+  @override
+  String get navTrips => 'ट्रिप';
+
+  @override
+  String get navAlerts => 'अलर्ट';
+
+  @override
+  String get navMore => 'और';
+
+  @override
+  String get vehicles => 'गाड़ियाँ';
+
+  @override
+  String get drivers => 'ड्राइवर';
+
+  @override
+  String get members => 'सदस्य';
+
+  @override
+  String get documents => 'दस्तावेज़';
+
+  @override
+  String get review => 'जाँच';
+
+  @override
+  String get settlements => 'हिसाब';
+
+  @override
+  String get settings => 'सेटिंग्स';
+
+  @override
+  String get loadFailed => 'यह लोड नहीं हो सका।';
+
+  @override
+  String get edit => 'बदलें';
+
+  @override
+  String get all => 'सभी';
+
+  @override
+  String get unassigned => 'असाइन नहीं';
+
+  @override
+  String get required => 'ज़रूरी है';
+
+  @override
+  String get roleOwner => 'मालिक';
+
+  @override
+  String get roleManager => 'मैनेजर';
+
+  @override
+  String get roleDriver => 'ड्राइवर';
+
+  @override
+  String get ownerOnly => 'इसे सिर्फ़ मालिक बदल सकते हैं।';
+
+  @override
+  String get severityCritical => 'गंभीर';
+
+  @override
+  String get severityWarning => 'चेतावनी';
+
+  @override
+  String get severityInfo => 'जानकारी';
+
+  @override
+  String get seeAll => 'सब देखें';
+
+  @override
+  String get pickDate => 'तारीख चुनें';
+
+  @override
+  String get status => 'स्थिति';
+
+  @override
+  String get name => 'नाम';
+
+  @override
+  String get note => 'नोट';
+
+  @override
+  String get total => 'कुल';
+
+  @override
+  String get active => 'चालू';
+
+  @override
+  String get inactive => 'बंद';
+
+  @override
+  String percentValue({required String value}) {
+    return '$value%';
+  }
+
+  @override
+  String minutesShort({required int count}) {
+    return '$count मिनट';
+  }
+
+  @override
+  String listAnd({required String first, required String last}) {
+    return '$first और $last';
+  }
+
+  @override
+  String get todaysTrips => 'आज की ट्रिप';
+
+  @override
+  String get noTripsToday => 'आज कोई ट्रिप तय नहीं है';
+
+  @override
+  String get needsAttention => 'आपका ध्यान चाहिए';
+
+  @override
+  String get criticalAlerts => 'गंभीर अलर्ट';
+
+  @override
+  String get openAlerts => 'खुले अलर्ट';
+
+  @override
+  String get toReview => 'जाँचना है';
+
+  @override
+  String get documentsDueSoon => 'जल्द खत्म होने वाले दस्तावेज़';
+
+  @override
+  String get nothingExpiring => 'अगले 30 दिनों में कुछ खत्म नहीं हो रहा';
+
+  @override
+  String get noOpenAlerts => 'कोई खुला अलर्ट नहीं';
+
+  @override
+  String get allStatuses => 'सभी स्थितियाँ';
+
+  @override
+  String get anyDate => 'कोई भी तारीख';
+
+  @override
+  String get allDrivers => 'सभी ड्राइवर';
+
+  @override
+  String get allVehicles => 'सभी गाड़ियाँ';
+
+  @override
+  String get noTripsMatch => 'इन फ़िल्टर से कोई ट्रिप नहीं मिली';
+
+  @override
+  String localTrip({required String from}) {
+    return '$from (लोकल)';
+  }
+
+  @override
+  String get tripType => 'ट्रिप का प्रकार';
+
+  @override
+  String get quotedFare => 'तय किराया';
+
+  @override
+  String get includedKmHint =>
+      'किराए में शामिल किमी, जैसे 300 किमी पैकेज के लिए 300';
+
+  @override
+  String get customerName => 'ग्राहक का नाम';
+
+  @override
+  String get customerMobile => 'ग्राहक का मोबाइल';
+
+  @override
+  String get ends => 'खत्म';
+
+  @override
+  String get vehicleOptional => 'गाड़ी (ज़रूरी नहीं)';
+
+  @override
+  String get driverOptional => 'ड्राइवर (ज़रूरी नहीं)';
+
+  @override
+  String get assignLater => 'बाद में असाइन करें';
+
+  @override
+  String get pickBothOrNeither =>
+      'गाड़ी और ड्राइवर दोनों चुनें, या कोई भी नहीं';
+
+  @override
+  String get tripDetails => 'ट्रिप';
+
+  @override
+  String get customer => 'ग्राहक';
+
+  @override
+  String get driver => 'ड्राइवर';
+
+  @override
+  String get startedAt => 'शुरू हुई';
+
+  @override
+  String get endedAt => 'खत्म हुई';
+
+  @override
+  String get cancelledAt => 'रद्द हुई';
+
+  @override
+  String get odometerDistance => 'ओडोमीटर से दूरी';
+
+  @override
+  String kmOverDriven({required String over, required String driven}) {
+    return '$over किमी ज़्यादा ($driven किमी चली)';
+  }
+
+  @override
+  String drivenKm({required String km}) {
+    return '$km किमी चली';
+  }
+
+  @override
+  String get cancellationFare => 'कैंसिलेशन किराया';
+
+  @override
+  String get assign => 'असाइन करें';
+
+  @override
+  String get reassign => 'दोबारा असाइन करें';
+
+  @override
+  String get unassign => 'असाइनमेंट हटाएँ';
+
+  @override
+  String get cancelTrip => 'ट्रिप रद्द करें';
+
+  @override
+  String get cancelTripTitle => 'यह ट्रिप रद्द करें';
+
+  @override
+  String get assignTripTitle => 'ट्रिप असाइन करें';
+
+  @override
+  String get reassignTripTitle => 'ट्रिप दोबारा असाइन करें';
+
+  @override
+  String get overlapNote =>
+      'जो गाड़ी या ड्राइवर उसी समय पहले से बुक है, उसे असाइन नहीं किया जा सकता।';
+
+  @override
+  String get cancellationRequestTitle => 'रद्द करने का अनुरोध';
+
+  @override
+  String requestedBy({required String role, required String when}) {
+    return '$role ने $when को अनुरोध किया';
+  }
+
+  @override
+  String odometerAtKm({required String km}) {
+    return 'ओडोमीटर $km';
+  }
+
+  @override
+  String decisionNote({required String note}) {
+    return 'फ़ैसले का नोट: $note';
+  }
+
+  @override
+  String get approveCancellation => 'रद्द करना मंज़ूर करें';
+
+  @override
+  String get reject => 'नामंज़ूर करें';
+
+  @override
+  String get approve => 'मंज़ूर करें';
+
+  @override
+  String get approveIntro =>
+      'ट्रिप रद्द हो जाएगी। जितनी दूरी चल चुकी है, उसका किराया ले सकते हैं।';
+
+  @override
+  String get cancellationFareHint => 'कोई चार्ज नहीं तो 0';
+
+  @override
+  String get rejectTitle => 'रद्द करना नामंज़ूर करें';
+
+  @override
+  String get noteForDriver => 'ड्राइवर के लिए नोट';
+
+  @override
+  String get rejectConfirm => 'नामंज़ूर करें — ट्रिप चलती रहेगी';
+
+  @override
+  String get requestPending => 'बाकी';
+
+  @override
+  String get requestApproved => 'मंज़ूर';
+
+  @override
+  String get requestRejected => 'नामंज़ूर';
+
+  @override
+  String get requestWithdrawn => 'वापस लिया';
+
+  @override
+  String get odometerEvidence => 'ओडोमीटर का सबूत';
+
+  @override
+  String get startLabel => 'शुरू';
+
+  @override
+  String get endLabel => 'आखिर';
+
+  @override
+  String get notRecordedYet => 'अभी दर्ज नहीं';
+
+  @override
+  String get typed => 'लिखा गया';
+
+  @override
+  String get readFromPhoto => 'फ़ोटो से पढ़ा';
+
+  @override
+  String get differsSentToReview => 'मेल नहीं खाता: जाँच में भेजा गया';
+
+  @override
+  String capturedAt({required String when}) {
+    return '$when को ली गई';
+  }
+
+  @override
+  String get photoNotUploaded =>
+      'फ़ोटो अभी अपलोड नहीं हुई (फ़ोन शायद अभी ऑफ़लाइन है)।';
+
+  @override
+  String get routeTitle => 'रास्ता';
+
+  @override
+  String get routeAfterStart => 'ट्रिप शुरू होने पर रास्ता दिखेगा';
+
+  @override
+  String gpsPointsShown({required int count}) {
+    return '$count GPS पॉइंट दिखाए गए';
+  }
+
+  @override
+  String pointsRemoved({
+    required String inaccurate,
+    required String mock,
+    required String impossible,
+  }) {
+    return '$inaccurate गलत, $mock नकली और $impossible असंभव पॉइंट हटाए गए';
+  }
+
+  @override
+  String get verdictOkLabel => 'ओडोमीटर GPS से मेल खाता है';
+
+  @override
+  String get verdictOkText =>
+      'ओडोमीटर की दूरी GPS रास्ते से तय अंतर के अंदर है।';
+
+  @override
+  String get verdictFlaggedLabel => 'ओडोमीटर GPS से ज़्यादा';
+
+  @override
+  String get verdictFlaggedText =>
+      'ओडोमीटर की दूरी GPS रास्ते से काफ़ी ज़्यादा है। पूरी जानकारी अलर्ट में देखें।';
+
+  @override
+  String get verdictInconclusiveLabel => 'फ़ैसले के लिए GPS काफ़ी नहीं';
+
+  @override
+  String get verdictInconclusiveText =>
+      'फ़ोन ने ट्रिप का बहुत कम हिस्सा रिकॉर्ड किया (अक्सर बैटरी बचाने की सेटिंग से)। ऐसे में कोई अलर्ट नहीं बनता।';
+
+  @override
+  String checkedAt({required String when}) {
+    return '$when को जाँचा';
+  }
+
+  @override
+  String get gps => 'GPS';
+
+  @override
+  String get odometer => 'ओडोमीटर';
+
+  @override
+  String get gpsCoverage => 'GPS कवरेज';
+
+  @override
+  String get longestGap => 'सबसे लंबा अंतराल';
+
+  @override
+  String get distanceCheckPending =>
+      'दूरी की जाँच ट्रिप खत्म होने के कुछ सेकंड बाद होती है।';
+
+  @override
+  String get noCharges => 'कोई टोल, पार्किंग या दूसरा चार्ज नहीं।';
+
+  @override
+  String get addChargeTitle => 'चार्ज जोड़ें';
+
+  @override
+  String get driverPaidCheckbox =>
+      'ड्राइवर ने अपनी जेब से दिया (हिसाब में वापस मिलेगा)';
+
+  @override
+  String get extraFareInfo =>
+      'अतिरिक्त किराया: तय किराए के ऊपर ग्राहक से लिया जाएगा।';
+
+  @override
+  String get driverPaid => 'ड्राइवर ने दिया';
+
+  @override
+  String get billedOnly => 'सिर्फ़ बिल में';
+
+  @override
+  String byRole({required String text, required String role}) {
+    return '$text · $role ने जोड़ा';
+  }
+
+  @override
+  String get voidAction => 'रद्द करें';
+
+  @override
+  String get paymentsCollected => 'मिले भुगतान';
+
+  @override
+  String get recordPayment => 'भुगतान दर्ज करें';
+
+  @override
+  String get nothingRecorded => 'अभी कुछ दर्ज नहीं।';
+
+  @override
+  String get method => 'तरीका';
+
+  @override
+  String get methodCashOption => 'नकद (ड्राइवर हिसाब के समय देगा)';
+
+  @override
+  String get methodUpiOption => 'UPI (सीधे आपको मिलेगा)';
+
+  @override
+  String get methodCardOption => 'कार्ड (सीधे आपको मिलेगा)';
+
+  @override
+  String get referenceOptional => 'रेफ़रेंस (ज़रूरी नहीं)';
+
+  @override
+  String get referenceHint => 'UPI रेफ़रेंस या कार्ड स्लिप नंबर';
+
+  @override
+  String get record => 'दर्ज करें';
+
+  @override
+  String get timeline => 'टाइमलाइन';
+
+  @override
+  String get noEvents => 'कोई घटना नहीं';
+
+  @override
+  String eventBy({required String event, required String role}) {
+    return '$event — $role';
+  }
+
+  @override
+  String eventBySystem({required String event}) {
+    return '$event (सिस्टम)';
+  }
+
+  @override
+  String onDevice({required String when}) {
+    return 'फ़ोन पर $when';
+  }
+
+  @override
+  String syncedLater({required String when, required int count}) {
+    return 'सर्वर पर $when पहुँचा ($count मिनट बाद)';
+  }
+
+  @override
+  String get eventCreated => 'बनाई गई';
+
+  @override
+  String get eventAssigned => 'असाइन हुई';
+
+  @override
+  String get eventReassigned => 'दोबारा असाइन हुई';
+
+  @override
+  String get eventUnassigned => 'असाइनमेंट हटा';
+
+  @override
+  String get eventStarted => 'शुरू हुई';
+
+  @override
+  String get eventEnded => 'खत्म हुई';
+
+  @override
+  String get eventCancellationRequested => 'रद्द करने का अनुरोध';
+
+  @override
+  String get eventCancellationApproved => 'रद्द करना मंज़ूर';
+
+  @override
+  String get eventCancellationRejected => 'रद्द करना नामंज़ूर';
+
+  @override
+  String get eventCancellationWithdrawn => 'रद्द करने का अनुरोध वापस';
+
+  @override
+  String get eventCancelled => 'रद्द हुई';
+
+  @override
+  String get eventSettled => 'हिसाब हो गया';
+
+  @override
+  String get addVehicle => 'गाड़ी जोड़ें';
+
+  @override
+  String get editVehicle => 'गाड़ी बदलें';
+
+  @override
+  String get registrationNumber => 'रजिस्ट्रेशन नंबर';
+
+  @override
+  String get registrationInvalid => 'रजिस्ट्रेशन नंबर MH 12 AB 1234 जैसा लिखें';
+
+  @override
+  String get knownModel => 'जाना-पहचाना मॉडल';
+
+  @override
+  String get knownModelHint =>
+      'चुनने से नई गाड़ी का फ़्यूल औसत पहले से तय हो जाता है';
+
+  @override
+  String get otherModel => 'दूसरा / सूची में नहीं';
+
+  @override
+  String get make => 'कंपनी';
+
+  @override
+  String get model => 'मॉडल';
+
+  @override
+  String get fuelType => 'फ़्यूल का प्रकार';
+
+  @override
+  String get year => 'साल';
+
+  @override
+  String get currentOdometer => 'अभी का ओडोमीटर';
+
+  @override
+  String get inactiveVehicleOption => 'बंद (असाइन के लिए नहीं दिखेगी)';
+
+  @override
+  String get deactivate => 'बंद करें';
+
+  @override
+  String get activate => 'चालू करें';
+
+  @override
+  String get noVehiclesYet =>
+      'अभी कोई गाड़ी नहीं। ट्रिप असाइन करने के लिए पहली गाड़ी जोड़ें।';
+
+  @override
+  String get lastOdometer => 'आखिरी ओडोमीटर';
+
+  @override
+  String get recentTrips => 'हाल की ट्रिप';
+
+  @override
+  String get noTripsShort => 'अभी कोई ट्रिप नहीं';
+
+  @override
+  String get fuelAudit => 'फ़्यूल ऑडिट';
+
+  @override
+  String get inviteDriver => 'ड्राइवर जोड़ें';
+
+  @override
+  String get inviteDriverIntro =>
+      'ड्राइवर इसी नंबर से Taxcy ऐप में साइन इन करेगा; पासवर्ड की ज़रूरत नहीं।';
+
+  @override
+  String get enterIndianMobile => '10 अंकों का भारतीय मोबाइल नंबर डालें';
+
+  @override
+  String get sendInvite => 'न्योता भेजें';
+
+  @override
+  String get noDriversYet =>
+      'अभी कोई ड्राइवर नहीं। फ़ोन नंबर से ड्राइवर जोड़ें; वे OTP से साइन इन करेंगे।';
+
+  @override
+  String payDefault({required String rule}) {
+    return 'डिफ़ॉल्ट · $rule';
+  }
+
+  @override
+  String get notSignedInYet => 'अभी साइन इन नहीं किया';
+
+  @override
+  String get inactiveDriverOption => 'बंद (असाइन नहीं हो सकता)';
+
+  @override
+  String get pay => 'पगार';
+
+  @override
+  String get onlyOwnerPay => 'पगार सिर्फ़ मालिक बदल सकते हैं।';
+
+  @override
+  String get payDifferently => 'इस ड्राइवर को डिफ़ॉल्ट से अलग पगार दें';
+
+  @override
+  String get checkPayRule => 'पगार के नियम की वैल्यू जाँचें';
+
+  @override
+  String get payRuleHow => 'ड्राइवर को पगार कैसे मिलती है';
+
+  @override
+  String get payNone => 'कोई नहीं (तनख्वाह, Taxcy के बाहर)';
+
+  @override
+  String get payPercent => 'किराए का प्रतिशत';
+
+  @override
+  String get payPerTrip => 'हर ट्रिप की तय रकम';
+
+  @override
+  String get payPerKm => 'हर किमी के हिसाब से';
+
+  @override
+  String get payFixedDaily => 'हर काम के दिन की तय रकम';
+
+  @override
+  String get percent => 'प्रतिशत';
+
+  @override
+  String get ofBase => 'किस पर';
+
+  @override
+  String get baseQuoted => 'तय किराया';
+
+  @override
+  String get baseExpected => 'चार्ज समेत किराया';
+
+  @override
+  String get amountPerTrip => 'हर ट्रिप की रकम';
+
+  @override
+  String get ratePerKm => 'प्रति किमी रेट';
+
+  @override
+  String get amountPerDay => 'हर काम के दिन की रकम';
+
+  @override
+  String get allowanceToDriver => 'ड्राइवर भत्ता ड्राइवर को मिलेगा';
+
+  @override
+  String get allowanceHint =>
+      'ग्राहक जो बाटा देता है, वह ड्राइवर की कमाई में जुड़ता है।';
+
+  @override
+  String get ruleNoPay => 'हिसाब में कोई पगार नहीं';
+
+  @override
+  String rulePercentQuoted({required String percent}) {
+    return 'तय किराए का $percent%';
+  }
+
+  @override
+  String rulePercentExpected({required String percent}) {
+    return 'चार्ज समेत किराए का $percent%';
+  }
+
+  @override
+  String rulePerTrip({required String amount}) {
+    return '$amount प्रति ट्रिप';
+  }
+
+  @override
+  String rulePerKm({required String amount}) {
+    return '$amount प्रति किमी';
+  }
+
+  @override
+  String ruleFixedDaily({required String amount}) {
+    return '$amount प्रति काम का दिन';
+  }
+
+  @override
+  String rulePlusAllowance({required String rule}) {
+    return '$rule + ड्राइवर भत्ता';
+  }
+
+  @override
+  String get inviteManager => 'मैनेजर जोड़ें';
+
+  @override
+  String get inviteManagerIntro =>
+      'मैनेजर ट्रिप, अलर्ट और हिसाब संभालते हैं, पर सेटिंग्स या पगार नहीं बदल सकते।';
+
+  @override
+  String get removeManager => 'मैनेजर की पहुँच हटाएँ';
+
+  @override
+  String removeManagerConfirm({required String name}) {
+    return '$name की मैनेजर पहुँच हटाएँ? उनकी बाकी भूमिकाएँ बनी रहेंगी।';
+  }
+
+  @override
+  String get remove => 'हटाएँ';
+
+  @override
+  String get memberInvited => 'न्योता भेजा';
+
+  @override
+  String get memberActive => 'चालू';
+
+  @override
+  String get memberSuspended => 'रोका गया';
+
+  @override
+  String get membersIntro => 'इस फ़्लीट तक पहुँच वाले लोग।';
+
+  @override
+  String get addDocument => 'दस्तावेज़ जोड़ें';
+
+  @override
+  String get renew => 'रिन्यू करें';
+
+  @override
+  String renewTitle({required String doc}) {
+    return '$doc रिन्यू करें';
+  }
+
+  @override
+  String get renewIntro =>
+      'नई कॉपी अभी वाली की जगह लेगी (पुरानी रिकॉर्ड में रहेगी), और उसके अलर्ट हट जाएँगे।';
+
+  @override
+  String get documentType => 'दस्तावेज़';
+
+  @override
+  String get documentFor => 'किसका';
+
+  @override
+  String get documentNumber => 'नंबर';
+
+  @override
+  String get validFrom => 'कब से मान्य';
+
+  @override
+  String get expiresOn => 'कब खत्म';
+
+  @override
+  String get expiresOnHint => 'खत्म होने से पहले और खत्म होने पर अलर्ट आएगा।';
+
+  @override
+  String get saveRenewal => 'रिन्यूअल सेव करें';
+
+  @override
+  String get noDocuments =>
+      'कोई दस्तावेज़ नहीं। गाड़ियों के लिए RC, बीमा, परमिट और PUC, और ड्राइवरों के लाइसेंस जोड़ें।';
+
+  @override
+  String get docRc => 'रजिस्ट्रेशन (RC)';
+
+  @override
+  String get docInsurance => 'बीमा';
+
+  @override
+  String get docPermit => 'परमिट';
+
+  @override
+  String get docPuc => 'प्रदूषण (PUC)';
+
+  @override
+  String get docLicence => 'ड्राइविंग लाइसेंस';
+
+  @override
+  String get docValid => 'मान्य';
+
+  @override
+  String docExpiresIn({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count दिन में खत्म',
+      one: 'कल खत्म',
+      zero: 'आज खत्म',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get docExpired => 'खत्म हो गया';
+
+  @override
+  String get docSuperseded => 'रिन्यू हो गया';
+
+  @override
+  String get filterAllDocs => 'सभी मौजूदा दस्तावेज़';
+
+  @override
+  String get filterDue30 => '30 दिन में खत्म या खत्म हो चुके';
+
+  @override
+  String get filterDue7 => '7 दिन में खत्म या खत्म हो चुके';
+
+  @override
+  String get filterDue0 => 'खत्म या आज खत्म';
+
+  @override
+  String get viewPhoto => 'फ़ोटो देखें';
+
+  @override
+  String get documentPhotoOptional => 'फ़ोटो (ज़रूरी नहीं)';
+
+  @override
+  String get pickVehicleOrDriver => 'किसका है, चुनें';
+
+  @override
+  String get fuelIntro =>
+      'हर गाड़ी की तुलना उसके अपने पुराने रिकॉर्ड से होती है, हर साइकिल में (टंकी फ़ुल से टंकी फ़ुल तक)।';
+
+  @override
+  String get efficiencyByCycle => 'हर साइकिल का माइलेज';
+
+  @override
+  String get costByCycle => 'हर साइकिल का खर्च';
+
+  @override
+  String get noCycles =>
+      'अभी कोई फ़ुल-टंकी साइकिल नहीं। माइलेज दो फ़ुल-टंकी भराई के बीच नापा जाता है।';
+
+  @override
+  String get usual => 'आम तौर पर';
+
+  @override
+  String usualValue({required String value}) {
+    return 'आम तौर पर $value';
+  }
+
+  @override
+  String get cyclesInBaseline => 'औसत में साइकिल';
+
+  @override
+  String get verdictOk => 'ठीक';
+
+  @override
+  String get verdictFlagged => 'संदिग्ध';
+
+  @override
+  String get verdictInvalid => 'अमान्य';
+
+  @override
+  String get fuelFills => 'फ़्यूल भराई';
+
+  @override
+  String get noFills => 'कोई भराई दर्ज नहीं';
+
+  @override
+  String get fullTankShort => 'फ़ुल';
+
+  @override
+  String get partialTank => 'आंशिक';
+
+  @override
+  String get voidFill => 'भराई रद्द करें';
+
+  @override
+  String get voidFillTitle => 'यह भराई रद्द करें';
+
+  @override
+  String voidFillIntro({
+    required String quantity,
+    required String amount,
+    required String when,
+  }) {
+    return '$when को $amount में $quantity। गाड़ी का फ़्यूल ऑडिट इसके बिना दोबारा गिना जाएगा।';
+  }
+
+  @override
+  String get voidReasonHint => 'जैसे: 40 लीटर की जगह 60 लीटर लिख दिया';
+
+  @override
+  String get keepIt => 'रहने दें';
+
+  @override
+  String receiptAmount({required String amount}) {
+    return 'रसीद: $amount';
+  }
+
+  @override
+  String sigmaRule({required String value}) {
+    return '$valueσ';
+  }
+
+  @override
+  String percentRule({required String value}) {
+    return '$value% (नई गाड़ी)';
+  }
+
+  @override
+  String cycleRange({required String from, required String to}) {
+    return '$from → $to';
+  }
+
+  @override
+  String get noCyclesShort => 'कोई साइकिल नहीं';
+
+  @override
+  String get chartThisCycle => 'हर साइकिल';
+
+  @override
+  String perKmValue({required String amount}) {
+    return '$amount/किमी';
+  }
+
+  @override
+  String get allKinds => 'सभी प्रकार';
+
+  @override
+  String get alertOpen => 'खुला';
+
+  @override
+  String get alertAcknowledged => 'देख लिया';
+
+  @override
+  String get alertResolved => 'सुलझ गया';
+
+  @override
+  String get alertDismissed => 'खारिज';
+
+  @override
+  String get acknowledge => 'देख लिया';
+
+  @override
+  String get dismiss => 'खारिज करें';
+
+  @override
+  String get dismissFalseAlarm => 'गलत अलर्ट मानकर खारिज करें';
+
+  @override
+  String get markResolved => 'सुलझा हुआ मानें';
+
+  @override
+  String get falseAlarm => 'गलत अलर्ट';
+
+  @override
+  String get allClear => 'सब ठीक: कोई खुला अलर्ट नहीं';
+
+  @override
+  String get noAlertsMatch => 'कोई अलर्ट नहीं मिला';
+
+  @override
+  String get openTrip => 'ट्रिप खोलें';
+
+  @override
+  String get openFuelHistory => 'फ़्यूल रिकॉर्ड खोलें';
+
+  @override
+  String get openVehicle => 'गाड़ी खोलें';
+
+  @override
+  String get openDocuments => 'दस्तावेज़ खोलें';
+
+  @override
+  String get alertsIntro =>
+      'फ़्यूल अलर्ट को गलत मानकर खारिज करने से वह साइकिल गाड़ी के सामान्य औसत में गिनी जाती है।';
+
+  @override
+  String get kindFuelEfficiencyLow => 'फ़्यूल की खपत आम से ज़्यादा';
+
+  @override
+  String get kindFuelCostHigh => 'चलाने का खर्च आम से ज़्यादा';
+
+  @override
+  String get kindOdoGps => 'ओडोमीटर GPS से ज़्यादा';
+
+  @override
+  String get kindDocExpiring => 'दस्तावेज़ खत्म होने वाला';
+
+  @override
+  String get kindDocExpired => 'दस्तावेज़ खत्म';
+
+  @override
+  String get kindCancellationRequested => 'रद्द करने का अनुरोध';
+
+  @override
+  String get kindGpsCoverageLow => 'GPS कवरेज कम';
+
+  @override
+  String alertVehicle({
+    required String registrationNo,
+    required String model,
+    required String fuel,
+  }) {
+    return '$registrationNo ($model, $fuel)';
+  }
+
+  @override
+  String get alertFuelPetrol => 'पेट्रोल';
+
+  @override
+  String get alertFuelDiesel => 'डीज़ल';
+
+  @override
+  String get alertFuelCng => 'CNG';
+
+  @override
+  String get alertFuelPetrolCng => 'पेट्रोल + CNG';
+
+  @override
+  String alertFuelEfficiencyTitle({required String vehicle}) {
+    return '$vehicle ने आम से ज़्यादा फ़्यूल खाया';
+  }
+
+  @override
+  String alertFuelEfficiencyBody({
+    required String from,
+    required String to,
+    required String km,
+    required String used,
+    required String unit,
+    required String fuel,
+    required String value,
+    required String baseline,
+    required String worse,
+    required String extra,
+    required String extraCost,
+  }) {
+    return '$from से $to के बीच यह $used $unit $fuel में $km किमी चली, यानी $value किमी/$unit। यह गाड़ी आम तौर पर लगभग $baseline किमी/$unit देती है, तो यह सामान्य से $worse% खराब है। उम्मीद से लगभग $extra $unit (करीब $extraCost) ज़्यादा $fuel लगा।';
+  }
+
+  @override
+  String alertFuelCostTitle({required String vehicle}) {
+    return '$vehicle को चलाने का खर्च आम से ज़्यादा रहा';
+  }
+
+  @override
+  String alertFuelCostBody({
+    required String from,
+    required String to,
+    required String km,
+    required String cost,
+    required String perKm,
+    required String usualPerKm,
+    required String worse,
+  }) {
+    return '$from से $to के बीच यह $cost के फ़्यूल में $km किमी चली, यानी $perKm/किमी। इस गाड़ी का खर्च आम तौर पर लगभग $usualPerKm/किमी होता है, तो यह सामान्य से $worse% ज़्यादा है।';
+  }
+
+  @override
+  String alertPetrolShare({required String amount}) {
+    return 'इसमें $amount पेट्रोल का था।';
+  }
+
+  @override
+  String alertFillsLoggedBy({required String names}) {
+    return 'इस दौरान की भराई $names ने दर्ज की।';
+  }
+
+  @override
+  String get alertCheckReceiptsOdometer => 'रसीदें और ओडोमीटर की फ़ोटो जाँचें।';
+
+  @override
+  String get alertCheckPetrolReceipts =>
+      'देखें कि गाड़ी बेवजह पेट्रोल पर तो नहीं चली, और रसीदें जाँचें।';
+
+  @override
+  String alertOdoGpsTitle({
+    required String date,
+    required String route,
+    required String vehicle,
+  }) {
+    return '$date की ट्रिप ($route, $vehicle) में ओडोमीटर पर GPS रास्ते से ज़्यादा किमी हैं';
+  }
+
+  @override
+  String get alertOdoGpsVehicleUnknown => 'गाड़ी';
+
+  @override
+  String alertOdoGpsBody({
+    required String odometer,
+    required String gps,
+    required String excess,
+    required String tolerance,
+  }) {
+    return 'ओडोमीटर रीडिंग के हिसाब से $odometer किमी है, पर फ़ोन के GPS ने $gps किमी रिकॉर्ड किया। ओडोमीटर की दूरी $excess% ज़्यादा है; $tolerance% तक का अंतर चलता है। शुरू और आखिर की ओडोमीटर फ़ोटो जाँचें।';
+  }
+
+  @override
+  String alertDocExpiredTitle({required String doc, required String subject}) {
+    return '$subject का $doc खत्म हो गया है';
+  }
+
+  @override
+  String alertDocExpiredBody({
+    required String doc,
+    required String subject,
+    required String date,
+  }) {
+    return '$subject का $doc $date को खत्म हो गया। इसके बिना चलाने पर जुर्माना हो सकता है और बीमा क्लेम खारिज हो सकता है। इसे रिन्यू करवाकर नई कॉपी अपलोड करें।';
+  }
+
+  @override
+  String alertDocExpiringTitle({
+    required int count,
+    required String doc,
+    required String subject,
+  }) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$subject का $doc $count दिन में खत्म हो रहा है',
+      one: '$subject का $doc कल खत्म हो रहा है',
+      zero: '$subject का $doc आज खत्म हो रहा है',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String alertDocExpiringBody({
+    required String doc,
+    required String subject,
+    required String date,
+  }) {
+    return '$subject का $doc $date को खत्म होगा। उससे पहले रिन्यू करवाकर नई कॉपी अपलोड करें।';
+  }
+
+  @override
+  String alertCancellationTitle({required String from}) {
+    return '$from से चली ट्रिप को रद्द करने का अनुरोध';
+  }
+
+  @override
+  String alertCancellationBody({
+    required String driver,
+    required String reason,
+    required String km,
+  }) {
+    return '$driver ने चलती ट्रिप रद्द करने को कहा है: \"$reason\"। ओडोमीटर $km किमी था। ट्रिप पेज पर मंज़ूर करें (चाहें तो कैंसिलेशन किराए के साथ) या नामंज़ूर करें।';
+  }
+
+  @override
+  String get alertTheDriver => 'ड्राइवर';
+
+  @override
+  String get reviewIntro =>
+      'जिन चीज़ों पर Taxcy पक्का नहीं है। इनसे ड्राइवर का काम नहीं रुका; आपका फ़ैसला रिकॉर्ड ठीक करेगा।';
+
+  @override
+  String get nothingToReview => 'जाँचने को कुछ नहीं';
+
+  @override
+  String get noItems => 'कुछ नहीं';
+
+  @override
+  String get reviewOcrOdometer => 'ओडोमीटर फ़ोटो लिखी रीडिंग से मेल नहीं खाती';
+
+  @override
+  String get reviewOcrReceipt => 'रसीद लिखी रकम से मेल नहीं खाती';
+
+  @override
+  String get reviewOdometerRegression => 'ओडोमीटर पीछे चला गया';
+
+  @override
+  String get reviewImplausibleEfficiency => 'फ़्यूल के आँकड़े सही नहीं लगते';
+
+  @override
+  String get reviewMockLocation => 'नकली GPS लोकेशन पकड़ी गई';
+
+  @override
+  String get reviewOrphanEvidence => 'रद्द ट्रिप की फ़ोटो';
+
+  @override
+  String get reviewClockSkew => 'फ़ोन की घड़ी गलत थी';
+
+  @override
+  String get reviewUploadMismatch => 'अपलोड की गई फ़ाइल मेल नहीं खाई';
+
+  @override
+  String get reviewKeptTyped => 'लिखी वैल्यू रखी';
+
+  @override
+  String get reviewUsedPhoto => 'फ़ोटो वाली वैल्यू ली';
+
+  @override
+  String get reviewCorrected => 'सुधारा गया';
+
+  @override
+  String get typedByDriver => 'ड्राइवर ने लिखा';
+
+  @override
+  String get readFromThePhoto => 'फ़ोटो से पढ़ा';
+
+  @override
+  String get keepTyped => 'लिखी वैल्यू रखें';
+
+  @override
+  String get usePhotoValue => 'फ़ोटो वाली वैल्यू लें';
+
+  @override
+  String get enterCorrectValue => 'सही वैल्यू डालें';
+
+  @override
+  String get markReviewed => 'जाँच हो गई';
+
+  @override
+  String get correctValueTitle => 'सही वैल्यू डालें';
+
+  @override
+  String get odometerKmLabel => 'ओडोमीटर (किमी)';
+
+  @override
+  String get correctionHint =>
+      'फ़्यूल और दूरी की जाँच इसी वैल्यू से दोबारा होगी।';
+
+  @override
+  String get saveCorrection => 'सुधार सेव करें';
+
+  @override
+  String get reasonOdometerNotIncreasing =>
+      'आखिरी भराई पर ओडोमीटर रीडिंग पहली भराई से ज़्यादा नहीं है।';
+
+  @override
+  String get reasonDistanceTooLong =>
+      'दो फ़ुल-टंकी भराई के बीच 3,000 किमी से ज़्यादा चली, शायद कुछ भराई दर्ज नहीं हुई।';
+
+  @override
+  String get reasonImplausiblyGood =>
+      'माइलेज इस गाड़ी के आम माइलेज से बहुत बेहतर है, आम तौर पर इसका मतलब है कि कोई भराई दर्ज नहीं हुई।';
+
+  @override
+  String get reasonNoFuel =>
+      'दो फ़ुल-टंकी भराई के बीच कोई फ़्यूल दर्ज नहीं हुआ।';
+
+  @override
+  String get settlementsIntro =>
+      'दिन (IST) के हिसाब से हर ड्राइवर की एक लाइन। ट्रिप और भुगतान सिंक होने पर कच्चा हिसाब बदलता रहता है।';
+
+  @override
+  String noActivity({required String date}) {
+    return '$date को किसी ड्राइवर का काम नहीं';
+  }
+
+  @override
+  String tripsCount({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ट्रिप',
+      one: '1 ट्रिप',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get expected => 'होना चाहिए';
+
+  @override
+  String get online => 'ऑनलाइन';
+
+  @override
+  String get expenses => 'खर्च';
+
+  @override
+  String get earnings => 'कमाई';
+
+  @override
+  String get lateItems => 'देर से आई चीज़ें';
+
+  @override
+  String get net => 'कुल बकाया';
+
+  @override
+  String get draft => 'कच्चा';
+
+  @override
+  String shortfall({required String amount}) {
+    return 'कमी $amount';
+  }
+
+  @override
+  String get expectedFare => 'होना चाहिए किराया';
+
+  @override
+  String get cashCollected => 'नकद वसूला';
+
+  @override
+  String get onlineToYou => 'ऑनलाइन (आपको)';
+
+  @override
+  String get driversExpenses => 'ड्राइवर का खर्च';
+
+  @override
+  String get driversEarnings => 'ड्राइवर की कमाई';
+
+  @override
+  String get shortfallLabel => 'कमी';
+
+  @override
+  String get shortfallHint => 'होना चाहिए किराया, वसूली गई रकम घटाकर';
+
+  @override
+  String get settlementLabel => 'हिसाब';
+
+  @override
+  String get netFormula =>
+      'बकाया = वसूला नकद − ड्राइवर का खर्च − ड्राइवर की कमाई ± पहले से हिसाब हुए दिनों की देर से आई चीज़ें।';
+
+  @override
+  String driverPaysYou({required String amount}) {
+    return 'ड्राइवर आपको $amount देगा';
+  }
+
+  @override
+  String youPayDriver({required String amount}) {
+    return 'आप ड्राइवर को $amount देंगे';
+  }
+
+  @override
+  String get nothingToHandOver => 'कुछ लेना-देना नहीं';
+
+  @override
+  String settledOn({required String when}) {
+    return '$when को हिसाब हुआ। बाद के बदलाव अगले दिन में जुड़ेंगे।';
+  }
+
+  @override
+  String get markSettledHint =>
+      'नकद मिलने के बाद हिसाब पूरा करें। इससे यह दिन लॉक हो जाएगा।';
+
+  @override
+  String get markSettled => 'हिसाब पूरा करें';
+
+  @override
+  String lateFrom({required String date}) {
+    return '$date का, उस दिन का हिसाब होने के बाद सिंक हुआ';
+  }
+
+  @override
+  String get lineTrip => 'ट्रिप';
+
+  @override
+  String get lineCharge => 'चार्ज';
+
+  @override
+  String get linePayment => 'भुगतान';
+
+  @override
+  String get lineFuel => 'फ़्यूल';
+
+  @override
+  String get lineAdjustment => 'देर से आई चीज़';
+
+  @override
+  String itemTripVehicle({
+    required String route,
+    required String registrationNo,
+  }) {
+    return '$route ($registrationNo)';
+  }
+
+  @override
+  String itemCancelled({required String text}) {
+    return '$text · रद्द';
+  }
+
+  @override
+  String itemChargeDriverPaid({required String kind}) {
+    return '$kind, ड्राइवर ने दिया';
+  }
+
+  @override
+  String itemChargeBilled({required String kind}) {
+    return '$kind, ग्राहक के बिल में';
+  }
+
+  @override
+  String itemChargeExtraFare({required String kind}) {
+    return '$kind, अतिरिक्त किराया';
+  }
+
+  @override
+  String itemOnTrip({required String text, required String route}) {
+    return '$text · $route';
+  }
+
+  @override
+  String itemPayment({required String method}) {
+    return '$method भुगतान';
+  }
+
+  @override
+  String itemReference({required String text, required String reference}) {
+    return '$text (रेफ़ $reference)';
+  }
+
+  @override
+  String itemFuel({
+    required String fuel,
+    required String quantity,
+    required String amount,
+    required String payer,
+  }) {
+    return '$fuel $quantity, $amount, $payer';
+  }
+
+  @override
+  String get auditThresholds => 'ऑडिट की सीमाएँ';
+
+  @override
+  String get fuelKSigma => 'फ़्यूल अलर्ट की संवेदनशीलता (k σ)';
+
+  @override
+  String get fuelKSigmaHint =>
+      'जो साइकिल आम से इतने स्टैंडर्ड डेविएशन खराब हो, उस पर अलर्ट। कम = ज़्यादा अलर्ट।';
+
+  @override
+  String get fuelMinCycles => 'σ से पहले कितनी साइकिल';
+
+  @override
+  String get fuelMinCyclesHint =>
+      'नई गाड़ियों पर इतनी सामान्य साइकिल होने तक प्रतिशत वाला नियम लगता है।';
+
+  @override
+  String get fuelPct => 'नई गाड़ी की सीमा (%)';
+
+  @override
+  String get fuelPctHint =>
+      'नई गाड़ियों में साइकिल आम से इतना खराब हो तो अलर्ट।';
+
+  @override
+  String get fuelAlpha => 'औसत कितनी जल्दी बदले (α)';
+
+  @override
+  String get fuelAlphaHint =>
+      'आम आँकड़ा हाल की साइकिल के साथ कितनी जल्दी बदले (0.05–0.9)।';
+
+  @override
+  String get odoTolerance => 'ओडोमीटर बनाम GPS छूट (%)';
+
+  @override
+  String get odoToleranceHint =>
+      'जिस ट्रिप में ओडोमीटर की दूरी GPS रास्ते से इससे ज़्यादा हो, उस पर अलर्ट।';
+
+  @override
+  String get docAlertDays => 'दस्तावेज़ अलर्ट के दिन';
+
+  @override
+  String get docAlertDaysHint =>
+      'कॉमा से अलग, जैसे 30, 7, 1। खत्म होने के दिन भी अलर्ट आएगा।';
+
+  @override
+  String get checkThresholds => 'वैल्यू जाँचें: कुछ तय सीमा से बाहर हैं।';
+
+  @override
+  String get savedThresholds =>
+      'सेव हो गया। अगली गणना से फ़्यूल ऑडिट नई सीमाएँ इस्तेमाल करेगा।';
+
+  @override
+  String get saveThresholds => 'सीमाएँ सेव करें';
+
+  @override
+  String get defaultDriverPay => 'ड्राइवर की डिफ़ॉल्ट पगार';
+
+  @override
+  String get defaultPayIntro =>
+      'जिन ड्राइवरों का अपना नियम नहीं है, उनके हिसाब में यही लगता है।';
+
+  @override
+  String get savedPay =>
+      'सेव हो गया। जिन दिनों का हिसाब हो चुका, वे नहीं बदलेंगे।';
+
+  @override
+  String get saveDefaultPay => 'डिफ़ॉल्ट पगार सेव करें';
+
+  @override
+  String get settingsOwnerOnly => 'सेटिंग्स सिर्फ़ मालिक बदल सकते हैं।';
+
+  @override
+  String signedInAs({required String name, required String roles}) {
+    return '$name · $roles';
+  }
 }

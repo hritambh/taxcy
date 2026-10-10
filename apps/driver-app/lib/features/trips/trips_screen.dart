@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../app/preferences.dart';
 import '../../app/providers.dart';
 import '../../app/theme.dart';
 import '../../core/repositories/trips_repository.dart';
@@ -80,11 +81,18 @@ class TripsScreen extends ConsumerWidget {
           PopupMenuButton<String>(
             key: const Key('driver-menu'),
             onSelected: (value) => switch (value) {
+              'owner' => ref.read(appModeProvider.notifier).set(AppMode.owner),
               'language' => showLanguagePicker(context, ref),
               'signout' => ref.read(authProvider.notifier).signOut(),
               _ => null,
             },
             itemBuilder: (_) => [
+              if (ref.read(authProvider).value?.isStaff ?? false)
+                PopupMenuItem(
+                  key: const Key('switch-to-owner'),
+                  value: 'owner',
+                  child: Text(l.ownerMode),
+                ),
               PopupMenuItem(value: 'language', child: Text(l.language)),
               PopupMenuItem(value: 'signout', child: Text(l.signOut)),
             ],
