@@ -165,9 +165,18 @@ class _EndTripScreenState extends ConsumerState<EndTripScreen> {
     super.dispose();
   }
 
+  /// Charges added earlier on this trip (the Charge button), already saved.
+  List<TripCharge> get _addedCharges =>
+      widget.trip.charges.where((c) => !c.voided).toList();
+
+  /// Quoted fare plus every charge, as the server computes the expected fare.
   int get _expected =>
       widget.trip.quotedFarePaise +
+      _addedCharges.fold<int>(0, (sum, c) => sum + c.amountPaise) +
       _charges.fold(0, (sum, c) => sum + (parseRupees(c.amount.text) ?? 0));
+
+  int get _alreadyCollected =>
+      widget.trip.collections.fold<int>(0, (sum, c) => sum + c.amountPaise);
 
   Future<void> _end() async {
     final valid = _form.currentState!.validate();
@@ -245,6 +254,20 @@ class _EndTripScreenState extends ConsumerState<EndTripScreen> {
               'Charges you paid or added',
               style: Theme.of(context).textTheme.titleSmall,
             ),
+            for (final c in _addedCharges)
+              ListTile(
+                key: ValueKey('added-charge-${c.id}'),
+                dense: true,
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.check_circle_outline),
+                title: Text(chargeKindLabels[c.kind] ?? c.kind),
+                subtitle: Text(
+                  c.paidByDriver
+                      ? 'Added during the trip · paid by you'
+                      : 'Added during the trip',
+                ),
+                trailing: Text(formatInr(c.amountPaise)),
+              ),
             for (final (index, c) in _charges.indexed)
               Row(
                 children: [
@@ -290,6 +313,10 @@ class _EndTripScreenState extends ConsumerState<EndTripScreen> {
               'Customer paid · expected ${formatInr(_expected)}',
               style: Theme.of(context).textTheme.titleSmall,
             ),
+            if (_alreadyCollected > 0)
+              Text(
+                '${formatInr(_alreadyCollected)} already recorded during the trip',
+              ),
             for (final (index, c) in _collections.indexed)
               Row(
                 children: [

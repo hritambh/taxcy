@@ -184,6 +184,37 @@ void main() {
   });
 
   testWidgets(
+    'end trip lists charges added during the trip and counts them in the expected amount',
+    (tester) async {
+      final h = Harness();
+      addTearDown(h.dispose);
+      final trip = Trip.fromJson({
+        ...tripJson(status: 'started'),
+        'charges': [
+          {
+            'id': '0199c7a2-0000-7000-8000-0000000000c9',
+            'kind': 'toll',
+            'amountPaise': 25000,
+            'paidByDriver': true,
+            'mediaId': null,
+            'note': null,
+            'voidedAt': null,
+          },
+        ],
+      });
+
+      await tester.pumpWidget(
+        h.wrap(MaterialApp(home: EndTripScreen(trip: trip))),
+      );
+      await settle(tester);
+      expect(find.text('Toll'), findsOneWidget);
+      expect(find.text('Added during the trip · paid by you'), findsOneWidget);
+      // ₹3,500 quoted + ₹250 toll.
+      expect(find.text('Customer paid · expected ₹3,750'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
     'start trip needs an odometer photo and a reading, then queues offline',
     (tester) async {
       final h = Harness();
