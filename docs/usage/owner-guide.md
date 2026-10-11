@@ -2,7 +2,7 @@
 
 > **(planned)** This guide describes the admin web as specified for milestone M1.7. Screens will be updated with screenshots when they're built.
 
-The admin web is for **owners** and **managers**. Drivers use the [mobile app](driver-guide.md). A DCO (owner-driver) uses both.
+The admin web is for **owners** and **managers**. Drivers use the [mobile app](driver-guide.md). Owners and managers can also run the fleet from the same app; see [Owner mode in the app](#owner-mode-in-the-app). A DCO (owner-driver) can do everything from the app.
 
 ## 1. Sign in
 
@@ -143,3 +143,20 @@ Open a row to see every item in it. Once you've received the cash, click **Mark 
 | Fixed daily     | ₹800 for any day with at least one trip           |
 
 Turn **Driver allowance goes to driver** on if the bata customers pay belongs to the driver. To give one driver a different arrangement, open **Fleet → Drivers → (driver) → Pay**. Changing a rule only affects days that haven't been settled yet.
+
+## Owner mode in the app
+
+The Taxcy app (the same one drivers use) has the admin console's features for owners and managers. Sign in with your number: owners and managers get the fleet screens straight away. An owner-driver (DCO) starts on their driver screens and switches with **⋮ → Owner mode**, and back with **More → Driver mode**; the app remembers the last choice.
+
+| Tab           | What's there                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Dashboard** | Today's trips by status, open alerts by severity, items to review, documents due in the next 30 days, and the most urgent open alerts                                                                                                                                                                                                                                                                                                                         |
+| **Trips**     | All trips, filtered by status, day, driver and vehicle. **New trip** creates one (optionally with included km and an assigned car and driver). A trip's page has assign / reassign / unassign, cancel, the driver's cancellation request (approve with an optional cancellation fare, or reject with a note), charges (add or void), payments, odometer photos with typed vs read values, the route on a map with the odometer-vs-GPS check, and the timeline |
+| **Alerts**    | The inbox, filtered by status and kind: acknowledge, resolve or dismiss; fuel alerts can be dismissed as a false alarm                                                                                                                                                                                                                                                                                                                                        |
+| **More**      | Vehicles (add, edit, deactivate; each with its documents, fuel audit and trips), Drivers (invite, edit, deactivate, pay), Members (invite and remove managers), Documents (add with a photo, renew), Fuel (each car's cycles on a chart, fills, void a fill with a reason), Review, Settlements (per day, per driver, **Mark settled**), Settings, Language, Sign out                                                                                         |
+
+- **Charges:** night charge, extra km and driver allowance are extra fare the customer pays, so they have no "driver paid" option. Tolls, parking, state tax and other charges can be marked as paid by the driver (reimbursed in settlement).
+- **Managers** can do everything above except change settings and pay: the audit thresholds, the default pay rule and a driver's own pay rule are shown read-only, and only the owner can invite or remove managers.
+- **Language:** English or Hindi, from **More → Language** or **Settings**. Alert texts, settlement lines and review reasons are shown in the chosen language. Alerts raised before this feature existed show their original English text.
+- **Needs a connection.** Unlike the driver screens, owner mode works online only: each screen loads fresh from the server, shows **Retry** if it can't, and refreshes when you pull down.
+- On a tablet or the browser at desktop width the tabs move to a side rail.

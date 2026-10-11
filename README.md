@@ -4,7 +4,7 @@ Fleet audit and intercity cab operations for small fleet owners (2–15 cars) an
 
 Taxcy gives a fleet owner a trustworthy picture of what their cars and drivers actually did: trips with photo-verified odometer readings, fuel fills audited against each vehicle's own history, GPS-vs-odometer distance checks, and a daily cash settlement per driver.
 
-> **Status: M0.1–M1.8 done.** The API, workers, admin console and offline-first Flutter driver app are built, and a demo fleet can be seeded. Next up is M1.9 (end-to-end tests). See [`docs/roadmap.md`](docs/roadmap.md) for progress and [`docs/decisions.md`](docs/decisions.md) for design decisions.
+> **Status: M0.1–M1.8 and M1.10 done.** The API, workers, admin console and the Flutter app (offline-first driver screens plus an owner/manager mode, in English and Hindi) are built, and a demo fleet can be seeded. Next up is M1.9 (end-to-end tests). See [`docs/roadmap.md`](docs/roadmap.md) for progress and [`docs/decisions.md`](docs/decisions.md) for design decisions.
 
 ---
 
@@ -31,7 +31,7 @@ apps/
   api/          NestJS modular monolith (HTTP API)
   workers/      BullMQ workers: OCR, fuel cycles, GPS distance, document expiry, outbox relay
   admin-web/    React + Vite admin console for owners and managers
-  driver-app/   Flutter offline-first driver app
+  driver-app/   Flutter app "Taxcy": offline-first driver screens, owner mode, English + Hindi
 libs/
   db/           Prisma schema, migrations, TypedSQL queries and client (shared by api + workers)
   contracts/    Zod schemas + inferred types shared by API and clients
@@ -43,17 +43,17 @@ docs/           Architecture, domain rules, database, usage guides
 
 ## Tech stack
 
-| Concern        | Choice                                                                   |
-| -------------- | ------------------------------------------------------------------------ |
-| Monorepo       | Bun workspaces (package manager) + Nx (task runner); Node 24 runtime     |
-| API            | NestJS, Prisma ORM, Zod                                                  |
-| Database       | PostgreSQL 16 + PostGIS + btree_gist                                     |
-| Jobs / cache   | Redis + BullMQ (separate `workers` app, same codebase)                   |
-| Object storage | S3-compatible, signed upload URLs (RustFS locally)                       |
-| Admin web      | React, Vite, TanStack Query, React Router, Tailwind, shadcn/ui, MapLibre |
-| Driver app     | Flutter: camera, geolocator (foreground service), drift (SQLite)         |
-| Observability  | pino structured logs, request IDs, health checks, Sentry                 |
-| Testing        | Vitest, flutter_test, Testcontainers, Maestro                            |
+| Concern        | Choice                                                                                                             |
+| -------------- | ------------------------------------------------------------------------------------------------------------------ |
+| Monorepo       | Bun workspaces (package manager) + Nx (task runner); Node 24 runtime                                               |
+| API            | NestJS, Prisma ORM, Zod                                                                                            |
+| Database       | PostgreSQL 16 + PostGIS + btree_gist                                                                               |
+| Jobs / cache   | Redis + BullMQ (separate `workers` app, same codebase)                                                             |
+| Object storage | S3-compatible, signed upload URLs (RustFS locally)                                                                 |
+| Admin web      | React, Vite, TanStack Query, React Router, Tailwind, shadcn/ui, MapLibre                                           |
+| App            | Flutter: camera, geolocator (foreground service), drift (SQLite), gen-l10n (English, Hindi), flutter_map, fl_chart |
+| Observability  | pino structured logs, request IDs, health checks, Sentry                                                           |
+| Testing        | Vitest, flutter_test, Testcontainers, Maestro                                                                      |
 
 ## Running it locally
 
@@ -68,7 +68,7 @@ bun run infra:up              # Postgres+PostGIS :5433, Redis :6380, RustFS :900
 bun run dev                   # api :3000, workers, admin web :5173
 ```
 
-Before the first `dev`, run `bun run db:migrate && bun run db:seed` to create the schema and the demo fleet. Then sign in at <http://localhost:5173> with a seeded phone number (e.g. `9000000001`, the owner); the OTP is printed in the `bun run dev` log. To try the driver app without an emulator, run `bun run dev:driver-web` in a second terminal and sign in at <http://localhost:5174> as a driver (e.g. `9000000011`).
+Before the first `dev`, run `bun run db:migrate && bun run db:seed` to create the schema and the demo fleet. Then sign in at <http://localhost:5173> with a seeded phone number (e.g. `9000000001`, the owner); the OTP is printed in the `bun run dev` log. To try the driver app without an emulator, run `bun run dev:driver-web` in a second terminal and sign in at <http://localhost:5174> as a driver (e.g. `9000000011`), or as the owner (`9000000001`) for owner mode.
 
 ## Documentation
 
