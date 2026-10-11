@@ -197,10 +197,10 @@ export class SessionService {
       throw new AppError('GOOGLE_TOKEN_INVALID', 'That took too long; sign in with Google again');
     }
     const google = PendingGoogleLink.parse(JSON.parse(raw));
-    // The token stays valid until the code is right, so a mistyped code can be retried.
     await this.otp.verify(input.phone, input.code);
-    await this.redis.client.del(key);
-    return this.db.system(async (tx) => {
+    // The link token is used up only once the link succeeds, so a mistyped code or a
+    // number that's already linked elsewhere can be retried (with a new code).
+    const session = await this.db.system(async (tx) => {
       const user = await this.repo.upsertUserByPhone(tx, input.phone);
       const account = await this.repo.findAccount(tx, { id: user.id });
       if (account?.googleSub && account.googleSub !== google.sub) {
@@ -219,6 +219,8 @@ export class SessionService {
       const linked = await this.repo.linkGoogle(tx, user.id, google, user.name);
       return this.startSession(tx, linked, input);
     });
+    await this.redis.client.del(key);
+    return session;
   }
 
   /** Records the device, activates pending invites, and issues a session. */

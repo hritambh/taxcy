@@ -233,6 +233,8 @@ describe('Google', () => {
     const conflict = await link(b.linkToken, phone);
     expect(conflict.status).toBe(409);
     expect(conflict.body).toMatchObject({ error: { code: 'GOOGLE_ACCOUNT_CONFLICT' } });
+    // The same Google sign-in can carry on with another number.
+    expect((await link(b.linkToken, randomPhone())).status).toBe(200);
   });
 
   it('rejects a token that does not verify', async () => {
