@@ -33,18 +33,10 @@ class ApiException implements Exception {
       'ApiException($status $code: $message${requestId == null ? '' : ' [$requestId]'})';
 }
 
-/// The endpoints the driver app uses. The sync engine and repositories depend on
-/// this interface, so tests run against a fake.
+/// The endpoints the driver screens use (signing in is in auth_api.dart). The
+/// sync engine and repositories depend on this interface, so tests run against
+/// a fake.
 abstract class TaxcyApi {
-  Future<void> requestOtp(String phone);
-  Future<Session> verifyOtp({
-    required String phone,
-    required String code,
-    required String deviceId,
-    required String platform,
-  });
-  Future<void> logout(String refreshToken);
-
   Future<List<Trip>> myTrips({DateTime? since});
   Future<List<Vehicle>> vehicles();
 

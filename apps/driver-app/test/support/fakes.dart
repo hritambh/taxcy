@@ -178,24 +178,6 @@ class FakeApi implements TaxcyApi {
   List<String> get names => calls.map((c) => c.name).toList();
 
   @override
-  Future<void> requestOtp(String phone) async =>
-      _record('requestOtp', {'phone': phone});
-
-  @override
-  Future<Session> verifyOtp({
-    required String phone,
-    required String code,
-    required String deviceId,
-    required String platform,
-  }) async {
-    _record('verifyOtp', {'phone': phone, 'code': code});
-    return Session.fromJson(sessionJson());
-  }
-
-  @override
-  Future<void> logout(String refreshToken) async => _record('logout');
-
-  @override
   Future<List<Trip>> myTrips({DateTime? since}) async {
     _record('myTrips');
     return trips.values.map(Trip.fromJson).toList();
