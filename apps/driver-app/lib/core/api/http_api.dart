@@ -35,39 +35,6 @@ class HttpTaxcyApi implements TaxcyApi {
       Uri.parse('$baseUrl/v1$path').replace(queryParameters: query);
 
   @override
-  Future<void> requestOtp(String phone) =>
-      send('POST', '/auth/otp/request', body: {'phone': phone}, auth: false);
-
-  @override
-  Future<Session> verifyOtp({
-    required String phone,
-    required String code,
-    required String deviceId,
-    required String platform,
-  }) async {
-    final json = await send(
-      'POST',
-      '/auth/otp/verify',
-      body: {
-        'phone': phone,
-        'code': code,
-        'deviceId': deviceId,
-        'platform': platform,
-      },
-      auth: false,
-    );
-    return Session.fromJson(asJsonMap(json));
-  }
-
-  @override
-  Future<void> logout(String refreshToken) => send(
-    'POST',
-    '/auth/logout',
-    body: {'refreshToken': refreshToken},
-    auth: false,
-  );
-
-  @override
   Future<List<Trip>> myTrips({DateTime? since}) async {
     final json = await send(
       'GET',

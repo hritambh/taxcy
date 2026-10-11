@@ -5,6 +5,7 @@ import '../../app/preferences.dart';
 import '../../app/providers.dart';
 import '../../app/theme.dart';
 import '../../core/api/owner_models.dart';
+import '../account/account_security_screen.dart';
 import '../common/format.dart';
 import '../common/language_picker.dart';
 import 'owner_providers.dart';
@@ -44,6 +45,16 @@ class SettingsScreen extends ConsumerWidget {
                     : languageNames[locale.languageCode] ?? locale.languageCode,
               ),
               onTap: () => showLanguagePicker(context, ref),
+            ),
+          ),
+          Card(
+            child: ListTile(
+              key: const Key('settings-account-security'),
+              leading: const Icon(Icons.lock_outline),
+              title: Text(l.accountSecurity),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () =>
+                  openScreen<void>(context, const AccountSecurityScreen()),
             ),
           ),
           if (!isOwner)

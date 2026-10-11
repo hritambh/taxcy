@@ -23,28 +23,32 @@ void main() {
     expect(devicePlatform, 'ios');
   });
 
-  testWidgets('login: phone → code → signed in as a driver', (tester) async {
+  testWidgets('login with an SMS code: phone → code → signed in as a driver', (
+    tester,
+  ) async {
     final h = await Harness.create();
     addTearDown(h.dispose);
     await tester.pumpWidget(h.wrap(const TaxcyDriverApp()));
     await settle(tester);
+    await tester.tap(find.byKey(const Key('use-sms')));
+    await tester.pump();
 
     await tester.enterText(find.byKey(const Key('phone-field')), '12345');
     await tester.tap(find.byKey(const Key('login-submit')));
     await tester.pump();
     expect(find.text('Enter your 10-digit mobile number'), findsOneWidget);
-    expect(h.api.names, isEmpty);
+    expect(h.auth.names, isNot(contains('requestOtp')));
 
     await tester.enterText(find.byKey(const Key('phone-field')), '9000000011');
     await tester.tap(find.byKey(const Key('login-submit')));
     await settle(tester);
-    expect(h.api.calls.single.args['phone'], '+919000000011');
+    expect(h.auth.calls.last.args['phone'], '+919000000011');
     expect(find.byKey(const Key('code-field')), findsOneWidget);
 
     await tester.enterText(find.byKey(const Key('code-field')), '482913');
     await tester.tap(find.byKey(const Key('login-submit')));
     await settle(tester);
-    expect(h.api.names.last, 'verifyOtp');
+    expect(h.auth.names.last, 'verifyOtp');
     expect(find.text('My trips'), findsOneWidget);
     expect((await h.sessions.load())?.isDriver, isTrue);
   });

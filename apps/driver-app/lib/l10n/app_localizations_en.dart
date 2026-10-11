@@ -2320,4 +2320,179 @@ class AppLocalizationsEn extends AppLocalizations {
   String signedInAs({required String name, required String roles}) {
     return '$name · $roles';
   }
+
+  @override
+  String get password => 'Password';
+
+  @override
+  String get logIn => 'Log in';
+
+  @override
+  String get forgotPassword => 'Forgot password?';
+
+  @override
+  String get useSmsCodeInstead => 'Use an SMS code instead';
+
+  @override
+  String get usePasswordInstead => 'Log in with your password';
+
+  @override
+  String get newHereSignUp => 'New to Taxcy? Sign up';
+
+  @override
+  String get haveAccountLogIn => 'Already have an account? Log in';
+
+  @override
+  String get backToLogIn => 'Back to log in';
+
+  @override
+  String get signUpTitle => 'Create your account';
+
+  @override
+  String get signUpIntro =>
+      'We\'ll send a code to your mobile number to check it\'s yours. Drivers use the number their fleet owner registered.';
+
+  @override
+  String get createAccount => 'Create account';
+
+  @override
+  String get yourNameOptional => 'Your name (optional)';
+
+  @override
+  String get newPassword => 'New password';
+
+  @override
+  String get confirmPassword => 'Type the password again';
+
+  @override
+  String get currentPassword => 'Current password';
+
+  @override
+  String get passwordHint => 'At least 8 characters';
+
+  @override
+  String get enterPassword => 'Enter your password';
+
+  @override
+  String get passwordTooShort => 'Use at least 8 characters.';
+
+  @override
+  String get passwordTooLong => 'Use at most 128 characters.';
+
+  @override
+  String get passwordsDontMatch => 'The two passwords don\'t match.';
+
+  @override
+  String get showPassword => 'Show password';
+
+  @override
+  String get hidePassword => 'Hide password';
+
+  @override
+  String get resetPasswordTitle => 'Reset your password';
+
+  @override
+  String get resetPasswordIntro =>
+      'We\'ll send a code to your mobile number. Then choose a new password.';
+
+  @override
+  String get resetPassword => 'Reset password';
+
+  @override
+  String get saveAndLogIn => 'Save password and log in';
+
+  @override
+  String get resendCode => 'Resend code';
+
+  @override
+  String resendCodeIn({required String seconds}) {
+    return 'Resend code in $seconds s';
+  }
+
+  @override
+  String get codeResent => 'We sent a new code.';
+
+  @override
+  String get orDivider => 'or';
+
+  @override
+  String get continueWithGoogle => 'Continue with Google';
+
+  @override
+  String get googleLocalTest => 'Google (local test)';
+
+  @override
+  String get googleLocalTestIntro =>
+      'This server has no Google account set up, so it accepts any email as a stand-in for testing.';
+
+  @override
+  String get email => 'Email';
+
+  @override
+  String get enterEmail => 'Enter an email address';
+
+  @override
+  String get continueAction => 'Continue';
+
+  @override
+  String get googleUnavailable =>
+      'Google sign-in isn\'t working on this device. Log in with your password or an SMS code.';
+
+  @override
+  String get verifyPhoneTitle => 'Verify your phone';
+
+  @override
+  String verifyPhoneIntro({required String account}) {
+    return 'You\'re signing in with Google as $account. Add your mobile number too: your fleet knows you by it.';
+  }
+
+  @override
+  String get startAgain => 'Start again';
+
+  @override
+  String get accountSecurity => 'Account security';
+
+  @override
+  String get signInMethods => 'How you sign in';
+
+  @override
+  String get smsCodeAlways =>
+      'You can always log in with an SMS code sent to this number.';
+
+  @override
+  String get passwordIsSet => 'Set';
+
+  @override
+  String get passwordNotSet => 'Not set yet';
+
+  @override
+  String googleLinkedTo({required String email}) {
+    return 'Linked: $email';
+  }
+
+  @override
+  String get googleLinked => 'Linked';
+
+  @override
+  String get googleNotLinked =>
+      'Not linked. To link it, sign out and choose Continue with Google.';
+
+  @override
+  String get setPassword => 'Set a password';
+
+  @override
+  String get setPasswordIntro =>
+      'Then you can log in with your mobile number and password.';
+
+  @override
+  String get changePassword => 'Change password';
+
+  @override
+  String get savePassword => 'Save password';
+
+  @override
+  String get passwordSaved => 'Password saved';
+
+  @override
+  String get currentPasswordWrong => 'Your current password is wrong.';
 }

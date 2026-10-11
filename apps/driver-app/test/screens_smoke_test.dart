@@ -4,6 +4,7 @@ import 'package:taxcy_driver/core/api/models.dart';
 import 'package:taxcy_driver/core/api/owner_models.dart';
 import 'package:taxcy_driver/features/common/consent_screen.dart';
 import 'package:taxcy_driver/features/fuel/fuel_fill_screen.dart';
+import 'package:taxcy_driver/features/account/account_security_screen.dart';
 import 'package:taxcy_driver/features/login/login_screen.dart';
 import 'package:taxcy_driver/features/owner/alerts_screen.dart';
 import 'package:taxcy_driver/features/owner/documents_screen.dart';
@@ -137,6 +138,7 @@ void main() {
     'cancel request': CancelRequestScreen(trip: started),
     'new trip': const NewTripScreen(),
     'log fuel': const FuelFillScreen(),
+    'account security': const AccountSecurityScreen(),
   };
   for (final language in ['en', 'hi']) {
     for (final entry in driverScreens.entries) {
