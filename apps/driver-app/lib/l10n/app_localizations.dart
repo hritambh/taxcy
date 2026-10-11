@@ -440,6 +440,30 @@ abstract class AppLocalizations {
   /// **'The code expired. Request a new one.'**
   String get errorOtpExpired;
 
+  /// No description provided for @errorInvalidCredentials.
+  ///
+  /// In en, this message translates to:
+  /// **'Wrong mobile number or password.'**
+  String get errorInvalidCredentials;
+
+  /// No description provided for @errorAccountExists.
+  ///
+  /// In en, this message translates to:
+  /// **'This number already has an account. Log in, or reset your password.'**
+  String get errorAccountExists;
+
+  /// No description provided for @errorGoogleTokenInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Google sign-in didn\'t work. Try again.'**
+  String get errorGoogleTokenInvalid;
+
+  /// No description provided for @errorGoogleAccountConflict.
+  ///
+  /// In en, this message translates to:
+  /// **'This number is already linked to a different Google account.'**
+  String get errorGoogleAccountConflict;
+
   /// No description provided for @errorRateLimited.
   ///
   /// In en, this message translates to:

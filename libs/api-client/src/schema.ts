@@ -72,6 +72,125 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/auth/config': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Which sign-in methods are available (for login screens) */
+    get: operations['getAuthConfig'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/auth/signup': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Sign up with phone and password: request a code first (/auth/otp/request), then send it with the password */
+    post: operations['postAuthSignup'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/auth/password/login': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Sign in with phone and password */
+    post: operations['postAuthPasswordLogin'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/auth/password/reset': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Set a new password with an SMS code (request one first); signs out every other session */
+    post: operations['postAuthPasswordReset'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/me/password': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Set or change your password (the current one is required if you have one) */
+    post: operations['postMePassword'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/auth/google': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Sign in or sign up with a Google ID token. A new Google account must then verify a phone (/auth/google/link) */
+    post: operations['postAuthGoogle'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/auth/google/link': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Finish a first Google sign-in: verify a phone with an SMS code; the Google account is linked to it */
+    post: operations['postAuthGoogleLink'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/auth/refresh': {
     parameters: {
       query?: never;
@@ -1014,6 +1133,10 @@ export interface operations {
                 | 'ODOMETER_BEFORE_START'
                 | 'OTP_INVALID'
                 | 'OTP_EXPIRED'
+                | 'INVALID_CREDENTIALS'
+                | 'ACCOUNT_EXISTS'
+                | 'GOOGLE_TOKEN_INVALID'
+                | 'GOOGLE_ACCOUNT_CONFLICT'
                 | 'RATE_LIMITED'
                 | 'UPLOAD_NOT_FOUND'
                 | 'UPLOAD_MISMATCH'
@@ -1087,6 +1210,10 @@ export interface operations {
                 | 'ODOMETER_BEFORE_START'
                 | 'OTP_INVALID'
                 | 'OTP_EXPIRED'
+                | 'INVALID_CREDENTIALS'
+                | 'ACCOUNT_EXISTS'
+                | 'GOOGLE_TOKEN_INVALID'
+                | 'GOOGLE_ACCOUNT_CONFLICT'
                 | 'RATE_LIMITED'
                 | 'UPLOAD_NOT_FOUND'
                 | 'UPLOAD_MISMATCH'
@@ -1158,6 +1285,10 @@ export interface operations {
                 | 'ODOMETER_BEFORE_START'
                 | 'OTP_INVALID'
                 | 'OTP_EXPIRED'
+                | 'INVALID_CREDENTIALS'
+                | 'ACCOUNT_EXISTS'
+                | 'GOOGLE_TOKEN_INVALID'
+                | 'GOOGLE_ACCOUNT_CONFLICT'
                 | 'RATE_LIMITED'
                 | 'UPLOAD_NOT_FOUND'
                 | 'UPLOAD_MISMATCH'
@@ -1254,6 +1385,669 @@ export interface operations {
                 | 'ODOMETER_BEFORE_START'
                 | 'OTP_INVALID'
                 | 'OTP_EXPIRED'
+                | 'INVALID_CREDENTIALS'
+                | 'ACCOUNT_EXISTS'
+                | 'GOOGLE_TOKEN_INVALID'
+                | 'GOOGLE_ACCOUNT_CONFLICT'
+                | 'RATE_LIMITED'
+                | 'UPLOAD_NOT_FOUND'
+                | 'UPLOAD_MISMATCH'
+                | 'INTERNAL';
+              message: string;
+              details?: unknown;
+              requestId?: string;
+            };
+          };
+        };
+      };
+    };
+  };
+  getAuthConfig: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            password: boolean;
+            google: {
+              /** @enum {string} */
+              mode: 'google' | 'dev' | 'off';
+              webClientId: string | null;
+            };
+          };
+        };
+      };
+      /** @description Error */
+      default: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            error: {
+              /** @enum {string} */
+              code:
+                | 'VALIDATION_FAILED'
+                | 'UNAUTHENTICATED'
+                | 'TOKEN_EXPIRED'
+                | 'FORBIDDEN_ROLE'
+                | 'NO_ACTIVE_ORG'
+                | 'NOT_FOUND'
+                | 'ILLEGAL_TRANSITION'
+                | 'TRIP_CANCELLED'
+                | 'TRIP_REASSIGNED'
+                | 'VEHICLE_BUSY'
+                | 'DRIVER_BUSY'
+                | 'CANCELLATION_PENDING'
+                | 'ALREADY_SETTLED'
+                | 'IDEMPOTENCY_CONFLICT'
+                | 'IDEMPOTENCY_KEY_REQUIRED'
+                | 'VERSION_CONFLICT'
+                | 'CONFLICT'
+                | 'FUEL_TYPE_MISMATCH'
+                | 'ODOMETER_BEFORE_START'
+                | 'OTP_INVALID'
+                | 'OTP_EXPIRED'
+                | 'INVALID_CREDENTIALS'
+                | 'ACCOUNT_EXISTS'
+                | 'GOOGLE_TOKEN_INVALID'
+                | 'GOOGLE_ACCOUNT_CONFLICT'
+                | 'RATE_LIMITED'
+                | 'UPLOAD_NOT_FOUND'
+                | 'UPLOAD_MISMATCH'
+                | 'INTERNAL';
+              message: string;
+              details?: unknown;
+              requestId?: string;
+            };
+          };
+        };
+      };
+    };
+  };
+  postAuthSignup: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': {
+          phone: string;
+          code: string;
+          password: string;
+          name?: string;
+          /** Format: uuid */
+          deviceId: string;
+          /** @enum {string} */
+          platform: 'android' | 'ios' | 'web';
+          appVersion?: string;
+        };
+      };
+    };
+    responses: {
+      /** @description OK */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            accessToken: string;
+            /** Format: date-time */
+            accessTokenExpiresAt: string;
+            refreshToken: string;
+            /** Format: date-time */
+            refreshTokenExpiresAt: string;
+            user: {
+              /** Format: uuid */
+              id: string;
+              phone: string;
+              name: string | null;
+            };
+            activeOrgId: string | null;
+            memberships: {
+              /** Format: uuid */
+              orgId: string;
+              orgName: string;
+              /** @enum {string} */
+              orgKind: 'fleet' | 'dco';
+              roles: ('owner' | 'manager' | 'driver')[];
+            }[];
+          };
+        };
+      };
+      /** @description Error */
+      default: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            error: {
+              /** @enum {string} */
+              code:
+                | 'VALIDATION_FAILED'
+                | 'UNAUTHENTICATED'
+                | 'TOKEN_EXPIRED'
+                | 'FORBIDDEN_ROLE'
+                | 'NO_ACTIVE_ORG'
+                | 'NOT_FOUND'
+                | 'ILLEGAL_TRANSITION'
+                | 'TRIP_CANCELLED'
+                | 'TRIP_REASSIGNED'
+                | 'VEHICLE_BUSY'
+                | 'DRIVER_BUSY'
+                | 'CANCELLATION_PENDING'
+                | 'ALREADY_SETTLED'
+                | 'IDEMPOTENCY_CONFLICT'
+                | 'IDEMPOTENCY_KEY_REQUIRED'
+                | 'VERSION_CONFLICT'
+                | 'CONFLICT'
+                | 'FUEL_TYPE_MISMATCH'
+                | 'ODOMETER_BEFORE_START'
+                | 'OTP_INVALID'
+                | 'OTP_EXPIRED'
+                | 'INVALID_CREDENTIALS'
+                | 'ACCOUNT_EXISTS'
+                | 'GOOGLE_TOKEN_INVALID'
+                | 'GOOGLE_ACCOUNT_CONFLICT'
+                | 'RATE_LIMITED'
+                | 'UPLOAD_NOT_FOUND'
+                | 'UPLOAD_MISMATCH'
+                | 'INTERNAL';
+              message: string;
+              details?: unknown;
+              requestId?: string;
+            };
+          };
+        };
+      };
+    };
+  };
+  postAuthPasswordLogin: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': {
+          phone: string;
+          password: string;
+          /** Format: uuid */
+          deviceId: string;
+          /** @enum {string} */
+          platform: 'android' | 'ios' | 'web';
+          appVersion?: string;
+        };
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            accessToken: string;
+            /** Format: date-time */
+            accessTokenExpiresAt: string;
+            refreshToken: string;
+            /** Format: date-time */
+            refreshTokenExpiresAt: string;
+            user: {
+              /** Format: uuid */
+              id: string;
+              phone: string;
+              name: string | null;
+            };
+            activeOrgId: string | null;
+            memberships: {
+              /** Format: uuid */
+              orgId: string;
+              orgName: string;
+              /** @enum {string} */
+              orgKind: 'fleet' | 'dco';
+              roles: ('owner' | 'manager' | 'driver')[];
+            }[];
+          };
+        };
+      };
+      /** @description Error */
+      default: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            error: {
+              /** @enum {string} */
+              code:
+                | 'VALIDATION_FAILED'
+                | 'UNAUTHENTICATED'
+                | 'TOKEN_EXPIRED'
+                | 'FORBIDDEN_ROLE'
+                | 'NO_ACTIVE_ORG'
+                | 'NOT_FOUND'
+                | 'ILLEGAL_TRANSITION'
+                | 'TRIP_CANCELLED'
+                | 'TRIP_REASSIGNED'
+                | 'VEHICLE_BUSY'
+                | 'DRIVER_BUSY'
+                | 'CANCELLATION_PENDING'
+                | 'ALREADY_SETTLED'
+                | 'IDEMPOTENCY_CONFLICT'
+                | 'IDEMPOTENCY_KEY_REQUIRED'
+                | 'VERSION_CONFLICT'
+                | 'CONFLICT'
+                | 'FUEL_TYPE_MISMATCH'
+                | 'ODOMETER_BEFORE_START'
+                | 'OTP_INVALID'
+                | 'OTP_EXPIRED'
+                | 'INVALID_CREDENTIALS'
+                | 'ACCOUNT_EXISTS'
+                | 'GOOGLE_TOKEN_INVALID'
+                | 'GOOGLE_ACCOUNT_CONFLICT'
+                | 'RATE_LIMITED'
+                | 'UPLOAD_NOT_FOUND'
+                | 'UPLOAD_MISMATCH'
+                | 'INTERNAL';
+              message: string;
+              details?: unknown;
+              requestId?: string;
+            };
+          };
+        };
+      };
+    };
+  };
+  postAuthPasswordReset: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': {
+          phone: string;
+          code: string;
+          password: string;
+          /** Format: uuid */
+          deviceId: string;
+          /** @enum {string} */
+          platform: 'android' | 'ios' | 'web';
+          appVersion?: string;
+        };
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            accessToken: string;
+            /** Format: date-time */
+            accessTokenExpiresAt: string;
+            refreshToken: string;
+            /** Format: date-time */
+            refreshTokenExpiresAt: string;
+            user: {
+              /** Format: uuid */
+              id: string;
+              phone: string;
+              name: string | null;
+            };
+            activeOrgId: string | null;
+            memberships: {
+              /** Format: uuid */
+              orgId: string;
+              orgName: string;
+              /** @enum {string} */
+              orgKind: 'fleet' | 'dco';
+              roles: ('owner' | 'manager' | 'driver')[];
+            }[];
+          };
+        };
+      };
+      /** @description Error */
+      default: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            error: {
+              /** @enum {string} */
+              code:
+                | 'VALIDATION_FAILED'
+                | 'UNAUTHENTICATED'
+                | 'TOKEN_EXPIRED'
+                | 'FORBIDDEN_ROLE'
+                | 'NO_ACTIVE_ORG'
+                | 'NOT_FOUND'
+                | 'ILLEGAL_TRANSITION'
+                | 'TRIP_CANCELLED'
+                | 'TRIP_REASSIGNED'
+                | 'VEHICLE_BUSY'
+                | 'DRIVER_BUSY'
+                | 'CANCELLATION_PENDING'
+                | 'ALREADY_SETTLED'
+                | 'IDEMPOTENCY_CONFLICT'
+                | 'IDEMPOTENCY_KEY_REQUIRED'
+                | 'VERSION_CONFLICT'
+                | 'CONFLICT'
+                | 'FUEL_TYPE_MISMATCH'
+                | 'ODOMETER_BEFORE_START'
+                | 'OTP_INVALID'
+                | 'OTP_EXPIRED'
+                | 'INVALID_CREDENTIALS'
+                | 'ACCOUNT_EXISTS'
+                | 'GOOGLE_TOKEN_INVALID'
+                | 'GOOGLE_ACCOUNT_CONFLICT'
+                | 'RATE_LIMITED'
+                | 'UPLOAD_NOT_FOUND'
+                | 'UPLOAD_MISMATCH'
+                | 'INTERNAL';
+              message: string;
+              details?: unknown;
+              requestId?: string;
+            };
+          };
+        };
+      };
+    };
+  };
+  postMePassword: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': {
+          currentPassword?: string;
+          newPassword: string;
+        };
+      };
+    };
+    responses: {
+      /** @description No content */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Error */
+      default: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            error: {
+              /** @enum {string} */
+              code:
+                | 'VALIDATION_FAILED'
+                | 'UNAUTHENTICATED'
+                | 'TOKEN_EXPIRED'
+                | 'FORBIDDEN_ROLE'
+                | 'NO_ACTIVE_ORG'
+                | 'NOT_FOUND'
+                | 'ILLEGAL_TRANSITION'
+                | 'TRIP_CANCELLED'
+                | 'TRIP_REASSIGNED'
+                | 'VEHICLE_BUSY'
+                | 'DRIVER_BUSY'
+                | 'CANCELLATION_PENDING'
+                | 'ALREADY_SETTLED'
+                | 'IDEMPOTENCY_CONFLICT'
+                | 'IDEMPOTENCY_KEY_REQUIRED'
+                | 'VERSION_CONFLICT'
+                | 'CONFLICT'
+                | 'FUEL_TYPE_MISMATCH'
+                | 'ODOMETER_BEFORE_START'
+                | 'OTP_INVALID'
+                | 'OTP_EXPIRED'
+                | 'INVALID_CREDENTIALS'
+                | 'ACCOUNT_EXISTS'
+                | 'GOOGLE_TOKEN_INVALID'
+                | 'GOOGLE_ACCOUNT_CONFLICT'
+                | 'RATE_LIMITED'
+                | 'UPLOAD_NOT_FOUND'
+                | 'UPLOAD_MISMATCH'
+                | 'INTERNAL';
+              message: string;
+              details?: unknown;
+              requestId?: string;
+            };
+          };
+        };
+      };
+    };
+  };
+  postAuthGoogle: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': {
+          idToken: string;
+          /** Format: uuid */
+          deviceId: string;
+          /** @enum {string} */
+          platform: 'android' | 'ios' | 'web';
+          appVersion?: string;
+        };
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json':
+            | {
+                /** @constant */
+                status: 'signed_in';
+                session: {
+                  accessToken: string;
+                  /** Format: date-time */
+                  accessTokenExpiresAt: string;
+                  refreshToken: string;
+                  /** Format: date-time */
+                  refreshTokenExpiresAt: string;
+                  user: {
+                    /** Format: uuid */
+                    id: string;
+                    phone: string;
+                    name: string | null;
+                  };
+                  activeOrgId: string | null;
+                  memberships: {
+                    /** Format: uuid */
+                    orgId: string;
+                    orgName: string;
+                    /** @enum {string} */
+                    orgKind: 'fleet' | 'dco';
+                    roles: ('owner' | 'manager' | 'driver')[];
+                  }[];
+                };
+              }
+            | {
+                /** @constant */
+                status: 'phone_required';
+                linkToken: string;
+                email: string | null;
+                name: string | null;
+              };
+        };
+      };
+      /** @description Error */
+      default: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            error: {
+              /** @enum {string} */
+              code:
+                | 'VALIDATION_FAILED'
+                | 'UNAUTHENTICATED'
+                | 'TOKEN_EXPIRED'
+                | 'FORBIDDEN_ROLE'
+                | 'NO_ACTIVE_ORG'
+                | 'NOT_FOUND'
+                | 'ILLEGAL_TRANSITION'
+                | 'TRIP_CANCELLED'
+                | 'TRIP_REASSIGNED'
+                | 'VEHICLE_BUSY'
+                | 'DRIVER_BUSY'
+                | 'CANCELLATION_PENDING'
+                | 'ALREADY_SETTLED'
+                | 'IDEMPOTENCY_CONFLICT'
+                | 'IDEMPOTENCY_KEY_REQUIRED'
+                | 'VERSION_CONFLICT'
+                | 'CONFLICT'
+                | 'FUEL_TYPE_MISMATCH'
+                | 'ODOMETER_BEFORE_START'
+                | 'OTP_INVALID'
+                | 'OTP_EXPIRED'
+                | 'INVALID_CREDENTIALS'
+                | 'ACCOUNT_EXISTS'
+                | 'GOOGLE_TOKEN_INVALID'
+                | 'GOOGLE_ACCOUNT_CONFLICT'
+                | 'RATE_LIMITED'
+                | 'UPLOAD_NOT_FOUND'
+                | 'UPLOAD_MISMATCH'
+                | 'INTERNAL';
+              message: string;
+              details?: unknown;
+              requestId?: string;
+            };
+          };
+        };
+      };
+    };
+  };
+  postAuthGoogleLink: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': {
+          linkToken: string;
+          phone: string;
+          code: string;
+          /** Format: uuid */
+          deviceId: string;
+          /** @enum {string} */
+          platform: 'android' | 'ios' | 'web';
+          appVersion?: string;
+        };
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            accessToken: string;
+            /** Format: date-time */
+            accessTokenExpiresAt: string;
+            refreshToken: string;
+            /** Format: date-time */
+            refreshTokenExpiresAt: string;
+            user: {
+              /** Format: uuid */
+              id: string;
+              phone: string;
+              name: string | null;
+            };
+            activeOrgId: string | null;
+            memberships: {
+              /** Format: uuid */
+              orgId: string;
+              orgName: string;
+              /** @enum {string} */
+              orgKind: 'fleet' | 'dco';
+              roles: ('owner' | 'manager' | 'driver')[];
+            }[];
+          };
+        };
+      };
+      /** @description Error */
+      default: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            error: {
+              /** @enum {string} */
+              code:
+                | 'VALIDATION_FAILED'
+                | 'UNAUTHENTICATED'
+                | 'TOKEN_EXPIRED'
+                | 'FORBIDDEN_ROLE'
+                | 'NO_ACTIVE_ORG'
+                | 'NOT_FOUND'
+                | 'ILLEGAL_TRANSITION'
+                | 'TRIP_CANCELLED'
+                | 'TRIP_REASSIGNED'
+                | 'VEHICLE_BUSY'
+                | 'DRIVER_BUSY'
+                | 'CANCELLATION_PENDING'
+                | 'ALREADY_SETTLED'
+                | 'IDEMPOTENCY_CONFLICT'
+                | 'IDEMPOTENCY_KEY_REQUIRED'
+                | 'VERSION_CONFLICT'
+                | 'CONFLICT'
+                | 'FUEL_TYPE_MISMATCH'
+                | 'ODOMETER_BEFORE_START'
+                | 'OTP_INVALID'
+                | 'OTP_EXPIRED'
+                | 'INVALID_CREDENTIALS'
+                | 'ACCOUNT_EXISTS'
+                | 'GOOGLE_TOKEN_INVALID'
+                | 'GOOGLE_ACCOUNT_CONFLICT'
                 | 'RATE_LIMITED'
                 | 'UPLOAD_NOT_FOUND'
                 | 'UPLOAD_MISMATCH'
@@ -1344,6 +2138,10 @@ export interface operations {
                 | 'ODOMETER_BEFORE_START'
                 | 'OTP_INVALID'
                 | 'OTP_EXPIRED'
+                | 'INVALID_CREDENTIALS'
+                | 'ACCOUNT_EXISTS'
+                | 'GOOGLE_TOKEN_INVALID'
+                | 'GOOGLE_ACCOUNT_CONFLICT'
                 | 'RATE_LIMITED'
                 | 'UPLOAD_NOT_FOUND'
                 | 'UPLOAD_MISMATCH'
@@ -1410,6 +2208,10 @@ export interface operations {
                 | 'ODOMETER_BEFORE_START'
                 | 'OTP_INVALID'
                 | 'OTP_EXPIRED'
+                | 'INVALID_CREDENTIALS'
+                | 'ACCOUNT_EXISTS'
+                | 'GOOGLE_TOKEN_INVALID'
+                | 'GOOGLE_ACCOUNT_CONFLICT'
                 | 'RATE_LIMITED'
                 | 'UPLOAD_NOT_FOUND'
                 | 'UPLOAD_MISMATCH'
@@ -1502,6 +2304,10 @@ export interface operations {
                 | 'ODOMETER_BEFORE_START'
                 | 'OTP_INVALID'
                 | 'OTP_EXPIRED'
+                | 'INVALID_CREDENTIALS'
+                | 'ACCOUNT_EXISTS'
+                | 'GOOGLE_TOKEN_INVALID'
+                | 'GOOGLE_ACCOUNT_CONFLICT'
                 | 'RATE_LIMITED'
                 | 'UPLOAD_NOT_FOUND'
                 | 'UPLOAD_MISMATCH'
@@ -1536,6 +2342,9 @@ export interface operations {
               id: string;
               phone: string;
               name: string | null;
+              email: string | null;
+              hasPassword: boolean;
+              googleLinked: boolean;
             };
             activeOrgId: string | null;
             roles: ('owner' | 'manager' | 'driver')[];
@@ -1581,6 +2390,10 @@ export interface operations {
                 | 'ODOMETER_BEFORE_START'
                 | 'OTP_INVALID'
                 | 'OTP_EXPIRED'
+                | 'INVALID_CREDENTIALS'
+                | 'ACCOUNT_EXISTS'
+                | 'GOOGLE_TOKEN_INVALID'
+                | 'GOOGLE_ACCOUNT_CONFLICT'
                 | 'RATE_LIMITED'
                 | 'UPLOAD_NOT_FOUND'
                 | 'UPLOAD_MISMATCH'
@@ -1654,6 +2467,10 @@ export interface operations {
                 | 'ODOMETER_BEFORE_START'
                 | 'OTP_INVALID'
                 | 'OTP_EXPIRED'
+                | 'INVALID_CREDENTIALS'
+                | 'ACCOUNT_EXISTS'
+                | 'GOOGLE_TOKEN_INVALID'
+                | 'GOOGLE_ACCOUNT_CONFLICT'
                 | 'RATE_LIMITED'
                 | 'UPLOAD_NOT_FOUND'
                 | 'UPLOAD_MISMATCH'
@@ -1747,6 +2564,10 @@ export interface operations {
                 | 'ODOMETER_BEFORE_START'
                 | 'OTP_INVALID'
                 | 'OTP_EXPIRED'
+                | 'INVALID_CREDENTIALS'
+                | 'ACCOUNT_EXISTS'
+                | 'GOOGLE_TOKEN_INVALID'
+                | 'GOOGLE_ACCOUNT_CONFLICT'
                 | 'RATE_LIMITED'
                 | 'UPLOAD_NOT_FOUND'
                 | 'UPLOAD_MISMATCH'
@@ -1821,6 +2642,10 @@ export interface operations {
                 | 'ODOMETER_BEFORE_START'
                 | 'OTP_INVALID'
                 | 'OTP_EXPIRED'
+                | 'INVALID_CREDENTIALS'
+                | 'ACCOUNT_EXISTS'
+                | 'GOOGLE_TOKEN_INVALID'
+                | 'GOOGLE_ACCOUNT_CONFLICT'
                 | 'RATE_LIMITED'
                 | 'UPLOAD_NOT_FOUND'
                 | 'UPLOAD_MISMATCH'
@@ -1902,6 +2727,10 @@ export interface operations {
                 | 'ODOMETER_BEFORE_START'
                 | 'OTP_INVALID'
                 | 'OTP_EXPIRED'
+                | 'INVALID_CREDENTIALS'
+                | 'ACCOUNT_EXISTS'
+                | 'GOOGLE_TOKEN_INVALID'
+                | 'GOOGLE_ACCOUNT_CONFLICT'
                 | 'RATE_LIMITED'
                 | 'UPLOAD_NOT_FOUND'
                 | 'UPLOAD_MISMATCH'
@@ -1978,6 +2807,10 @@ export interface operations {
                 | 'ODOMETER_BEFORE_START'
                 | 'OTP_INVALID'
                 | 'OTP_EXPIRED'
+                | 'INVALID_CREDENTIALS'
+                | 'ACCOUNT_EXISTS'
+                | 'GOOGLE_TOKEN_INVALID'
+                | 'GOOGLE_ACCOUNT_CONFLICT'
                 | 'RATE_LIMITED'
                 | 'UPLOAD_NOT_FOUND'
                 | 'UPLOAD_MISMATCH'
@@ -2079,6 +2912,10 @@ export interface operations {
                 | 'ODOMETER_BEFORE_START'
                 | 'OTP_INVALID'
                 | 'OTP_EXPIRED'
+                | 'INVALID_CREDENTIALS'
+                | 'ACCOUNT_EXISTS'
+                | 'GOOGLE_TOKEN_INVALID'
+                | 'GOOGLE_ACCOUNT_CONFLICT'
                 | 'RATE_LIMITED'
                 | 'UPLOAD_NOT_FOUND'
                 | 'UPLOAD_MISMATCH'
@@ -2154,6 +2991,10 @@ export interface operations {
                 | 'ODOMETER_BEFORE_START'
                 | 'OTP_INVALID'
                 | 'OTP_EXPIRED'
+                | 'INVALID_CREDENTIALS'
+                | 'ACCOUNT_EXISTS'
+                | 'GOOGLE_TOKEN_INVALID'
+                | 'GOOGLE_ACCOUNT_CONFLICT'
                 | 'RATE_LIMITED'
                 | 'UPLOAD_NOT_FOUND'
                 | 'UPLOAD_MISMATCH'
@@ -2223,6 +3064,10 @@ export interface operations {
                 | 'ODOMETER_BEFORE_START'
                 | 'OTP_INVALID'
                 | 'OTP_EXPIRED'
+                | 'INVALID_CREDENTIALS'
+                | 'ACCOUNT_EXISTS'
+                | 'GOOGLE_TOKEN_INVALID'
+                | 'GOOGLE_ACCOUNT_CONFLICT'
                 | 'RATE_LIMITED'
                 | 'UPLOAD_NOT_FOUND'
                 | 'UPLOAD_MISMATCH'
@@ -2302,6 +3147,10 @@ export interface operations {
                 | 'ODOMETER_BEFORE_START'
                 | 'OTP_INVALID'
                 | 'OTP_EXPIRED'
+                | 'INVALID_CREDENTIALS'
+                | 'ACCOUNT_EXISTS'
+                | 'GOOGLE_TOKEN_INVALID'
+                | 'GOOGLE_ACCOUNT_CONFLICT'
                 | 'RATE_LIMITED'
                 | 'UPLOAD_NOT_FOUND'
                 | 'UPLOAD_MISMATCH'
@@ -2393,6 +3242,10 @@ export interface operations {
                 | 'ODOMETER_BEFORE_START'
                 | 'OTP_INVALID'
                 | 'OTP_EXPIRED'
+                | 'INVALID_CREDENTIALS'
+                | 'ACCOUNT_EXISTS'
+                | 'GOOGLE_TOKEN_INVALID'
+                | 'GOOGLE_ACCOUNT_CONFLICT'
                 | 'RATE_LIMITED'
                 | 'UPLOAD_NOT_FOUND'
                 | 'UPLOAD_MISMATCH'
@@ -2472,6 +3325,10 @@ export interface operations {
                 | 'ODOMETER_BEFORE_START'
                 | 'OTP_INVALID'
                 | 'OTP_EXPIRED'
+                | 'INVALID_CREDENTIALS'
+                | 'ACCOUNT_EXISTS'
+                | 'GOOGLE_TOKEN_INVALID'
+                | 'GOOGLE_ACCOUNT_CONFLICT'
                 | 'RATE_LIMITED'
                 | 'UPLOAD_NOT_FOUND'
                 | 'UPLOAD_MISMATCH'
@@ -2567,6 +3424,10 @@ export interface operations {
                 | 'ODOMETER_BEFORE_START'
                 | 'OTP_INVALID'
                 | 'OTP_EXPIRED'
+                | 'INVALID_CREDENTIALS'
+                | 'ACCOUNT_EXISTS'
+                | 'GOOGLE_TOKEN_INVALID'
+                | 'GOOGLE_ACCOUNT_CONFLICT'
                 | 'RATE_LIMITED'
                 | 'UPLOAD_NOT_FOUND'
                 | 'UPLOAD_MISMATCH'
@@ -2636,6 +3497,10 @@ export interface operations {
                 | 'ODOMETER_BEFORE_START'
                 | 'OTP_INVALID'
                 | 'OTP_EXPIRED'
+                | 'INVALID_CREDENTIALS'
+                | 'ACCOUNT_EXISTS'
+                | 'GOOGLE_TOKEN_INVALID'
+                | 'GOOGLE_ACCOUNT_CONFLICT'
                 | 'RATE_LIMITED'
                 | 'UPLOAD_NOT_FOUND'
                 | 'UPLOAD_MISMATCH'
@@ -2748,6 +3613,10 @@ export interface operations {
                 | 'ODOMETER_BEFORE_START'
                 | 'OTP_INVALID'
                 | 'OTP_EXPIRED'
+                | 'INVALID_CREDENTIALS'
+                | 'ACCOUNT_EXISTS'
+                | 'GOOGLE_TOKEN_INVALID'
+                | 'GOOGLE_ACCOUNT_CONFLICT'
                 | 'RATE_LIMITED'
                 | 'UPLOAD_NOT_FOUND'
                 | 'UPLOAD_MISMATCH'
@@ -2865,6 +3734,10 @@ export interface operations {
                 | 'ODOMETER_BEFORE_START'
                 | 'OTP_INVALID'
                 | 'OTP_EXPIRED'
+                | 'INVALID_CREDENTIALS'
+                | 'ACCOUNT_EXISTS'
+                | 'GOOGLE_TOKEN_INVALID'
+                | 'GOOGLE_ACCOUNT_CONFLICT'
                 | 'RATE_LIMITED'
                 | 'UPLOAD_NOT_FOUND'
                 | 'UPLOAD_MISMATCH'
@@ -2977,6 +3850,10 @@ export interface operations {
                 | 'ODOMETER_BEFORE_START'
                 | 'OTP_INVALID'
                 | 'OTP_EXPIRED'
+                | 'INVALID_CREDENTIALS'
+                | 'ACCOUNT_EXISTS'
+                | 'GOOGLE_TOKEN_INVALID'
+                | 'GOOGLE_ACCOUNT_CONFLICT'
                 | 'RATE_LIMITED'
                 | 'UPLOAD_NOT_FOUND'
                 | 'UPLOAD_MISMATCH'
@@ -3097,6 +3974,10 @@ export interface operations {
                 | 'ODOMETER_BEFORE_START'
                 | 'OTP_INVALID'
                 | 'OTP_EXPIRED'
+                | 'INVALID_CREDENTIALS'
+                | 'ACCOUNT_EXISTS'
+                | 'GOOGLE_TOKEN_INVALID'
+                | 'GOOGLE_ACCOUNT_CONFLICT'
                 | 'RATE_LIMITED'
                 | 'UPLOAD_NOT_FOUND'
                 | 'UPLOAD_MISMATCH'
@@ -3249,6 +4130,10 @@ export interface operations {
                 | 'ODOMETER_BEFORE_START'
                 | 'OTP_INVALID'
                 | 'OTP_EXPIRED'
+                | 'INVALID_CREDENTIALS'
+                | 'ACCOUNT_EXISTS'
+                | 'GOOGLE_TOKEN_INVALID'
+                | 'GOOGLE_ACCOUNT_CONFLICT'
                 | 'RATE_LIMITED'
                 | 'UPLOAD_NOT_FOUND'
                 | 'UPLOAD_MISMATCH'
@@ -3334,6 +4219,10 @@ export interface operations {
                 | 'ODOMETER_BEFORE_START'
                 | 'OTP_INVALID'
                 | 'OTP_EXPIRED'
+                | 'INVALID_CREDENTIALS'
+                | 'ACCOUNT_EXISTS'
+                | 'GOOGLE_TOKEN_INVALID'
+                | 'GOOGLE_ACCOUNT_CONFLICT'
                 | 'RATE_LIMITED'
                 | 'UPLOAD_NOT_FOUND'
                 | 'UPLOAD_MISMATCH'
@@ -3432,6 +4321,10 @@ export interface operations {
                 | 'ODOMETER_BEFORE_START'
                 | 'OTP_INVALID'
                 | 'OTP_EXPIRED'
+                | 'INVALID_CREDENTIALS'
+                | 'ACCOUNT_EXISTS'
+                | 'GOOGLE_TOKEN_INVALID'
+                | 'GOOGLE_ACCOUNT_CONFLICT'
                 | 'RATE_LIMITED'
                 | 'UPLOAD_NOT_FOUND'
                 | 'UPLOAD_MISMATCH'
@@ -3526,6 +4419,10 @@ export interface operations {
                 | 'ODOMETER_BEFORE_START'
                 | 'OTP_INVALID'
                 | 'OTP_EXPIRED'
+                | 'INVALID_CREDENTIALS'
+                | 'ACCOUNT_EXISTS'
+                | 'GOOGLE_TOKEN_INVALID'
+                | 'GOOGLE_ACCOUNT_CONFLICT'
                 | 'RATE_LIMITED'
                 | 'UPLOAD_NOT_FOUND'
                 | 'UPLOAD_MISMATCH'
@@ -3595,6 +4492,10 @@ export interface operations {
                 | 'ODOMETER_BEFORE_START'
                 | 'OTP_INVALID'
                 | 'OTP_EXPIRED'
+                | 'INVALID_CREDENTIALS'
+                | 'ACCOUNT_EXISTS'
+                | 'GOOGLE_TOKEN_INVALID'
+                | 'GOOGLE_ACCOUNT_CONFLICT'
                 | 'RATE_LIMITED'
                 | 'UPLOAD_NOT_FOUND'
                 | 'UPLOAD_MISMATCH'
@@ -3675,6 +4576,10 @@ export interface operations {
                 | 'ODOMETER_BEFORE_START'
                 | 'OTP_INVALID'
                 | 'OTP_EXPIRED'
+                | 'INVALID_CREDENTIALS'
+                | 'ACCOUNT_EXISTS'
+                | 'GOOGLE_TOKEN_INVALID'
+                | 'GOOGLE_ACCOUNT_CONFLICT'
                 | 'RATE_LIMITED'
                 | 'UPLOAD_NOT_FOUND'
                 | 'UPLOAD_MISMATCH'
@@ -3768,6 +4673,10 @@ export interface operations {
                 | 'ODOMETER_BEFORE_START'
                 | 'OTP_INVALID'
                 | 'OTP_EXPIRED'
+                | 'INVALID_CREDENTIALS'
+                | 'ACCOUNT_EXISTS'
+                | 'GOOGLE_TOKEN_INVALID'
+                | 'GOOGLE_ACCOUNT_CONFLICT'
                 | 'RATE_LIMITED'
                 | 'UPLOAD_NOT_FOUND'
                 | 'UPLOAD_MISMATCH'
@@ -3896,6 +4805,10 @@ export interface operations {
                 | 'ODOMETER_BEFORE_START'
                 | 'OTP_INVALID'
                 | 'OTP_EXPIRED'
+                | 'INVALID_CREDENTIALS'
+                | 'ACCOUNT_EXISTS'
+                | 'GOOGLE_TOKEN_INVALID'
+                | 'GOOGLE_ACCOUNT_CONFLICT'
                 | 'RATE_LIMITED'
                 | 'UPLOAD_NOT_FOUND'
                 | 'UPLOAD_MISMATCH'
@@ -4124,6 +5037,10 @@ export interface operations {
                 | 'ODOMETER_BEFORE_START'
                 | 'OTP_INVALID'
                 | 'OTP_EXPIRED'
+                | 'INVALID_CREDENTIALS'
+                | 'ACCOUNT_EXISTS'
+                | 'GOOGLE_TOKEN_INVALID'
+                | 'GOOGLE_ACCOUNT_CONFLICT'
                 | 'RATE_LIMITED'
                 | 'UPLOAD_NOT_FOUND'
                 | 'UPLOAD_MISMATCH'
@@ -4382,6 +5299,10 @@ export interface operations {
                 | 'ODOMETER_BEFORE_START'
                 | 'OTP_INVALID'
                 | 'OTP_EXPIRED'
+                | 'INVALID_CREDENTIALS'
+                | 'ACCOUNT_EXISTS'
+                | 'GOOGLE_TOKEN_INVALID'
+                | 'GOOGLE_ACCOUNT_CONFLICT'
                 | 'RATE_LIMITED'
                 | 'UPLOAD_NOT_FOUND'
                 | 'UPLOAD_MISMATCH'
@@ -4605,6 +5526,10 @@ export interface operations {
                 | 'ODOMETER_BEFORE_START'
                 | 'OTP_INVALID'
                 | 'OTP_EXPIRED'
+                | 'INVALID_CREDENTIALS'
+                | 'ACCOUNT_EXISTS'
+                | 'GOOGLE_TOKEN_INVALID'
+                | 'GOOGLE_ACCOUNT_CONFLICT'
                 | 'RATE_LIMITED'
                 | 'UPLOAD_NOT_FOUND'
                 | 'UPLOAD_MISMATCH'
@@ -4859,6 +5784,10 @@ export interface operations {
                 | 'ODOMETER_BEFORE_START'
                 | 'OTP_INVALID'
                 | 'OTP_EXPIRED'
+                | 'INVALID_CREDENTIALS'
+                | 'ACCOUNT_EXISTS'
+                | 'GOOGLE_TOKEN_INVALID'
+                | 'GOOGLE_ACCOUNT_CONFLICT'
                 | 'RATE_LIMITED'
                 | 'UPLOAD_NOT_FOUND'
                 | 'UPLOAD_MISMATCH'
@@ -4941,6 +5870,10 @@ export interface operations {
                 | 'ODOMETER_BEFORE_START'
                 | 'OTP_INVALID'
                 | 'OTP_EXPIRED'
+                | 'INVALID_CREDENTIALS'
+                | 'ACCOUNT_EXISTS'
+                | 'GOOGLE_TOKEN_INVALID'
+                | 'GOOGLE_ACCOUNT_CONFLICT'
                 | 'RATE_LIMITED'
                 | 'UPLOAD_NOT_FOUND'
                 | 'UPLOAD_MISMATCH'
@@ -5175,6 +6108,10 @@ export interface operations {
                 | 'ODOMETER_BEFORE_START'
                 | 'OTP_INVALID'
                 | 'OTP_EXPIRED'
+                | 'INVALID_CREDENTIALS'
+                | 'ACCOUNT_EXISTS'
+                | 'GOOGLE_TOKEN_INVALID'
+                | 'GOOGLE_ACCOUNT_CONFLICT'
                 | 'RATE_LIMITED'
                 | 'UPLOAD_NOT_FOUND'
                 | 'UPLOAD_MISMATCH'
@@ -5400,6 +6337,10 @@ export interface operations {
                 | 'ODOMETER_BEFORE_START'
                 | 'OTP_INVALID'
                 | 'OTP_EXPIRED'
+                | 'INVALID_CREDENTIALS'
+                | 'ACCOUNT_EXISTS'
+                | 'GOOGLE_TOKEN_INVALID'
+                | 'GOOGLE_ACCOUNT_CONFLICT'
                 | 'RATE_LIMITED'
                 | 'UPLOAD_NOT_FOUND'
                 | 'UPLOAD_MISMATCH'
@@ -5641,6 +6582,10 @@ export interface operations {
                 | 'ODOMETER_BEFORE_START'
                 | 'OTP_INVALID'
                 | 'OTP_EXPIRED'
+                | 'INVALID_CREDENTIALS'
+                | 'ACCOUNT_EXISTS'
+                | 'GOOGLE_TOKEN_INVALID'
+                | 'GOOGLE_ACCOUNT_CONFLICT'
                 | 'RATE_LIMITED'
                 | 'UPLOAD_NOT_FOUND'
                 | 'UPLOAD_MISMATCH'
@@ -5911,6 +6856,10 @@ export interface operations {
                 | 'ODOMETER_BEFORE_START'
                 | 'OTP_INVALID'
                 | 'OTP_EXPIRED'
+                | 'INVALID_CREDENTIALS'
+                | 'ACCOUNT_EXISTS'
+                | 'GOOGLE_TOKEN_INVALID'
+                | 'GOOGLE_ACCOUNT_CONFLICT'
                 | 'RATE_LIMITED'
                 | 'UPLOAD_NOT_FOUND'
                 | 'UPLOAD_MISMATCH'
@@ -6142,6 +7091,10 @@ export interface operations {
                 | 'ODOMETER_BEFORE_START'
                 | 'OTP_INVALID'
                 | 'OTP_EXPIRED'
+                | 'INVALID_CREDENTIALS'
+                | 'ACCOUNT_EXISTS'
+                | 'GOOGLE_TOKEN_INVALID'
+                | 'GOOGLE_ACCOUNT_CONFLICT'
                 | 'RATE_LIMITED'
                 | 'UPLOAD_NOT_FOUND'
                 | 'UPLOAD_MISMATCH'
@@ -6386,6 +7339,10 @@ export interface operations {
                 | 'ODOMETER_BEFORE_START'
                 | 'OTP_INVALID'
                 | 'OTP_EXPIRED'
+                | 'INVALID_CREDENTIALS'
+                | 'ACCOUNT_EXISTS'
+                | 'GOOGLE_TOKEN_INVALID'
+                | 'GOOGLE_ACCOUNT_CONFLICT'
                 | 'RATE_LIMITED'
                 | 'UPLOAD_NOT_FOUND'
                 | 'UPLOAD_MISMATCH'
@@ -6619,6 +7576,10 @@ export interface operations {
                 | 'ODOMETER_BEFORE_START'
                 | 'OTP_INVALID'
                 | 'OTP_EXPIRED'
+                | 'INVALID_CREDENTIALS'
+                | 'ACCOUNT_EXISTS'
+                | 'GOOGLE_TOKEN_INVALID'
+                | 'GOOGLE_ACCOUNT_CONFLICT'
                 | 'RATE_LIMITED'
                 | 'UPLOAD_NOT_FOUND'
                 | 'UPLOAD_MISMATCH'
@@ -6850,6 +7811,10 @@ export interface operations {
                 | 'ODOMETER_BEFORE_START'
                 | 'OTP_INVALID'
                 | 'OTP_EXPIRED'
+                | 'INVALID_CREDENTIALS'
+                | 'ACCOUNT_EXISTS'
+                | 'GOOGLE_TOKEN_INVALID'
+                | 'GOOGLE_ACCOUNT_CONFLICT'
                 | 'RATE_LIMITED'
                 | 'UPLOAD_NOT_FOUND'
                 | 'UPLOAD_MISMATCH'
@@ -7075,6 +8040,10 @@ export interface operations {
                 | 'ODOMETER_BEFORE_START'
                 | 'OTP_INVALID'
                 | 'OTP_EXPIRED'
+                | 'INVALID_CREDENTIALS'
+                | 'ACCOUNT_EXISTS'
+                | 'GOOGLE_TOKEN_INVALID'
+                | 'GOOGLE_ACCOUNT_CONFLICT'
                 | 'RATE_LIMITED'
                 | 'UPLOAD_NOT_FOUND'
                 | 'UPLOAD_MISMATCH'
@@ -7319,6 +8288,10 @@ export interface operations {
                 | 'ODOMETER_BEFORE_START'
                 | 'OTP_INVALID'
                 | 'OTP_EXPIRED'
+                | 'INVALID_CREDENTIALS'
+                | 'ACCOUNT_EXISTS'
+                | 'GOOGLE_TOKEN_INVALID'
+                | 'GOOGLE_ACCOUNT_CONFLICT'
                 | 'RATE_LIMITED'
                 | 'UPLOAD_NOT_FOUND'
                 | 'UPLOAD_MISMATCH'
@@ -7543,6 +8516,10 @@ export interface operations {
                 | 'ODOMETER_BEFORE_START'
                 | 'OTP_INVALID'
                 | 'OTP_EXPIRED'
+                | 'INVALID_CREDENTIALS'
+                | 'ACCOUNT_EXISTS'
+                | 'GOOGLE_TOKEN_INVALID'
+                | 'GOOGLE_ACCOUNT_CONFLICT'
                 | 'RATE_LIMITED'
                 | 'UPLOAD_NOT_FOUND'
                 | 'UPLOAD_MISMATCH'
@@ -7766,6 +8743,10 @@ export interface operations {
                 | 'ODOMETER_BEFORE_START'
                 | 'OTP_INVALID'
                 | 'OTP_EXPIRED'
+                | 'INVALID_CREDENTIALS'
+                | 'ACCOUNT_EXISTS'
+                | 'GOOGLE_TOKEN_INVALID'
+                | 'GOOGLE_ACCOUNT_CONFLICT'
                 | 'RATE_LIMITED'
                 | 'UPLOAD_NOT_FOUND'
                 | 'UPLOAD_MISMATCH'
@@ -7869,6 +8850,10 @@ export interface operations {
                 | 'ODOMETER_BEFORE_START'
                 | 'OTP_INVALID'
                 | 'OTP_EXPIRED'
+                | 'INVALID_CREDENTIALS'
+                | 'ACCOUNT_EXISTS'
+                | 'GOOGLE_TOKEN_INVALID'
+                | 'GOOGLE_ACCOUNT_CONFLICT'
                 | 'RATE_LIMITED'
                 | 'UPLOAD_NOT_FOUND'
                 | 'UPLOAD_MISMATCH'
@@ -7998,6 +8983,10 @@ export interface operations {
                 | 'ODOMETER_BEFORE_START'
                 | 'OTP_INVALID'
                 | 'OTP_EXPIRED'
+                | 'INVALID_CREDENTIALS'
+                | 'ACCOUNT_EXISTS'
+                | 'GOOGLE_TOKEN_INVALID'
+                | 'GOOGLE_ACCOUNT_CONFLICT'
                 | 'RATE_LIMITED'
                 | 'UPLOAD_NOT_FOUND'
                 | 'UPLOAD_MISMATCH'
@@ -8102,6 +9091,10 @@ export interface operations {
                 | 'ODOMETER_BEFORE_START'
                 | 'OTP_INVALID'
                 | 'OTP_EXPIRED'
+                | 'INVALID_CREDENTIALS'
+                | 'ACCOUNT_EXISTS'
+                | 'GOOGLE_TOKEN_INVALID'
+                | 'GOOGLE_ACCOUNT_CONFLICT'
                 | 'RATE_LIMITED'
                 | 'UPLOAD_NOT_FOUND'
                 | 'UPLOAD_MISMATCH'
@@ -8206,6 +9199,10 @@ export interface operations {
                 | 'ODOMETER_BEFORE_START'
                 | 'OTP_INVALID'
                 | 'OTP_EXPIRED'
+                | 'INVALID_CREDENTIALS'
+                | 'ACCOUNT_EXISTS'
+                | 'GOOGLE_TOKEN_INVALID'
+                | 'GOOGLE_ACCOUNT_CONFLICT'
                 | 'RATE_LIMITED'
                 | 'UPLOAD_NOT_FOUND'
                 | 'UPLOAD_MISMATCH'
@@ -8291,6 +9288,10 @@ export interface operations {
                 | 'ODOMETER_BEFORE_START'
                 | 'OTP_INVALID'
                 | 'OTP_EXPIRED'
+                | 'INVALID_CREDENTIALS'
+                | 'ACCOUNT_EXISTS'
+                | 'GOOGLE_TOKEN_INVALID'
+                | 'GOOGLE_ACCOUNT_CONFLICT'
                 | 'RATE_LIMITED'
                 | 'UPLOAD_NOT_FOUND'
                 | 'UPLOAD_MISMATCH'
@@ -8368,6 +9369,10 @@ export interface operations {
                 | 'ODOMETER_BEFORE_START'
                 | 'OTP_INVALID'
                 | 'OTP_EXPIRED'
+                | 'INVALID_CREDENTIALS'
+                | 'ACCOUNT_EXISTS'
+                | 'GOOGLE_TOKEN_INVALID'
+                | 'GOOGLE_ACCOUNT_CONFLICT'
                 | 'RATE_LIMITED'
                 | 'UPLOAD_NOT_FOUND'
                 | 'UPLOAD_MISMATCH'
@@ -8445,6 +9450,10 @@ export interface operations {
                 | 'ODOMETER_BEFORE_START'
                 | 'OTP_INVALID'
                 | 'OTP_EXPIRED'
+                | 'INVALID_CREDENTIALS'
+                | 'ACCOUNT_EXISTS'
+                | 'GOOGLE_TOKEN_INVALID'
+                | 'GOOGLE_ACCOUNT_CONFLICT'
                 | 'RATE_LIMITED'
                 | 'UPLOAD_NOT_FOUND'
                 | 'UPLOAD_MISMATCH'
@@ -8681,6 +9690,10 @@ export interface operations {
                 | 'ODOMETER_BEFORE_START'
                 | 'OTP_INVALID'
                 | 'OTP_EXPIRED'
+                | 'INVALID_CREDENTIALS'
+                | 'ACCOUNT_EXISTS'
+                | 'GOOGLE_TOKEN_INVALID'
+                | 'GOOGLE_ACCOUNT_CONFLICT'
                 | 'RATE_LIMITED'
                 | 'UPLOAD_NOT_FOUND'
                 | 'UPLOAD_MISMATCH'
@@ -8764,6 +9777,10 @@ export interface operations {
                 | 'ODOMETER_BEFORE_START'
                 | 'OTP_INVALID'
                 | 'OTP_EXPIRED'
+                | 'INVALID_CREDENTIALS'
+                | 'ACCOUNT_EXISTS'
+                | 'GOOGLE_TOKEN_INVALID'
+                | 'GOOGLE_ACCOUNT_CONFLICT'
                 | 'RATE_LIMITED'
                 | 'UPLOAD_NOT_FOUND'
                 | 'UPLOAD_MISMATCH'
@@ -8946,6 +9963,10 @@ export interface operations {
                 | 'ODOMETER_BEFORE_START'
                 | 'OTP_INVALID'
                 | 'OTP_EXPIRED'
+                | 'INVALID_CREDENTIALS'
+                | 'ACCOUNT_EXISTS'
+                | 'GOOGLE_TOKEN_INVALID'
+                | 'GOOGLE_ACCOUNT_CONFLICT'
                 | 'RATE_LIMITED'
                 | 'UPLOAD_NOT_FOUND'
                 | 'UPLOAD_MISMATCH'
@@ -9130,6 +10151,10 @@ export interface operations {
                 | 'ODOMETER_BEFORE_START'
                 | 'OTP_INVALID'
                 | 'OTP_EXPIRED'
+                | 'INVALID_CREDENTIALS'
+                | 'ACCOUNT_EXISTS'
+                | 'GOOGLE_TOKEN_INVALID'
+                | 'GOOGLE_ACCOUNT_CONFLICT'
                 | 'RATE_LIMITED'
                 | 'UPLOAD_NOT_FOUND'
                 | 'UPLOAD_MISMATCH'
@@ -9334,6 +10359,10 @@ export interface operations {
                 | 'ODOMETER_BEFORE_START'
                 | 'OTP_INVALID'
                 | 'OTP_EXPIRED'
+                | 'INVALID_CREDENTIALS'
+                | 'ACCOUNT_EXISTS'
+                | 'GOOGLE_TOKEN_INVALID'
+                | 'GOOGLE_ACCOUNT_CONFLICT'
                 | 'RATE_LIMITED'
                 | 'UPLOAD_NOT_FOUND'
                 | 'UPLOAD_MISMATCH'
@@ -9403,6 +10432,10 @@ export interface operations {
                 | 'ODOMETER_BEFORE_START'
                 | 'OTP_INVALID'
                 | 'OTP_EXPIRED'
+                | 'INVALID_CREDENTIALS'
+                | 'ACCOUNT_EXISTS'
+                | 'GOOGLE_TOKEN_INVALID'
+                | 'GOOGLE_ACCOUNT_CONFLICT'
                 | 'RATE_LIMITED'
                 | 'UPLOAD_NOT_FOUND'
                 | 'UPLOAD_MISMATCH'
@@ -9604,6 +10637,10 @@ export interface operations {
                 | 'ODOMETER_BEFORE_START'
                 | 'OTP_INVALID'
                 | 'OTP_EXPIRED'
+                | 'INVALID_CREDENTIALS'
+                | 'ACCOUNT_EXISTS'
+                | 'GOOGLE_TOKEN_INVALID'
+                | 'GOOGLE_ACCOUNT_CONFLICT'
                 | 'RATE_LIMITED'
                 | 'UPLOAD_NOT_FOUND'
                 | 'UPLOAD_MISMATCH'
@@ -9699,6 +10736,10 @@ export interface operations {
                 | 'ODOMETER_BEFORE_START'
                 | 'OTP_INVALID'
                 | 'OTP_EXPIRED'
+                | 'INVALID_CREDENTIALS'
+                | 'ACCOUNT_EXISTS'
+                | 'GOOGLE_TOKEN_INVALID'
+                | 'GOOGLE_ACCOUNT_CONFLICT'
                 | 'RATE_LIMITED'
                 | 'UPLOAD_NOT_FOUND'
                 | 'UPLOAD_MISMATCH'
@@ -9802,6 +10843,10 @@ export interface operations {
                 | 'ODOMETER_BEFORE_START'
                 | 'OTP_INVALID'
                 | 'OTP_EXPIRED'
+                | 'INVALID_CREDENTIALS'
+                | 'ACCOUNT_EXISTS'
+                | 'GOOGLE_TOKEN_INVALID'
+                | 'GOOGLE_ACCOUNT_CONFLICT'
                 | 'RATE_LIMITED'
                 | 'UPLOAD_NOT_FOUND'
                 | 'UPLOAD_MISMATCH'

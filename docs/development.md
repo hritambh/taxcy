@@ -70,6 +70,7 @@ The API and workers validate their environment at startup with Zod (`apps/api/sr
 | `JWT_ACCESS_SECRET`                                                                 | —                                             | ≥ 32 characters                                                   |
 | `JWT_ACCESS_TTL_SECONDS` / `JWT_REFRESH_TTL_DAYS`                                   | `900` / `30`                                  | Token lifetimes                                                   |
 | `OTP_TTL_SECONDS` / `OTP_MAX_ATTEMPTS` / `OTP_IP_LIMIT_PER_HOUR`                    | `300` / `5` / `30`                            | OTP login                                                         |
+| `GOOGLE_WEB_CLIENT_ID` / `GOOGLE_EXTRA_CLIENT_IDS`                                  | empty                                         | Google sign-in; see [Google sign-in](#google-sign-in)             |
 | `SMS_PROVIDER` / `OCR_PROVIDER`                                                     | `console` / `stub`                            | Provider selection (only stubs exist so far)                      |
 | `SENTRY_DSN`                                                                        | empty                                         | Sentry is enabled when set                                        |
 | `WORKERS_DASHBOARD_PORT`                                                            | `3001`                                        | Bull Board                                                        |
@@ -118,6 +119,18 @@ Run one project's target with `bunx nx run @taxcy/domain:test`. Nx caches result
 | `@taxcy/db`         | `libs/db`         | Prisma schema, migrations, client, tenant/system transactions                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | `@taxcy/api-client` | `libs/api-client` | Generated TypeScript client (openapi-fetch)                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 | `@taxcy/ui`         | `libs/ui`         | Shared React UI                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+
+## Google sign-in
+
+Without `GOOGLE_WEB_CLIENT_ID`, the API runs a **stand-in** in development and tests: it accepts ID tokens of the form `dev-google:<email>` (the login screens offer this when `GET /v1/auth/config` reports `google.mode: "dev"`). In production with no client id, Google sign-in is off.
+
+To use real Google accounts:
+
+1. In the [Google Cloud console](https://console.cloud.google.com/apis/credentials), configure the OAuth consent screen, then create an **OAuth client ID** of type **Web application**. Add the admin web and app origins (e.g. `http://localhost:5173`, `http://localhost:5174`, and your production URLs) as authorised JavaScript origins.
+2. For the Android app, create an **Android** client (package name and SHA-1 of your signing key); for iOS, an **iOS** client.
+3. Set `GOOGLE_WEB_CLIENT_ID` to the web client id and `GOOGLE_EXTRA_CLIENT_IDS` to the Android/iOS ids, and restart the API. `GET /v1/auth/config` then reports `google.mode: "google"` with the web client id, which the login screens use.
+
+The API verifies each ID token's signature, expiry and audience with `google-auth-library`. A Google account is only ever linked to a phone verified by SMS code, because invites and fleets are matched by phone.
 
 ## Translations (admin web)
 

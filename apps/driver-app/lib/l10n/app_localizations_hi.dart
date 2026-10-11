@@ -199,6 +199,21 @@ class AppLocalizationsHi extends AppLocalizations {
   String get errorOtpExpired => 'कोड की समय-सीमा खत्म हो गई। नया कोड मँगाएँ।';
 
   @override
+  String get errorInvalidCredentials => 'मोबाइल नंबर या पासवर्ड ग़लत है।';
+
+  @override
+  String get errorAccountExists =>
+      'इस नंबर का अकाउंट पहले से है। लॉग इन करें, या पासवर्ड रीसेट करें।';
+
+  @override
+  String get errorGoogleTokenInvalid =>
+      'Google से साइन इन नहीं हो पाया। फिर से कोशिश करें।';
+
+  @override
+  String get errorGoogleAccountConflict =>
+      'यह नंबर पहले से किसी दूसरे Google अकाउंट से जुड़ा है।';
+
+  @override
   String get errorRateLimited =>
       'बहुत ज़्यादा कोशिशें हुईं। कुछ मिनट रुककर फिर कोशिश करें।';
 

@@ -116,11 +116,17 @@ enum AlertSeverity {
 // ───────── identity ─────────
 
 model User {
-  id        String   @id @db.Uuid
-  phoneE164 String   @unique @map("phone_e164")
-  name      String?
-  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+  id           String   @id @db.Uuid
+  phoneE164    String   @unique @map("phone_e164")
+  name         String?
+  /// argon2id hash; null for users who only sign in with an SMS code or Google.
+  passwordHash String?  @map("password_hash")
+  /// From Google sign-in (lowercased); informational, phone stays the identity.
+  email        String?
+  /// Google account id ("sub"), set once the Google account is linked to this phone.
+  googleSub    String?  @unique @map("google_sub")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
 
   memberships   Membership[]
   devices       Device[]

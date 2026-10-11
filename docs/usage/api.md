@@ -24,6 +24,7 @@ POST /v1/auth/otp/verify
 
 - **Codes.** In development the OTP is printed in the API log (`otp.issued phone=… code=…`). Each code works once and allows 5 attempts; requests are rate-limited per phone (one per 30 s, 3 per 10 min, 10 per day) and per IP (`OTP_IP_LIMIT_PER_HOUR`). A limited request returns `429` with `details.retryAfterSeconds`.
 - **Tokens.** Send `Authorization: Bearer <accessToken>`. Access tokens last 15 minutes and carry the active org and your roles in it. Refresh tokens are rotated on every `POST /auth/refresh`. Presenting an already-rotated refresh token revokes every token in its family.
+- **Sign-in methods.** An SMS code, a phone + password (sign up after an SMS code; reset with one), or Google. The phone number is the identity: a first Google sign-in returns `phone_required`, and `/auth/google/link` attaches the Google account to a phone verified by SMS code, after which Google signs straight in. A phone holds one Google account and vice versa (`GOOGLE_ACCOUNT_CONFLICT`).
 - **First login creates the user.** Users with no org call `POST /orgs` (`fleet`, or `dco` for an owner-driver) and get a session scoped to the new org. Invited drivers' memberships activate on their first sign-in. `POST /auth/switch-org` moves a session to another org you belong to.
 
 ## Conventions
@@ -87,16 +88,23 @@ Photos are OCR'd in the background. A disagreement between typed and OCR values 
 
 ### Auth and orgs
 
-| Endpoint                 | Who       | Idempotency-Key | What it does                                                          |
-| ------------------------ | --------- | --------------- | --------------------------------------------------------------------- |
-| `POST /auth/otp/request` | public    |                 | Send a one-time login code by SMS                                     |
-| `POST /auth/otp/verify`  | public    |                 | Exchange a login code for a session (creates the user on first login) |
-| `POST /auth/refresh`     | public    |                 | Rotate the refresh token and get a new access token                   |
-| `POST /auth/logout`      | public    |                 | Revoke the refresh token (and every token rotated from it)            |
-| `POST /auth/switch-org`  | signed in |                 | Get a session scoped to another org you belong to                     |
-| `GET /me`                | signed in |                 | The signed-in user and their memberships                              |
-| `PATCH /me`              | signed in |                 | Update your profile                                                   |
-| `POST /orgs`             | signed in |                 | Create an organization; you become its owner (and driver, for a DCO)  |
+| Endpoint                    | Who       | Idempotency-Key | What it does                                                                   |
+| --------------------------- | --------- | --------------- | ------------------------------------------------------------------------------ |
+| `POST /auth/otp/request`    | public    |                 | Send a one-time login code by SMS                                              |
+| `POST /auth/otp/verify`     | public    |                 | Exchange a login code for a session (creates the user on first login)          |
+| `POST /auth/refresh`        | public    |                 | Rotate the refresh token and get a new access token                            |
+| `POST /auth/logout`         | public    |                 | Revoke the refresh token (and every token rotated from it)                     |
+| `POST /auth/switch-org`     | signed in |                 | Get a session scoped to another org you belong to                              |
+| `GET /me`                   | signed in |                 | The signed-in user and their memberships                                       |
+| `PATCH /me`                 | signed in |                 | Update your profile                                                            |
+| `POST /orgs`                | signed in |                 | Create an organization; you become its owner (and driver, for a DCO)           |
+| `GET /auth/config`          | public    |                 | Sign-in methods available: password, and Google (`google` / `dev` / `off`)     |
+| `POST /auth/signup`         | public    |                 | Sign up with phone + password, after an SMS code (`/auth/otp/request`)         |
+| `POST /auth/password/login` | public    |                 | Sign in with phone + password (`INVALID_CREDENTIALS` either way; rate limited) |
+| `POST /auth/password/reset` | public    |                 | New password with an SMS code; signs out every other session                   |
+| `POST /me/password`         | signed in |                 | Set a password, or change it (needs the current one)                           |
+| `POST /auth/google`         | public    |                 | Sign in with a Google ID token; first time: `phone_required` + `linkToken`     |
+| `POST /auth/google/link`    | public    |                 | Finish a first Google sign-in by verifying a phone with an SMS code            |
 
 ### Members
 

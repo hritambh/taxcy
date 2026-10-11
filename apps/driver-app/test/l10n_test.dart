@@ -129,7 +129,8 @@ void main() {
         'IDEMPOTENCY_KEY_REQUIRED', 'VERSION_CONFLICT', 'CONFLICT',
         'FUEL_TYPE_MISMATCH', 'ODOMETER_BEFORE_START', 'OTP_INVALID',
         'OTP_EXPIRED', 'RATE_LIMITED', 'UPLOAD_NOT_FOUND', 'UPLOAD_MISMATCH',
-        'INTERNAL',
+        'INTERNAL', 'INVALID_CREDENTIALS', 'ACCOUNT_EXISTS', //
+        'GOOGLE_TOKEN_INVALID', 'GOOGLE_ACCOUNT_CONFLICT',
       ];
       for (final code in codes) {
         expect(errorCodeText(en, code), isNotNull, reason: code);

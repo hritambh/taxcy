@@ -84,6 +84,10 @@
                             "ODOMETER_BEFORE_START",
                             "OTP_INVALID",
                             "OTP_EXPIRED",
+                            "INVALID_CREDENTIALS",
+                            "ACCOUNT_EXISTS",
+                            "GOOGLE_TOKEN_INVALID",
+                            "GOOGLE_ACCOUNT_CONFLICT",
                             "RATE_LIMITED",
                             "UPLOAD_NOT_FOUND",
                             "UPLOAD_MISMATCH",
@@ -187,6 +191,10 @@
                             "ODOMETER_BEFORE_START",
                             "OTP_INVALID",
                             "OTP_EXPIRED",
+                            "INVALID_CREDENTIALS",
+                            "ACCOUNT_EXISTS",
+                            "GOOGLE_TOKEN_INVALID",
+                            "GOOGLE_ACCOUNT_CONFLICT",
                             "RATE_LIMITED",
                             "UPLOAD_NOT_FOUND",
                             "UPLOAD_MISMATCH",
@@ -296,6 +304,10 @@
                             "ODOMETER_BEFORE_START",
                             "OTP_INVALID",
                             "OTP_EXPIRED",
+                            "INVALID_CREDENTIALS",
+                            "ACCOUNT_EXISTS",
+                            "GOOGLE_TOKEN_INVALID",
+                            "GOOGLE_ACCOUNT_CONFLICT",
                             "RATE_LIMITED",
                             "UPLOAD_NOT_FOUND",
                             "UPLOAD_MISMATCH",
@@ -494,6 +506,1268 @@
                             "ODOMETER_BEFORE_START",
                             "OTP_INVALID",
                             "OTP_EXPIRED",
+                            "INVALID_CREDENTIALS",
+                            "ACCOUNT_EXISTS",
+                            "GOOGLE_TOKEN_INVALID",
+                            "GOOGLE_ACCOUNT_CONFLICT",
+                            "RATE_LIMITED",
+                            "UPLOAD_NOT_FOUND",
+                            "UPLOAD_MISMATCH",
+                            "INTERNAL"
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {},
+                        "requestId": {
+                          "type": "string"
+                        }
+                      },
+                      "required": ["code", "message"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/config": {
+      "get": {
+        "operationId": "getAuthConfig",
+        "summary": "Which sign-in methods are available (for login screens)",
+        "tags": ["auth"],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "password": {
+                      "type": "boolean"
+                    },
+                    "google": {
+                      "type": "object",
+                      "properties": {
+                        "mode": {
+                          "type": "string",
+                          "enum": ["google", "dev", "off"]
+                        },
+                        "webClientId": {
+                          "type": ["string", "null"]
+                        }
+                      },
+                      "required": ["mode", "webClientId"]
+                    }
+                  },
+                  "required": ["password", "google"]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "VALIDATION_FAILED",
+                            "UNAUTHENTICATED",
+                            "TOKEN_EXPIRED",
+                            "FORBIDDEN_ROLE",
+                            "NO_ACTIVE_ORG",
+                            "NOT_FOUND",
+                            "ILLEGAL_TRANSITION",
+                            "TRIP_CANCELLED",
+                            "TRIP_REASSIGNED",
+                            "VEHICLE_BUSY",
+                            "DRIVER_BUSY",
+                            "CANCELLATION_PENDING",
+                            "ALREADY_SETTLED",
+                            "IDEMPOTENCY_CONFLICT",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "VERSION_CONFLICT",
+                            "CONFLICT",
+                            "FUEL_TYPE_MISMATCH",
+                            "ODOMETER_BEFORE_START",
+                            "OTP_INVALID",
+                            "OTP_EXPIRED",
+                            "INVALID_CREDENTIALS",
+                            "ACCOUNT_EXISTS",
+                            "GOOGLE_TOKEN_INVALID",
+                            "GOOGLE_ACCOUNT_CONFLICT",
+                            "RATE_LIMITED",
+                            "UPLOAD_NOT_FOUND",
+                            "UPLOAD_MISMATCH",
+                            "INTERNAL"
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {},
+                        "requestId": {
+                          "type": "string"
+                        }
+                      },
+                      "required": ["code", "message"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/signup": {
+      "post": {
+        "operationId": "postAuthSignup",
+        "summary": "Sign up with phone and password: request a code first (/auth/otp/request), then send it with the password",
+        "tags": ["auth"],
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "type": "object",
+                "properties": {
+                  "phone": {
+                    "type": "string",
+                    "pattern": "^\\+91[6-9]\\d{9}$"
+                  },
+                  "code": {
+                    "type": "string",
+                    "pattern": "^\\d{6}$"
+                  },
+                  "password": {
+                    "type": "string",
+                    "minLength": 8,
+                    "maxLength": 128
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "deviceId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "platform": {
+                    "type": "string",
+                    "enum": ["android", "ios", "web"]
+                  },
+                  "appVersion": {
+                    "type": "string",
+                    "maxLength": 40
+                  }
+                },
+                "required": ["phone", "code", "password", "deviceId", "platform"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "accessToken": {
+                      "type": "string"
+                    },
+                    "accessTokenExpiresAt": {
+                      "type": "string",
+                      "format": "date-time",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                    },
+                    "refreshToken": {
+                      "type": "string"
+                    },
+                    "refreshTokenExpiresAt": {
+                      "type": "string",
+                      "format": "date-time",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                    },
+                    "user": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        "phone": {
+                          "type": "string",
+                          "pattern": "^\\+91[6-9]\\d{9}$"
+                        },
+                        "name": {
+                          "type": ["string", "null"]
+                        }
+                      },
+                      "required": ["id", "phone", "name"]
+                    },
+                    "activeOrgId": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "memberships": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "orgId": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "orgName": {
+                            "type": "string"
+                          },
+                          "orgKind": {
+                            "type": "string",
+                            "enum": ["fleet", "dco"]
+                          },
+                          "roles": {
+                            "type": "array",
+                            "items": {
+                              "type": "string",
+                              "enum": ["owner", "manager", "driver"]
+                            }
+                          }
+                        },
+                        "required": ["orgId", "orgName", "orgKind", "roles"]
+                      }
+                    }
+                  },
+                  "required": [
+                    "accessToken",
+                    "accessTokenExpiresAt",
+                    "refreshToken",
+                    "refreshTokenExpiresAt",
+                    "user",
+                    "activeOrgId",
+                    "memberships"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "VALIDATION_FAILED",
+                            "UNAUTHENTICATED",
+                            "TOKEN_EXPIRED",
+                            "FORBIDDEN_ROLE",
+                            "NO_ACTIVE_ORG",
+                            "NOT_FOUND",
+                            "ILLEGAL_TRANSITION",
+                            "TRIP_CANCELLED",
+                            "TRIP_REASSIGNED",
+                            "VEHICLE_BUSY",
+                            "DRIVER_BUSY",
+                            "CANCELLATION_PENDING",
+                            "ALREADY_SETTLED",
+                            "IDEMPOTENCY_CONFLICT",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "VERSION_CONFLICT",
+                            "CONFLICT",
+                            "FUEL_TYPE_MISMATCH",
+                            "ODOMETER_BEFORE_START",
+                            "OTP_INVALID",
+                            "OTP_EXPIRED",
+                            "INVALID_CREDENTIALS",
+                            "ACCOUNT_EXISTS",
+                            "GOOGLE_TOKEN_INVALID",
+                            "GOOGLE_ACCOUNT_CONFLICT",
+                            "RATE_LIMITED",
+                            "UPLOAD_NOT_FOUND",
+                            "UPLOAD_MISMATCH",
+                            "INTERNAL"
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {},
+                        "requestId": {
+                          "type": "string"
+                        }
+                      },
+                      "required": ["code", "message"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/password/login": {
+      "post": {
+        "operationId": "postAuthPasswordLogin",
+        "summary": "Sign in with phone and password",
+        "tags": ["auth"],
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "type": "object",
+                "properties": {
+                  "phone": {
+                    "type": "string",
+                    "pattern": "^\\+91[6-9]\\d{9}$"
+                  },
+                  "password": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128
+                  },
+                  "deviceId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "platform": {
+                    "type": "string",
+                    "enum": ["android", "ios", "web"]
+                  },
+                  "appVersion": {
+                    "type": "string",
+                    "maxLength": 40
+                  }
+                },
+                "required": ["phone", "password", "deviceId", "platform"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "accessToken": {
+                      "type": "string"
+                    },
+                    "accessTokenExpiresAt": {
+                      "type": "string",
+                      "format": "date-time",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                    },
+                    "refreshToken": {
+                      "type": "string"
+                    },
+                    "refreshTokenExpiresAt": {
+                      "type": "string",
+                      "format": "date-time",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                    },
+                    "user": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        "phone": {
+                          "type": "string",
+                          "pattern": "^\\+91[6-9]\\d{9}$"
+                        },
+                        "name": {
+                          "type": ["string", "null"]
+                        }
+                      },
+                      "required": ["id", "phone", "name"]
+                    },
+                    "activeOrgId": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "memberships": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "orgId": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "orgName": {
+                            "type": "string"
+                          },
+                          "orgKind": {
+                            "type": "string",
+                            "enum": ["fleet", "dco"]
+                          },
+                          "roles": {
+                            "type": "array",
+                            "items": {
+                              "type": "string",
+                              "enum": ["owner", "manager", "driver"]
+                            }
+                          }
+                        },
+                        "required": ["orgId", "orgName", "orgKind", "roles"]
+                      }
+                    }
+                  },
+                  "required": [
+                    "accessToken",
+                    "accessTokenExpiresAt",
+                    "refreshToken",
+                    "refreshTokenExpiresAt",
+                    "user",
+                    "activeOrgId",
+                    "memberships"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "VALIDATION_FAILED",
+                            "UNAUTHENTICATED",
+                            "TOKEN_EXPIRED",
+                            "FORBIDDEN_ROLE",
+                            "NO_ACTIVE_ORG",
+                            "NOT_FOUND",
+                            "ILLEGAL_TRANSITION",
+                            "TRIP_CANCELLED",
+                            "TRIP_REASSIGNED",
+                            "VEHICLE_BUSY",
+                            "DRIVER_BUSY",
+                            "CANCELLATION_PENDING",
+                            "ALREADY_SETTLED",
+                            "IDEMPOTENCY_CONFLICT",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "VERSION_CONFLICT",
+                            "CONFLICT",
+                            "FUEL_TYPE_MISMATCH",
+                            "ODOMETER_BEFORE_START",
+                            "OTP_INVALID",
+                            "OTP_EXPIRED",
+                            "INVALID_CREDENTIALS",
+                            "ACCOUNT_EXISTS",
+                            "GOOGLE_TOKEN_INVALID",
+                            "GOOGLE_ACCOUNT_CONFLICT",
+                            "RATE_LIMITED",
+                            "UPLOAD_NOT_FOUND",
+                            "UPLOAD_MISMATCH",
+                            "INTERNAL"
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {},
+                        "requestId": {
+                          "type": "string"
+                        }
+                      },
+                      "required": ["code", "message"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/password/reset": {
+      "post": {
+        "operationId": "postAuthPasswordReset",
+        "summary": "Set a new password with an SMS code (request one first); signs out every other session",
+        "tags": ["auth"],
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "type": "object",
+                "properties": {
+                  "phone": {
+                    "type": "string",
+                    "pattern": "^\\+91[6-9]\\d{9}$"
+                  },
+                  "code": {
+                    "type": "string",
+                    "pattern": "^\\d{6}$"
+                  },
+                  "password": {
+                    "type": "string",
+                    "minLength": 8,
+                    "maxLength": 128
+                  },
+                  "deviceId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "platform": {
+                    "type": "string",
+                    "enum": ["android", "ios", "web"]
+                  },
+                  "appVersion": {
+                    "type": "string",
+                    "maxLength": 40
+                  }
+                },
+                "required": ["phone", "code", "password", "deviceId", "platform"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "accessToken": {
+                      "type": "string"
+                    },
+                    "accessTokenExpiresAt": {
+                      "type": "string",
+                      "format": "date-time",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                    },
+                    "refreshToken": {
+                      "type": "string"
+                    },
+                    "refreshTokenExpiresAt": {
+                      "type": "string",
+                      "format": "date-time",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                    },
+                    "user": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        "phone": {
+                          "type": "string",
+                          "pattern": "^\\+91[6-9]\\d{9}$"
+                        },
+                        "name": {
+                          "type": ["string", "null"]
+                        }
+                      },
+                      "required": ["id", "phone", "name"]
+                    },
+                    "activeOrgId": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "memberships": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "orgId": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "orgName": {
+                            "type": "string"
+                          },
+                          "orgKind": {
+                            "type": "string",
+                            "enum": ["fleet", "dco"]
+                          },
+                          "roles": {
+                            "type": "array",
+                            "items": {
+                              "type": "string",
+                              "enum": ["owner", "manager", "driver"]
+                            }
+                          }
+                        },
+                        "required": ["orgId", "orgName", "orgKind", "roles"]
+                      }
+                    }
+                  },
+                  "required": [
+                    "accessToken",
+                    "accessTokenExpiresAt",
+                    "refreshToken",
+                    "refreshTokenExpiresAt",
+                    "user",
+                    "activeOrgId",
+                    "memberships"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "VALIDATION_FAILED",
+                            "UNAUTHENTICATED",
+                            "TOKEN_EXPIRED",
+                            "FORBIDDEN_ROLE",
+                            "NO_ACTIVE_ORG",
+                            "NOT_FOUND",
+                            "ILLEGAL_TRANSITION",
+                            "TRIP_CANCELLED",
+                            "TRIP_REASSIGNED",
+                            "VEHICLE_BUSY",
+                            "DRIVER_BUSY",
+                            "CANCELLATION_PENDING",
+                            "ALREADY_SETTLED",
+                            "IDEMPOTENCY_CONFLICT",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "VERSION_CONFLICT",
+                            "CONFLICT",
+                            "FUEL_TYPE_MISMATCH",
+                            "ODOMETER_BEFORE_START",
+                            "OTP_INVALID",
+                            "OTP_EXPIRED",
+                            "INVALID_CREDENTIALS",
+                            "ACCOUNT_EXISTS",
+                            "GOOGLE_TOKEN_INVALID",
+                            "GOOGLE_ACCOUNT_CONFLICT",
+                            "RATE_LIMITED",
+                            "UPLOAD_NOT_FOUND",
+                            "UPLOAD_MISMATCH",
+                            "INTERNAL"
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {},
+                        "requestId": {
+                          "type": "string"
+                        }
+                      },
+                      "required": ["code", "message"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/me/password": {
+      "post": {
+        "operationId": "postMePassword",
+        "summary": "Set or change your password (the current one is required if you have one)",
+        "tags": ["auth"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "type": "object",
+                "properties": {
+                  "currentPassword": {
+                    "type": "string",
+                    "maxLength": 128
+                  },
+                  "newPassword": {
+                    "type": "string",
+                    "minLength": 8,
+                    "maxLength": 128
+                  }
+                },
+                "required": ["newPassword"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "No content"
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "VALIDATION_FAILED",
+                            "UNAUTHENTICATED",
+                            "TOKEN_EXPIRED",
+                            "FORBIDDEN_ROLE",
+                            "NO_ACTIVE_ORG",
+                            "NOT_FOUND",
+                            "ILLEGAL_TRANSITION",
+                            "TRIP_CANCELLED",
+                            "TRIP_REASSIGNED",
+                            "VEHICLE_BUSY",
+                            "DRIVER_BUSY",
+                            "CANCELLATION_PENDING",
+                            "ALREADY_SETTLED",
+                            "IDEMPOTENCY_CONFLICT",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "VERSION_CONFLICT",
+                            "CONFLICT",
+                            "FUEL_TYPE_MISMATCH",
+                            "ODOMETER_BEFORE_START",
+                            "OTP_INVALID",
+                            "OTP_EXPIRED",
+                            "INVALID_CREDENTIALS",
+                            "ACCOUNT_EXISTS",
+                            "GOOGLE_TOKEN_INVALID",
+                            "GOOGLE_ACCOUNT_CONFLICT",
+                            "RATE_LIMITED",
+                            "UPLOAD_NOT_FOUND",
+                            "UPLOAD_MISMATCH",
+                            "INTERNAL"
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {},
+                        "requestId": {
+                          "type": "string"
+                        }
+                      },
+                      "required": ["code", "message"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/google": {
+      "post": {
+        "operationId": "postAuthGoogle",
+        "summary": "Sign in or sign up with a Google ID token. A new Google account must then verify a phone (/auth/google/link)",
+        "tags": ["auth"],
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string",
+                    "minLength": 10,
+                    "maxLength": 4096
+                  },
+                  "deviceId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "platform": {
+                    "type": "string",
+                    "enum": ["android", "ios", "web"]
+                  },
+                  "appVersion": {
+                    "type": "string",
+                    "maxLength": 40
+                  }
+                },
+                "required": ["idToken", "deviceId", "platform"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "const": "signed_in"
+                        },
+                        "session": {
+                          "type": "object",
+                          "properties": {
+                            "accessToken": {
+                              "type": "string"
+                            },
+                            "accessTokenExpiresAt": {
+                              "type": "string",
+                              "format": "date-time",
+                              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                            },
+                            "refreshToken": {
+                              "type": "string"
+                            },
+                            "refreshTokenExpiresAt": {
+                              "type": "string",
+                              "format": "date-time",
+                              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                            },
+                            "user": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string",
+                                  "format": "uuid",
+                                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                },
+                                "phone": {
+                                  "type": "string",
+                                  "pattern": "^\\+91[6-9]\\d{9}$"
+                                },
+                                "name": {
+                                  "type": ["string", "null"]
+                                }
+                              },
+                              "required": ["id", "phone", "name"]
+                            },
+                            "activeOrgId": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "format": "uuid",
+                                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "memberships": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "orgId": {
+                                    "type": "string",
+                                    "format": "uuid",
+                                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                  },
+                                  "orgName": {
+                                    "type": "string"
+                                  },
+                                  "orgKind": {
+                                    "type": "string",
+                                    "enum": ["fleet", "dco"]
+                                  },
+                                  "roles": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "string",
+                                      "enum": ["owner", "manager", "driver"]
+                                    }
+                                  }
+                                },
+                                "required": ["orgId", "orgName", "orgKind", "roles"]
+                              }
+                            }
+                          },
+                          "required": [
+                            "accessToken",
+                            "accessTokenExpiresAt",
+                            "refreshToken",
+                            "refreshTokenExpiresAt",
+                            "user",
+                            "activeOrgId",
+                            "memberships"
+                          ]
+                        }
+                      },
+                      "required": ["status", "session"]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "const": "phone_required"
+                        },
+                        "linkToken": {
+                          "type": "string"
+                        },
+                        "email": {
+                          "type": ["string", "null"]
+                        },
+                        "name": {
+                          "type": ["string", "null"]
+                        }
+                      },
+                      "required": ["status", "linkToken", "email", "name"]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "VALIDATION_FAILED",
+                            "UNAUTHENTICATED",
+                            "TOKEN_EXPIRED",
+                            "FORBIDDEN_ROLE",
+                            "NO_ACTIVE_ORG",
+                            "NOT_FOUND",
+                            "ILLEGAL_TRANSITION",
+                            "TRIP_CANCELLED",
+                            "TRIP_REASSIGNED",
+                            "VEHICLE_BUSY",
+                            "DRIVER_BUSY",
+                            "CANCELLATION_PENDING",
+                            "ALREADY_SETTLED",
+                            "IDEMPOTENCY_CONFLICT",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "VERSION_CONFLICT",
+                            "CONFLICT",
+                            "FUEL_TYPE_MISMATCH",
+                            "ODOMETER_BEFORE_START",
+                            "OTP_INVALID",
+                            "OTP_EXPIRED",
+                            "INVALID_CREDENTIALS",
+                            "ACCOUNT_EXISTS",
+                            "GOOGLE_TOKEN_INVALID",
+                            "GOOGLE_ACCOUNT_CONFLICT",
+                            "RATE_LIMITED",
+                            "UPLOAD_NOT_FOUND",
+                            "UPLOAD_MISMATCH",
+                            "INTERNAL"
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {},
+                        "requestId": {
+                          "type": "string"
+                        }
+                      },
+                      "required": ["code", "message"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/google/link": {
+      "post": {
+        "operationId": "postAuthGoogleLink",
+        "summary": "Finish a first Google sign-in: verify a phone with an SMS code; the Google account is linked to it",
+        "tags": ["auth"],
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "type": "object",
+                "properties": {
+                  "linkToken": {
+                    "type": "string",
+                    "minLength": 20,
+                    "maxLength": 200
+                  },
+                  "phone": {
+                    "type": "string",
+                    "pattern": "^\\+91[6-9]\\d{9}$"
+                  },
+                  "code": {
+                    "type": "string",
+                    "pattern": "^\\d{6}$"
+                  },
+                  "deviceId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "platform": {
+                    "type": "string",
+                    "enum": ["android", "ios", "web"]
+                  },
+                  "appVersion": {
+                    "type": "string",
+                    "maxLength": 40
+                  }
+                },
+                "required": ["linkToken", "phone", "code", "deviceId", "platform"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "accessToken": {
+                      "type": "string"
+                    },
+                    "accessTokenExpiresAt": {
+                      "type": "string",
+                      "format": "date-time",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                    },
+                    "refreshToken": {
+                      "type": "string"
+                    },
+                    "refreshTokenExpiresAt": {
+                      "type": "string",
+                      "format": "date-time",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                    },
+                    "user": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        "phone": {
+                          "type": "string",
+                          "pattern": "^\\+91[6-9]\\d{9}$"
+                        },
+                        "name": {
+                          "type": ["string", "null"]
+                        }
+                      },
+                      "required": ["id", "phone", "name"]
+                    },
+                    "activeOrgId": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "memberships": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "orgId": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "orgName": {
+                            "type": "string"
+                          },
+                          "orgKind": {
+                            "type": "string",
+                            "enum": ["fleet", "dco"]
+                          },
+                          "roles": {
+                            "type": "array",
+                            "items": {
+                              "type": "string",
+                              "enum": ["owner", "manager", "driver"]
+                            }
+                          }
+                        },
+                        "required": ["orgId", "orgName", "orgKind", "roles"]
+                      }
+                    }
+                  },
+                  "required": [
+                    "accessToken",
+                    "accessTokenExpiresAt",
+                    "refreshToken",
+                    "refreshTokenExpiresAt",
+                    "user",
+                    "activeOrgId",
+                    "memberships"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "VALIDATION_FAILED",
+                            "UNAUTHENTICATED",
+                            "TOKEN_EXPIRED",
+                            "FORBIDDEN_ROLE",
+                            "NO_ACTIVE_ORG",
+                            "NOT_FOUND",
+                            "ILLEGAL_TRANSITION",
+                            "TRIP_CANCELLED",
+                            "TRIP_REASSIGNED",
+                            "VEHICLE_BUSY",
+                            "DRIVER_BUSY",
+                            "CANCELLATION_PENDING",
+                            "ALREADY_SETTLED",
+                            "IDEMPOTENCY_CONFLICT",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "VERSION_CONFLICT",
+                            "CONFLICT",
+                            "FUEL_TYPE_MISMATCH",
+                            "ODOMETER_BEFORE_START",
+                            "OTP_INVALID",
+                            "OTP_EXPIRED",
+                            "INVALID_CREDENTIALS",
+                            "ACCOUNT_EXISTS",
+                            "GOOGLE_TOKEN_INVALID",
+                            "GOOGLE_ACCOUNT_CONFLICT",
                             "RATE_LIMITED",
                             "UPLOAD_NOT_FOUND",
                             "UPLOAD_MISMATCH",
@@ -676,6 +1950,10 @@
                             "ODOMETER_BEFORE_START",
                             "OTP_INVALID",
                             "OTP_EXPIRED",
+                            "INVALID_CREDENTIALS",
+                            "ACCOUNT_EXISTS",
+                            "GOOGLE_TOKEN_INVALID",
+                            "GOOGLE_ACCOUNT_CONFLICT",
                             "RATE_LIMITED",
                             "UPLOAD_NOT_FOUND",
                             "UPLOAD_MISMATCH",
@@ -765,6 +2043,10 @@
                             "ODOMETER_BEFORE_START",
                             "OTP_INVALID",
                             "OTP_EXPIRED",
+                            "INVALID_CREDENTIALS",
+                            "ACCOUNT_EXISTS",
+                            "GOOGLE_TOKEN_INVALID",
+                            "GOOGLE_ACCOUNT_CONFLICT",
                             "RATE_LIMITED",
                             "UPLOAD_NOT_FOUND",
                             "UPLOAD_MISMATCH",
@@ -951,6 +2233,10 @@
                             "ODOMETER_BEFORE_START",
                             "OTP_INVALID",
                             "OTP_EXPIRED",
+                            "INVALID_CREDENTIALS",
+                            "ACCOUNT_EXISTS",
+                            "GOOGLE_TOKEN_INVALID",
+                            "GOOGLE_ACCOUNT_CONFLICT",
                             "RATE_LIMITED",
                             "UPLOAD_NOT_FOUND",
                             "UPLOAD_MISMATCH",
@@ -1004,9 +2290,18 @@
                         },
                         "name": {
                           "type": ["string", "null"]
+                        },
+                        "email": {
+                          "type": ["string", "null"]
+                        },
+                        "hasPassword": {
+                          "type": "boolean"
+                        },
+                        "googleLinked": {
+                          "type": "boolean"
                         }
                       },
-                      "required": ["id", "phone", "name"]
+                      "required": ["id", "phone", "name", "email", "hasPassword", "googleLinked"]
                     },
                     "activeOrgId": {
                       "anyOf": [
@@ -1096,6 +2391,10 @@
                             "ODOMETER_BEFORE_START",
                             "OTP_INVALID",
                             "OTP_EXPIRED",
+                            "INVALID_CREDENTIALS",
+                            "ACCOUNT_EXISTS",
+                            "GOOGLE_TOKEN_INVALID",
+                            "GOOGLE_ACCOUNT_CONFLICT",
                             "RATE_LIMITED",
                             "UPLOAD_NOT_FOUND",
                             "UPLOAD_MISMATCH",
@@ -1205,6 +2504,10 @@
                             "ODOMETER_BEFORE_START",
                             "OTP_INVALID",
                             "OTP_EXPIRED",
+                            "INVALID_CREDENTIALS",
+                            "ACCOUNT_EXISTS",
+                            "GOOGLE_TOKEN_INVALID",
+                            "GOOGLE_ACCOUNT_CONFLICT",
                             "RATE_LIMITED",
                             "UPLOAD_NOT_FOUND",
                             "UPLOAD_MISMATCH",
@@ -1395,6 +2698,10 @@
                             "ODOMETER_BEFORE_START",
                             "OTP_INVALID",
                             "OTP_EXPIRED",
+                            "INVALID_CREDENTIALS",
+                            "ACCOUNT_EXISTS",
+                            "GOOGLE_TOKEN_INVALID",
+                            "GOOGLE_ACCOUNT_CONFLICT",
                             "RATE_LIMITED",
                             "UPLOAD_NOT_FOUND",
                             "UPLOAD_MISMATCH",
@@ -1511,6 +2818,10 @@
                             "ODOMETER_BEFORE_START",
                             "OTP_INVALID",
                             "OTP_EXPIRED",
+                            "INVALID_CREDENTIALS",
+                            "ACCOUNT_EXISTS",
+                            "GOOGLE_TOKEN_INVALID",
+                            "GOOGLE_ACCOUNT_CONFLICT",
                             "RATE_LIMITED",
                             "UPLOAD_NOT_FOUND",
                             "UPLOAD_MISMATCH",
@@ -1647,6 +2958,10 @@
                             "ODOMETER_BEFORE_START",
                             "OTP_INVALID",
                             "OTP_EXPIRED",
+                            "INVALID_CREDENTIALS",
+                            "ACCOUNT_EXISTS",
+                            "GOOGLE_TOKEN_INVALID",
+                            "GOOGLE_ACCOUNT_CONFLICT",
                             "RATE_LIMITED",
                             "UPLOAD_NOT_FOUND",
                             "UPLOAD_MISMATCH",
@@ -1772,6 +3087,10 @@
                             "ODOMETER_BEFORE_START",
                             "OTP_INVALID",
                             "OTP_EXPIRED",
+                            "INVALID_CREDENTIALS",
+                            "ACCOUNT_EXISTS",
+                            "GOOGLE_TOKEN_INVALID",
+                            "GOOGLE_ACCOUNT_CONFLICT",
                             "RATE_LIMITED",
                             "UPLOAD_NOT_FOUND",
                             "UPLOAD_MISMATCH",
@@ -1996,6 +3315,10 @@
                             "ODOMETER_BEFORE_START",
                             "OTP_INVALID",
                             "OTP_EXPIRED",
+                            "INVALID_CREDENTIALS",
+                            "ACCOUNT_EXISTS",
+                            "GOOGLE_TOKEN_INVALID",
+                            "GOOGLE_ACCOUNT_CONFLICT",
                             "RATE_LIMITED",
                             "UPLOAD_NOT_FOUND",
                             "UPLOAD_MISMATCH",
@@ -2121,6 +3444,10 @@
                             "ODOMETER_BEFORE_START",
                             "OTP_INVALID",
                             "OTP_EXPIRED",
+                            "INVALID_CREDENTIALS",
+                            "ACCOUNT_EXISTS",
+                            "GOOGLE_TOKEN_INVALID",
+                            "GOOGLE_ACCOUNT_CONFLICT",
                             "RATE_LIMITED",
                             "UPLOAD_NOT_FOUND",
                             "UPLOAD_MISMATCH",
@@ -2222,6 +3549,10 @@
                             "ODOMETER_BEFORE_START",
                             "OTP_INVALID",
                             "OTP_EXPIRED",
+                            "INVALID_CREDENTIALS",
+                            "ACCOUNT_EXISTS",
+                            "GOOGLE_TOKEN_INVALID",
+                            "GOOGLE_ACCOUNT_CONFLICT",
                             "RATE_LIMITED",
                             "UPLOAD_NOT_FOUND",
                             "UPLOAD_MISMATCH",
@@ -2390,6 +3721,10 @@
                             "ODOMETER_BEFORE_START",
                             "OTP_INVALID",
                             "OTP_EXPIRED",
+                            "INVALID_CREDENTIALS",
+                            "ACCOUNT_EXISTS",
+                            "GOOGLE_TOKEN_INVALID",
+                            "GOOGLE_ACCOUNT_CONFLICT",
                             "RATE_LIMITED",
                             "UPLOAD_NOT_FOUND",
                             "UPLOAD_MISMATCH",
@@ -2588,6 +3923,10 @@
                             "ODOMETER_BEFORE_START",
                             "OTP_INVALID",
                             "OTP_EXPIRED",
+                            "INVALID_CREDENTIALS",
+                            "ACCOUNT_EXISTS",
+                            "GOOGLE_TOKEN_INVALID",
+                            "GOOGLE_ACCOUNT_CONFLICT",
                             "RATE_LIMITED",
                             "UPLOAD_NOT_FOUND",
                             "UPLOAD_MISMATCH",
@@ -2754,6 +4093,10 @@
                             "ODOMETER_BEFORE_START",
                             "OTP_INVALID",
                             "OTP_EXPIRED",
+                            "INVALID_CREDENTIALS",
+                            "ACCOUNT_EXISTS",
+                            "GOOGLE_TOKEN_INVALID",
+                            "GOOGLE_ACCOUNT_CONFLICT",
                             "RATE_LIMITED",
                             "UPLOAD_NOT_FOUND",
                             "UPLOAD_MISMATCH",
@@ -2967,6 +4310,10 @@
                             "ODOMETER_BEFORE_START",
                             "OTP_INVALID",
                             "OTP_EXPIRED",
+                            "INVALID_CREDENTIALS",
+                            "ACCOUNT_EXISTS",
+                            "GOOGLE_TOKEN_INVALID",
+                            "GOOGLE_ACCOUNT_CONFLICT",
                             "RATE_LIMITED",
                             "UPLOAD_NOT_FOUND",
                             "UPLOAD_MISMATCH",
@@ -3065,6 +4412,10 @@
                             "ODOMETER_BEFORE_START",
                             "OTP_INVALID",
                             "OTP_EXPIRED",
+                            "INVALID_CREDENTIALS",
+                            "ACCOUNT_EXISTS",
+                            "GOOGLE_TOKEN_INVALID",
+                            "GOOGLE_ACCOUNT_CONFLICT",
                             "RATE_LIMITED",
                             "UPLOAD_NOT_FOUND",
                             "UPLOAD_MISMATCH",
@@ -3298,6 +4649,10 @@
                             "ODOMETER_BEFORE_START",
                             "OTP_INVALID",
                             "OTP_EXPIRED",
+                            "INVALID_CREDENTIALS",
+                            "ACCOUNT_EXISTS",
+                            "GOOGLE_TOKEN_INVALID",
+                            "GOOGLE_ACCOUNT_CONFLICT",
                             "RATE_LIMITED",
                             "UPLOAD_NOT_FOUND",
                             "UPLOAD_MISMATCH",
@@ -3538,6 +4893,10 @@
                             "ODOMETER_BEFORE_START",
                             "OTP_INVALID",
                             "OTP_EXPIRED",
+                            "INVALID_CREDENTIALS",
+                            "ACCOUNT_EXISTS",
+                            "GOOGLE_TOKEN_INVALID",
+                            "GOOGLE_ACCOUNT_CONFLICT",
                             "RATE_LIMITED",
                             "UPLOAD_NOT_FOUND",
                             "UPLOAD_MISMATCH",
@@ -3769,6 +5128,10 @@
                             "ODOMETER_BEFORE_START",
                             "OTP_INVALID",
                             "OTP_EXPIRED",
+                            "INVALID_CREDENTIALS",
+                            "ACCOUNT_EXISTS",
+                            "GOOGLE_TOKEN_INVALID",
+                            "GOOGLE_ACCOUNT_CONFLICT",
                             "RATE_LIMITED",
                             "UPLOAD_NOT_FOUND",
                             "UPLOAD_MISMATCH",
@@ -4020,6 +5383,10 @@
                             "ODOMETER_BEFORE_START",
                             "OTP_INVALID",
                             "OTP_EXPIRED",
+                            "INVALID_CREDENTIALS",
+                            "ACCOUNT_EXISTS",
+                            "GOOGLE_TOKEN_INVALID",
+                            "GOOGLE_ACCOUNT_CONFLICT",
                             "RATE_LIMITED",
                             "UPLOAD_NOT_FOUND",
                             "UPLOAD_MISMATCH",
@@ -4365,6 +5732,10 @@
                             "ODOMETER_BEFORE_START",
                             "OTP_INVALID",
                             "OTP_EXPIRED",
+                            "INVALID_CREDENTIALS",
+                            "ACCOUNT_EXISTS",
+                            "GOOGLE_TOKEN_INVALID",
+                            "GOOGLE_ACCOUNT_CONFLICT",
                             "RATE_LIMITED",
                             "UPLOAD_NOT_FOUND",
                             "UPLOAD_MISMATCH",
@@ -4592,6 +5963,10 @@
                             "ODOMETER_BEFORE_START",
                             "OTP_INVALID",
                             "OTP_EXPIRED",
+                            "INVALID_CREDENTIALS",
+                            "ACCOUNT_EXISTS",
+                            "GOOGLE_TOKEN_INVALID",
+                            "GOOGLE_ACCOUNT_CONFLICT",
                             "RATE_LIMITED",
                             "UPLOAD_NOT_FOUND",
                             "UPLOAD_MISMATCH",
@@ -4821,6 +6196,10 @@
                             "ODOMETER_BEFORE_START",
                             "OTP_INVALID",
                             "OTP_EXPIRED",
+                            "INVALID_CREDENTIALS",
+                            "ACCOUNT_EXISTS",
+                            "GOOGLE_TOKEN_INVALID",
+                            "GOOGLE_ACCOUNT_CONFLICT",
                             "RATE_LIMITED",
                             "UPLOAD_NOT_FOUND",
                             "UPLOAD_MISMATCH",
@@ -5050,6 +6429,10 @@
                             "ODOMETER_BEFORE_START",
                             "OTP_INVALID",
                             "OTP_EXPIRED",
+                            "INVALID_CREDENTIALS",
+                            "ACCOUNT_EXISTS",
+                            "GOOGLE_TOKEN_INVALID",
+                            "GOOGLE_ACCOUNT_CONFLICT",
                             "RATE_LIMITED",
                             "UPLOAD_NOT_FOUND",
                             "UPLOAD_MISMATCH",
@@ -5172,6 +6555,10 @@
                             "ODOMETER_BEFORE_START",
                             "OTP_INVALID",
                             "OTP_EXPIRED",
+                            "INVALID_CREDENTIALS",
+                            "ACCOUNT_EXISTS",
+                            "GOOGLE_TOKEN_INVALID",
+                            "GOOGLE_ACCOUNT_CONFLICT",
                             "RATE_LIMITED",
                             "UPLOAD_NOT_FOUND",
                             "UPLOAD_MISMATCH",
@@ -5340,6 +6727,10 @@
                             "ODOMETER_BEFORE_START",
                             "OTP_INVALID",
                             "OTP_EXPIRED",
+                            "INVALID_CREDENTIALS",
+                            "ACCOUNT_EXISTS",
+                            "GOOGLE_TOKEN_INVALID",
+                            "GOOGLE_ACCOUNT_CONFLICT",
                             "RATE_LIMITED",
                             "UPLOAD_NOT_FOUND",
                             "UPLOAD_MISMATCH",
@@ -5507,6 +6898,10 @@
                             "ODOMETER_BEFORE_START",
                             "OTP_INVALID",
                             "OTP_EXPIRED",
+                            "INVALID_CREDENTIALS",
+                            "ACCOUNT_EXISTS",
+                            "GOOGLE_TOKEN_INVALID",
+                            "GOOGLE_ACCOUNT_CONFLICT",
                             "RATE_LIMITED",
                             "UPLOAD_NOT_FOUND",
                             "UPLOAD_MISMATCH",
@@ -5773,6 +7168,10 @@
                             "ODOMETER_BEFORE_START",
                             "OTP_INVALID",
                             "OTP_EXPIRED",
+                            "INVALID_CREDENTIALS",
+                            "ACCOUNT_EXISTS",
+                            "GOOGLE_TOKEN_INVALID",
+                            "GOOGLE_ACCOUNT_CONFLICT",
                             "RATE_LIMITED",
                             "UPLOAD_NOT_FOUND",
                             "UPLOAD_MISMATCH",
@@ -6587,6 +7986,10 @@
                             "ODOMETER_BEFORE_START",
                             "OTP_INVALID",
                             "OTP_EXPIRED",
+                            "INVALID_CREDENTIALS",
+                            "ACCOUNT_EXISTS",
+                            "GOOGLE_TOKEN_INVALID",
+                            "GOOGLE_ACCOUNT_CONFLICT",
                             "RATE_LIMITED",
                             "UPLOAD_NOT_FOUND",
                             "UPLOAD_MISMATCH",
@@ -7483,6 +8886,10 @@
                             "ODOMETER_BEFORE_START",
                             "OTP_INVALID",
                             "OTP_EXPIRED",
+                            "INVALID_CREDENTIALS",
+                            "ACCOUNT_EXISTS",
+                            "GOOGLE_TOKEN_INVALID",
+                            "GOOGLE_ACCOUNT_CONFLICT",
                             "RATE_LIMITED",
                             "UPLOAD_NOT_FOUND",
                             "UPLOAD_MISMATCH",
@@ -8244,6 +9651,10 @@
                             "ODOMETER_BEFORE_START",
                             "OTP_INVALID",
                             "OTP_EXPIRED",
+                            "INVALID_CREDENTIALS",
+                            "ACCOUNT_EXISTS",
+                            "GOOGLE_TOKEN_INVALID",
+                            "GOOGLE_ACCOUNT_CONFLICT",
                             "RATE_LIMITED",
                             "UPLOAD_NOT_FOUND",
                             "UPLOAD_MISMATCH",
@@ -9130,6 +10541,10 @@
                             "ODOMETER_BEFORE_START",
                             "OTP_INVALID",
                             "OTP_EXPIRED",
+                            "INVALID_CREDENTIALS",
+                            "ACCOUNT_EXISTS",
+                            "GOOGLE_TOKEN_INVALID",
+                            "GOOGLE_ACCOUNT_CONFLICT",
                             "RATE_LIMITED",
                             "UPLOAD_NOT_FOUND",
                             "UPLOAD_MISMATCH",
@@ -9325,6 +10740,10 @@
                             "ODOMETER_BEFORE_START",
                             "OTP_INVALID",
                             "OTP_EXPIRED",
+                            "INVALID_CREDENTIALS",
+                            "ACCOUNT_EXISTS",
+                            "GOOGLE_TOKEN_INVALID",
+                            "GOOGLE_ACCOUNT_CONFLICT",
                             "RATE_LIMITED",
                             "UPLOAD_NOT_FOUND",
                             "UPLOAD_MISMATCH",
@@ -10119,6 +11538,10 @@
                             "ODOMETER_BEFORE_START",
                             "OTP_INVALID",
                             "OTP_EXPIRED",
+                            "INVALID_CREDENTIALS",
+                            "ACCOUNT_EXISTS",
+                            "GOOGLE_TOKEN_INVALID",
+                            "GOOGLE_ACCOUNT_CONFLICT",
                             "RATE_LIMITED",
                             "UPLOAD_NOT_FOUND",
                             "UPLOAD_MISMATCH",
@@ -10889,6 +12312,10 @@
                             "ODOMETER_BEFORE_START",
                             "OTP_INVALID",
                             "OTP_EXPIRED",
+                            "INVALID_CREDENTIALS",
+                            "ACCOUNT_EXISTS",
+                            "GOOGLE_TOKEN_INVALID",
+                            "GOOGLE_ACCOUNT_CONFLICT",
                             "RATE_LIMITED",
                             "UPLOAD_NOT_FOUND",
                             "UPLOAD_MISMATCH",
@@ -11704,6 +13131,10 @@
                             "ODOMETER_BEFORE_START",
                             "OTP_INVALID",
                             "OTP_EXPIRED",
+                            "INVALID_CREDENTIALS",
+                            "ACCOUNT_EXISTS",
+                            "GOOGLE_TOKEN_INVALID",
+                            "GOOGLE_ACCOUNT_CONFLICT",
                             "RATE_LIMITED",
                             "UPLOAD_NOT_FOUND",
                             "UPLOAD_MISMATCH",
@@ -12597,6 +14028,10 @@
                             "ODOMETER_BEFORE_START",
                             "OTP_INVALID",
                             "OTP_EXPIRED",
+                            "INVALID_CREDENTIALS",
+                            "ACCOUNT_EXISTS",
+                            "GOOGLE_TOKEN_INVALID",
+                            "GOOGLE_ACCOUNT_CONFLICT",
                             "RATE_LIMITED",
                             "UPLOAD_NOT_FOUND",
                             "UPLOAD_MISMATCH",
@@ -13386,6 +14821,10 @@
                             "ODOMETER_BEFORE_START",
                             "OTP_INVALID",
                             "OTP_EXPIRED",
+                            "INVALID_CREDENTIALS",
+                            "ACCOUNT_EXISTS",
+                            "GOOGLE_TOKEN_INVALID",
+                            "GOOGLE_ACCOUNT_CONFLICT",
                             "RATE_LIMITED",
                             "UPLOAD_NOT_FOUND",
                             "UPLOAD_MISMATCH",
@@ -14211,6 +15650,10 @@
                             "ODOMETER_BEFORE_START",
                             "OTP_INVALID",
                             "OTP_EXPIRED",
+                            "INVALID_CREDENTIALS",
+                            "ACCOUNT_EXISTS",
+                            "GOOGLE_TOKEN_INVALID",
+                            "GOOGLE_ACCOUNT_CONFLICT",
                             "RATE_LIMITED",
                             "UPLOAD_NOT_FOUND",
                             "UPLOAD_MISMATCH",
@@ -15004,6 +16447,10 @@
                             "ODOMETER_BEFORE_START",
                             "OTP_INVALID",
                             "OTP_EXPIRED",
+                            "INVALID_CREDENTIALS",
+                            "ACCOUNT_EXISTS",
+                            "GOOGLE_TOKEN_INVALID",
+                            "GOOGLE_ACCOUNT_CONFLICT",
                             "RATE_LIMITED",
                             "UPLOAD_NOT_FOUND",
                             "UPLOAD_MISMATCH",
@@ -15793,6 +17240,10 @@
                             "ODOMETER_BEFORE_START",
                             "OTP_INVALID",
                             "OTP_EXPIRED",
+                            "INVALID_CREDENTIALS",
+                            "ACCOUNT_EXISTS",
+                            "GOOGLE_TOKEN_INVALID",
+                            "GOOGLE_ACCOUNT_CONFLICT",
                             "RATE_LIMITED",
                             "UPLOAD_NOT_FOUND",
                             "UPLOAD_MISMATCH",
@@ -16563,6 +18014,10 @@
                             "ODOMETER_BEFORE_START",
                             "OTP_INVALID",
                             "OTP_EXPIRED",
+                            "INVALID_CREDENTIALS",
+                            "ACCOUNT_EXISTS",
+                            "GOOGLE_TOKEN_INVALID",
+                            "GOOGLE_ACCOUNT_CONFLICT",
                             "RATE_LIMITED",
                             "UPLOAD_NOT_FOUND",
                             "UPLOAD_MISMATCH",
@@ -17372,6 +18827,10 @@
                             "ODOMETER_BEFORE_START",
                             "OTP_INVALID",
                             "OTP_EXPIRED",
+                            "INVALID_CREDENTIALS",
+                            "ACCOUNT_EXISTS",
+                            "GOOGLE_TOKEN_INVALID",
+                            "GOOGLE_ACCOUNT_CONFLICT",
                             "RATE_LIMITED",
                             "UPLOAD_NOT_FOUND",
                             "UPLOAD_MISMATCH",
@@ -18143,6 +19602,10 @@
                             "ODOMETER_BEFORE_START",
                             "OTP_INVALID",
                             "OTP_EXPIRED",
+                            "INVALID_CREDENTIALS",
+                            "ACCOUNT_EXISTS",
+                            "GOOGLE_TOKEN_INVALID",
+                            "GOOGLE_ACCOUNT_CONFLICT",
                             "RATE_LIMITED",
                             "UPLOAD_NOT_FOUND",
                             "UPLOAD_MISMATCH",
@@ -18907,6 +20370,10 @@
                             "ODOMETER_BEFORE_START",
                             "OTP_INVALID",
                             "OTP_EXPIRED",
+                            "INVALID_CREDENTIALS",
+                            "ACCOUNT_EXISTS",
+                            "GOOGLE_TOKEN_INVALID",
+                            "GOOGLE_ACCOUNT_CONFLICT",
                             "RATE_LIMITED",
                             "UPLOAD_NOT_FOUND",
                             "UPLOAD_MISMATCH",
@@ -19252,6 +20719,10 @@
                             "ODOMETER_BEFORE_START",
                             "OTP_INVALID",
                             "OTP_EXPIRED",
+                            "INVALID_CREDENTIALS",
+                            "ACCOUNT_EXISTS",
+                            "GOOGLE_TOKEN_INVALID",
+                            "GOOGLE_ACCOUNT_CONFLICT",
                             "RATE_LIMITED",
                             "UPLOAD_NOT_FOUND",
                             "UPLOAD_MISMATCH",
@@ -19558,6 +21029,10 @@
                             "ODOMETER_BEFORE_START",
                             "OTP_INVALID",
                             "OTP_EXPIRED",
+                            "INVALID_CREDENTIALS",
+                            "ACCOUNT_EXISTS",
+                            "GOOGLE_TOKEN_INVALID",
+                            "GOOGLE_ACCOUNT_CONFLICT",
                             "RATE_LIMITED",
                             "UPLOAD_NOT_FOUND",
                             "UPLOAD_MISMATCH",
@@ -19833,6 +21308,10 @@
                             "ODOMETER_BEFORE_START",
                             "OTP_INVALID",
                             "OTP_EXPIRED",
+                            "INVALID_CREDENTIALS",
+                            "ACCOUNT_EXISTS",
+                            "GOOGLE_TOKEN_INVALID",
+                            "GOOGLE_ACCOUNT_CONFLICT",
                             "RATE_LIMITED",
                             "UPLOAD_NOT_FOUND",
                             "UPLOAD_MISMATCH",
@@ -20071,6 +21550,10 @@
                             "ODOMETER_BEFORE_START",
                             "OTP_INVALID",
                             "OTP_EXPIRED",
+                            "INVALID_CREDENTIALS",
+                            "ACCOUNT_EXISTS",
+                            "GOOGLE_TOKEN_INVALID",
+                            "GOOGLE_ACCOUNT_CONFLICT",
                             "RATE_LIMITED",
                             "UPLOAD_NOT_FOUND",
                             "UPLOAD_MISMATCH",
@@ -20239,6 +21722,10 @@
                             "ODOMETER_BEFORE_START",
                             "OTP_INVALID",
                             "OTP_EXPIRED",
+                            "INVALID_CREDENTIALS",
+                            "ACCOUNT_EXISTS",
+                            "GOOGLE_TOKEN_INVALID",
+                            "GOOGLE_ACCOUNT_CONFLICT",
                             "RATE_LIMITED",
                             "UPLOAD_NOT_FOUND",
                             "UPLOAD_MISMATCH",
@@ -20377,6 +21864,10 @@
                             "ODOMETER_BEFORE_START",
                             "OTP_INVALID",
                             "OTP_EXPIRED",
+                            "INVALID_CREDENTIALS",
+                            "ACCOUNT_EXISTS",
+                            "GOOGLE_TOKEN_INVALID",
+                            "GOOGLE_ACCOUNT_CONFLICT",
                             "RATE_LIMITED",
                             "UPLOAD_NOT_FOUND",
                             "UPLOAD_MISMATCH",
@@ -20547,6 +22038,10 @@
                             "ODOMETER_BEFORE_START",
                             "OTP_INVALID",
                             "OTP_EXPIRED",
+                            "INVALID_CREDENTIALS",
+                            "ACCOUNT_EXISTS",
+                            "GOOGLE_TOKEN_INVALID",
+                            "GOOGLE_ACCOUNT_CONFLICT",
                             "RATE_LIMITED",
                             "UPLOAD_NOT_FOUND",
                             "UPLOAD_MISMATCH",
@@ -21345,6 +22840,10 @@
                             "ODOMETER_BEFORE_START",
                             "OTP_INVALID",
                             "OTP_EXPIRED",
+                            "INVALID_CREDENTIALS",
+                            "ACCOUNT_EXISTS",
+                            "GOOGLE_TOKEN_INVALID",
+                            "GOOGLE_ACCOUNT_CONFLICT",
                             "RATE_LIMITED",
                             "UPLOAD_NOT_FOUND",
                             "UPLOAD_MISMATCH",
@@ -21542,6 +23041,10 @@
                             "ODOMETER_BEFORE_START",
                             "OTP_INVALID",
                             "OTP_EXPIRED",
+                            "INVALID_CREDENTIALS",
+                            "ACCOUNT_EXISTS",
+                            "GOOGLE_TOKEN_INVALID",
+                            "GOOGLE_ACCOUNT_CONFLICT",
                             "RATE_LIMITED",
                             "UPLOAD_NOT_FOUND",
                             "UPLOAD_MISMATCH",
@@ -22058,6 +23561,10 @@
                             "ODOMETER_BEFORE_START",
                             "OTP_INVALID",
                             "OTP_EXPIRED",
+                            "INVALID_CREDENTIALS",
+                            "ACCOUNT_EXISTS",
+                            "GOOGLE_TOKEN_INVALID",
+                            "GOOGLE_ACCOUNT_CONFLICT",
                             "RATE_LIMITED",
                             "UPLOAD_NOT_FOUND",
                             "UPLOAD_MISMATCH",
@@ -22583,6 +24090,10 @@
                             "ODOMETER_BEFORE_START",
                             "OTP_INVALID",
                             "OTP_EXPIRED",
+                            "INVALID_CREDENTIALS",
+                            "ACCOUNT_EXISTS",
+                            "GOOGLE_TOKEN_INVALID",
+                            "GOOGLE_ACCOUNT_CONFLICT",
                             "RATE_LIMITED",
                             "UPLOAD_NOT_FOUND",
                             "UPLOAD_MISMATCH",
@@ -23183,6 +24694,10 @@
                             "ODOMETER_BEFORE_START",
                             "OTP_INVALID",
                             "OTP_EXPIRED",
+                            "INVALID_CREDENTIALS",
+                            "ACCOUNT_EXISTS",
+                            "GOOGLE_TOKEN_INVALID",
+                            "GOOGLE_ACCOUNT_CONFLICT",
                             "RATE_LIMITED",
                             "UPLOAD_NOT_FOUND",
                             "UPLOAD_MISMATCH",
@@ -23289,6 +24804,10 @@
                             "ODOMETER_BEFORE_START",
                             "OTP_INVALID",
                             "OTP_EXPIRED",
+                            "INVALID_CREDENTIALS",
+                            "ACCOUNT_EXISTS",
+                            "GOOGLE_TOKEN_INVALID",
+                            "GOOGLE_ACCOUNT_CONFLICT",
                             "RATE_LIMITED",
                             "UPLOAD_NOT_FOUND",
                             "UPLOAD_MISMATCH",
@@ -23860,6 +25379,10 @@
                             "ODOMETER_BEFORE_START",
                             "OTP_INVALID",
                             "OTP_EXPIRED",
+                            "INVALID_CREDENTIALS",
+                            "ACCOUNT_EXISTS",
+                            "GOOGLE_TOKEN_INVALID",
+                            "GOOGLE_ACCOUNT_CONFLICT",
                             "RATE_LIMITED",
                             "UPLOAD_NOT_FOUND",
                             "UPLOAD_MISMATCH",
@@ -24064,6 +25587,10 @@
                             "ODOMETER_BEFORE_START",
                             "OTP_INVALID",
                             "OTP_EXPIRED",
+                            "INVALID_CREDENTIALS",
+                            "ACCOUNT_EXISTS",
+                            "GOOGLE_TOKEN_INVALID",
+                            "GOOGLE_ACCOUNT_CONFLICT",
                             "RATE_LIMITED",
                             "UPLOAD_NOT_FOUND",
                             "UPLOAD_MISMATCH",
@@ -24282,6 +25809,10 @@
                             "ODOMETER_BEFORE_START",
                             "OTP_INVALID",
                             "OTP_EXPIRED",
+                            "INVALID_CREDENTIALS",
+                            "ACCOUNT_EXISTS",
+                            "GOOGLE_TOKEN_INVALID",
+                            "GOOGLE_ACCOUNT_CONFLICT",
                             "RATE_LIMITED",
                             "UPLOAD_NOT_FOUND",
                             "UPLOAD_MISMATCH",

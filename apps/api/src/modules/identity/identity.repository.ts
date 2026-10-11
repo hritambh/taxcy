@@ -9,6 +9,22 @@ export interface UserRow {
   name: string | null;
 }
 
+/** A user with their sign-in methods. */
+export interface AccountRow extends UserRow {
+  passwordHash: string | null;
+  email: string | null;
+  googleSub: string | null;
+}
+
+const accountSelect = {
+  id: true,
+  phoneE164: true,
+  name: true,
+  passwordHash: true,
+  email: true,
+  googleSub: true,
+} as const;
+
 /**
  * User-centric data. These lookups happen before (or across) org selection, so they
  * run in system transactions; every query is still filtered by the user's own id.
@@ -28,6 +44,42 @@ export class IdentityRepository {
     return tx.user.findUnique({
       where: { id: userId },
       select: { id: true, phoneE164: true, name: true },
+    });
+  }
+
+  async findAccount(
+    tx: SystemTx,
+    where: { id: string } | { phoneE164: string } | { googleSub: string },
+  ): Promise<AccountRow | null> {
+    return tx.user.findUnique({ where, select: accountSelect });
+  }
+
+  async setPassword(tx: SystemTx, userId: string, passwordHash: string): Promise<void> {
+    await tx.user.update({ where: { id: userId }, data: { passwordHash } });
+  }
+
+  async linkGoogle(
+    tx: SystemTx,
+    userId: string,
+    google: { sub: string; email: string | null; name: string | null },
+    currentName: string | null,
+  ): Promise<UserRow> {
+    return tx.user.update({
+      where: { id: userId },
+      data: {
+        googleSub: google.sub,
+        ...(google.email ? { email: google.email } : {}),
+        ...(!currentName && google.name ? { name: google.name } : {}),
+      },
+      select: { id: true, phoneE164: true, name: true },
+    });
+  }
+
+  /** Signs the user out everywhere (after a password reset). */
+  async revokeAllForUser(tx: SystemTx, userId: string): Promise<void> {
+    await tx.refreshToken.updateMany({
+      where: { userId, revokedAt: null },
+      data: { revokedAt: new Date() },
     });
   }
 

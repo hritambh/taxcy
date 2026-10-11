@@ -203,6 +203,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get errorOtpExpired => 'The code expired. Request a new one.';
 
   @override
+  String get errorInvalidCredentials => 'Wrong mobile number or password.';
+
+  @override
+  String get errorAccountExists =>
+      'This number already has an account. Log in, or reset your password.';
+
+  @override
+  String get errorGoogleTokenInvalid =>
+      'Google sign-in didn\'t work. Try again.';
+
+  @override
+  String get errorGoogleAccountConflict =>
+      'This number is already linked to a different Google account.';
+
+  @override
   String get errorRateLimited =>
       'Too many attempts. Wait a few minutes and try again.';
 

@@ -33,6 +33,22 @@ const Env = z.object({
   JWT_ACCESS_TTL_SECONDS: z.coerce.number().int().positive().default(900),
   JWT_REFRESH_TTL_DAYS: z.coerce.number().int().positive().default(30),
 
+  /**
+   * Google sign-in. With a web client id, ID tokens are verified against Google for
+   * that audience plus any extra (Android/iOS) client ids. Without one, development
+   * and tests use a stand-in that accepts "dev-google:<email>" tokens; production
+   * then has Google sign-in switched off.
+   */
+  GOOGLE_WEB_CLIENT_ID: z.string().default(''),
+  GOOGLE_EXTRA_CLIENT_IDS: z
+    .string()
+    .default('')
+    .transform((v) =>
+      v
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean),
+    ),
   OTP_TTL_SECONDS: z.coerce.number().int().positive().default(300),
   OTP_MAX_ATTEMPTS: z.coerce.number().int().positive().default(5),
   /** OTP requests allowed per client IP per hour (shared networks, e.g. a depot's Wi-Fi, need headroom). */
