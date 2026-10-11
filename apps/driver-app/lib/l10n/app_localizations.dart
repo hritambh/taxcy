@@ -4048,6 +4048,330 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{name} · {roles}'**
   String signedInAs({required String name, required String roles});
+
+  /// No description provided for @password.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get password;
+
+  /// No description provided for @logIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Log in'**
+  String get logIn;
+
+  /// No description provided for @forgotPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Forgot password?'**
+  String get forgotPassword;
+
+  /// No description provided for @useSmsCodeInstead.
+  ///
+  /// In en, this message translates to:
+  /// **'Use an SMS code instead'**
+  String get useSmsCodeInstead;
+
+  /// No description provided for @usePasswordInstead.
+  ///
+  /// In en, this message translates to:
+  /// **'Log in with your password'**
+  String get usePasswordInstead;
+
+  /// No description provided for @newHereSignUp.
+  ///
+  /// In en, this message translates to:
+  /// **'New to Taxcy? Sign up'**
+  String get newHereSignUp;
+
+  /// No description provided for @haveAccountLogIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Already have an account? Log in'**
+  String get haveAccountLogIn;
+
+  /// No description provided for @backToLogIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to log in'**
+  String get backToLogIn;
+
+  /// No description provided for @signUpTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create your account'**
+  String get signUpTitle;
+
+  /// No description provided for @signUpIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'We\'ll send a code to your mobile number to check it\'s yours. Drivers use the number their fleet owner registered.'**
+  String get signUpIntro;
+
+  /// No description provided for @createAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Create account'**
+  String get createAccount;
+
+  /// No description provided for @yourNameOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Your name (optional)'**
+  String get yourNameOptional;
+
+  /// No description provided for @newPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'New password'**
+  String get newPassword;
+
+  /// No description provided for @confirmPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Type the password again'**
+  String get confirmPassword;
+
+  /// No description provided for @currentPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Current password'**
+  String get currentPassword;
+
+  /// No description provided for @passwordHint.
+  ///
+  /// In en, this message translates to:
+  /// **'At least 8 characters'**
+  String get passwordHint;
+
+  /// No description provided for @enterPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your password'**
+  String get enterPassword;
+
+  /// No description provided for @passwordTooShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Use at least 8 characters.'**
+  String get passwordTooShort;
+
+  /// No description provided for @passwordTooLong.
+  ///
+  /// In en, this message translates to:
+  /// **'Use at most 128 characters.'**
+  String get passwordTooLong;
+
+  /// No description provided for @passwordsDontMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'The two passwords don\'t match.'**
+  String get passwordsDontMatch;
+
+  /// No description provided for @showPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Show password'**
+  String get showPassword;
+
+  /// No description provided for @hidePassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide password'**
+  String get hidePassword;
+
+  /// No description provided for @resetPasswordTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset your password'**
+  String get resetPasswordTitle;
+
+  /// No description provided for @resetPasswordIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'We\'ll send a code to your mobile number. Then choose a new password.'**
+  String get resetPasswordIntro;
+
+  /// No description provided for @resetPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset password'**
+  String get resetPassword;
+
+  /// No description provided for @saveAndLogIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Save password and log in'**
+  String get saveAndLogIn;
+
+  /// No description provided for @resendCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Resend code'**
+  String get resendCode;
+
+  /// No description provided for @resendCodeIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Resend code in {seconds} s'**
+  String resendCodeIn({required String seconds});
+
+  /// No description provided for @codeResent.
+  ///
+  /// In en, this message translates to:
+  /// **'We sent a new code.'**
+  String get codeResent;
+
+  /// No description provided for @orDivider.
+  ///
+  /// In en, this message translates to:
+  /// **'or'**
+  String get orDivider;
+
+  /// No description provided for @continueWithGoogle.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue with Google'**
+  String get continueWithGoogle;
+
+  /// No description provided for @googleLocalTest.
+  ///
+  /// In en, this message translates to:
+  /// **'Google (local test)'**
+  String get googleLocalTest;
+
+  /// No description provided for @googleLocalTestIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'This server has no Google account set up, so it accepts any email as a stand-in for testing.'**
+  String get googleLocalTestIntro;
+
+  /// No description provided for @email.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get email;
+
+  /// No description provided for @enterEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter an email address'**
+  String get enterEmail;
+
+  /// No description provided for @continueAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get continueAction;
+
+  /// No description provided for @googleUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Google sign-in isn\'t working on this device. Log in with your password or an SMS code.'**
+  String get googleUnavailable;
+
+  /// No description provided for @verifyPhoneTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify your phone'**
+  String get verifyPhoneTitle;
+
+  /// No description provided for @verifyPhoneIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re signing in with Google as {account}. Add your mobile number too: your fleet knows you by it.'**
+  String verifyPhoneIntro({required String account});
+
+  /// No description provided for @startAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Start again'**
+  String get startAgain;
+
+  /// No description provided for @accountSecurity.
+  ///
+  /// In en, this message translates to:
+  /// **'Account security'**
+  String get accountSecurity;
+
+  /// No description provided for @signInMethods.
+  ///
+  /// In en, this message translates to:
+  /// **'How you sign in'**
+  String get signInMethods;
+
+  /// No description provided for @smsCodeAlways.
+  ///
+  /// In en, this message translates to:
+  /// **'You can always log in with an SMS code sent to this number.'**
+  String get smsCodeAlways;
+
+  /// No description provided for @passwordIsSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Set'**
+  String get passwordIsSet;
+
+  /// No description provided for @passwordNotSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set yet'**
+  String get passwordNotSet;
+
+  /// No description provided for @googleLinkedTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Linked: {email}'**
+  String googleLinkedTo({required String email});
+
+  /// No description provided for @googleLinked.
+  ///
+  /// In en, this message translates to:
+  /// **'Linked'**
+  String get googleLinked;
+
+  /// No description provided for @googleNotLinked.
+  ///
+  /// In en, this message translates to:
+  /// **'Not linked. To link it, sign out and choose Continue with Google.'**
+  String get googleNotLinked;
+
+  /// No description provided for @setPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Set a password'**
+  String get setPassword;
+
+  /// No description provided for @setPasswordIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Then you can log in with your mobile number and password.'**
+  String get setPasswordIntro;
+
+  /// No description provided for @changePassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Change password'**
+  String get changePassword;
+
+  /// No description provided for @savePassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Save password'**
+  String get savePassword;
+
+  /// No description provided for @passwordSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Password saved'**
+  String get passwordSaved;
+
+  /// No description provided for @currentPasswordWrong.
+  ///
+  /// In en, this message translates to:
+  /// **'Your current password is wrong.'**
+  String get currentPasswordWrong;
 }
 
 class _AppLocalizationsDelegate

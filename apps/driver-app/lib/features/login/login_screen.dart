@@ -1,15 +1,21 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/providers.dart';
 import '../../app/theme.dart';
 import '../../core/api/api.dart';
+import '../../core/api/auth_models.dart';
 import '../common/errors.dart';
 import '../common/format.dart';
 import '../common/language_picker.dart';
+import '../owner/owner_widgets.dart' show askText;
+import 'auth_forms.dart';
 
-/// Phone number → OTP → signed in.
+/// Signing in: mobile number + password by default, or an SMS code, sign-up,
+/// forgot password, and Google when the server offers it. Every step lives in
+/// the same card, so a successful sign-in just replaces this screen.
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
@@ -18,60 +24,91 @@ class LoginScreen extends ConsumerStatefulWidget {
 }
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
+  /// Shared by every step, so the number typed once carries over.
   final _phone = TextEditingController();
-  final _code = TextEditingController();
-  bool _codeSent = false;
-  bool _busy = false;
-  String? _error;
+  LoginFlow _flow = LoginFlow.password;
+  GooglePhoneRequired? _link;
 
-  String get _e164 => '+91${_phone.text.trim()}';
+  bool _googleBusy = false;
+  String? _googleError;
+  StreamSubscription<String>? _googleTokens;
+
+  @override
+  void initState() {
+    super.initState();
+    // On the web, Google's own button reports its sign-ins as a stream.
+    _googleTokens = ref
+        .read(googleAuthProvider)
+        .idTokens
+        .listen(
+          (token) => _google(() async => token),
+          onError: (Object _) => _showGoogleError(null),
+        );
+  }
 
   @override
   void dispose() {
+    _googleTokens?.cancel();
     _phone.dispose();
-    _code.dispose();
     super.dispose();
   }
 
-  Future<void> _run(Future<void> Function() action) async {
+  void _open(LoginFlow flow) => setState(() {
+    _flow = flow;
+    _googleError = null;
+  });
+
+  void _showGoogleError(Object? error) {
+    if (!mounted) return;
+    setState(
+      () => _googleError = error is ApiException
+          ? errorText(context.l10n, error)
+          : context.l10n.googleUnavailable,
+    );
+  }
+
+  /// Signs in with the ID token [getToken] produces (null: the user backed out).
+  /// A first Google sign-in moves on to verifying a phone.
+  Future<void> _google(Future<String?> Function() getToken) async {
+    if (_googleBusy) return;
     setState(() {
-      _busy = true;
-      _error = null;
+      _googleBusy = true;
+      _googleError = null;
     });
     try {
-      await action();
-    } on ApiException catch (error) {
-      setState(() => _error = _friendly(error));
+      final token = await getToken();
+      if (token == null) return;
+      final link = await ref.read(authProvider.notifier).googleSignIn(token);
+      if (link != null && mounted) {
+        setState(() {
+          _link = link;
+          _flow = LoginFlow.googleLink;
+        });
+      }
     } on Object catch (error) {
-      setState(() => _error = errorText(context.l10n, error));
+      debugPrint('Google sign-in failed: $error');
+      _showGoogleError(error);
     } finally {
-      if (mounted) setState(() => _busy = false);
+      if (mounted) setState(() => _googleBusy = false);
     }
   }
 
-  String _friendly(ApiException error) => error.code == 'VALIDATION_FAILED'
-      ? context.l10n.loginCheckNumber
-      : errorText(context.l10n, error);
-
-  Future<void> _sendCode() async {
-    if (!RegExp(r'^[6-9]\d{9}$').hasMatch(_phone.text.trim())) {
-      setState(() => _error = context.l10n.enterTenDigitMobile);
-      return;
-    }
-    await _run(() async {
-      await ref.read(authProvider.notifier).requestOtp(_e164);
-      setState(() => _codeSent = true);
-    });
-  }
-
-  Future<void> _verify() async {
-    if (!RegExp(r'^\d{6}$').hasMatch(_code.text.trim())) {
-      setState(() => _error = context.l10n.enterSixDigitCode);
-      return;
-    }
-    await _run(
-      () => ref.read(authProvider.notifier).verify(_e164, _code.text.trim()),
+  /// The server's local stand-in for Google: any email signs in as that
+  /// "Google account".
+  Future<void> _googleDev() async {
+    final l = context.l10n;
+    final email = await askText(
+      context,
+      title: l.googleLocalTest,
+      intro: l.googleLocalTestIntro,
+      label: l.email,
+      confirm: l.continueAction,
+      keyboard: TextInputType.emailAddress,
+      validate: (value) =>
+          RegExp(r'^[^@\s]+@[^@\s]+$').hasMatch(value) ? null : l.enterEmail,
     );
+    if (email == null) return;
+    await _google(() async => 'dev-google:$email');
   }
 
   @override
@@ -126,7 +163,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       padding: const EdgeInsets.all(20),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: _form(theme),
+                        children: [
+                          _form(),
+                          if (_flow == LoginFlow.password ||
+                              _flow == LoginFlow.sms)
+                            _googleSection(),
+                        ],
                       ),
                     ),
                   ),
@@ -139,80 +181,120 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     );
   }
 
-  List<Widget> _form(ThemeData theme) => [
-    Text(
-      _codeSent
-          ? context.l10n.loginCodeSent(phone: '+91 ${_phone.text.trim()}')
-          : context.l10n.loginIntro,
-      style: theme.textTheme.bodyLarge,
+  Widget _form() => switch (_flow) {
+    LoginFlow.password => PasswordLoginForm(
+      key: const ValueKey(LoginFlow.password),
+      phone: _phone,
+      onOpen: _open,
     ),
-    const SizedBox(height: 24),
-    TextField(
-      key: const Key('phone-field'),
-      controller: _phone,
-      enabled: !_codeSent && !_busy,
-      keyboardType: TextInputType.phone,
-      inputFormatters: [
-        FilteringTextInputFormatter.digitsOnly,
-        LengthLimitingTextInputFormatter(10),
-      ],
-      decoration: InputDecoration(
-        labelText: context.l10n.mobileNumber,
-        prefixText: '+91 ',
-        border: const OutlineInputBorder(),
-      ),
+    LoginFlow.sms => SmsLoginForm(
+      key: const ValueKey(LoginFlow.sms),
+      phone: _phone,
+      onOpen: _open,
     ),
-    if (_codeSent) ...[
-      const SizedBox(height: 16),
-      TextField(
-        key: const Key('code-field'),
-        controller: _code,
-        enabled: !_busy,
-        autofocus: true,
-        keyboardType: TextInputType.number,
-        inputFormatters: [
-          FilteringTextInputFormatter.digitsOnly,
-          LengthLimitingTextInputFormatter(6),
-        ],
-        decoration: InputDecoration(
-          labelText: context.l10n.sixDigitCode,
-          border: const OutlineInputBorder(),
+    LoginFlow.signUp => SignUpForm(
+      key: const ValueKey(LoginFlow.signUp),
+      phone: _phone,
+      onOpen: _open,
+    ),
+    LoginFlow.reset => ResetPasswordForm(
+      key: const ValueKey(LoginFlow.reset),
+      phone: _phone,
+      onOpen: _open,
+    ),
+    LoginFlow.googleLink => GoogleLinkForm(
+      key: ValueKey(_link!.linkToken),
+      phone: _phone,
+      link: _link!,
+      onCancel: () => setState(() {
+        _link = null;
+        _flow = LoginFlow.password;
+      }),
+    ),
+  };
+
+  /// "or" and the Google button, when the server offers Google. Hidden while
+  /// the server can't be reached: password and SMS code still work.
+  Widget _googleSection() {
+    final option = ref.watch(googleOptionProvider).value ?? GoogleOption.hidden;
+    if (option == GoogleOption.hidden) return const SizedBox.shrink();
+    final l = context.l10n;
+    final google = ref.watch(googleAuthProvider);
+    final Widget button;
+    if (option == GoogleOption.dev) {
+      button = OutlinedButton.icon(
+        key: const Key('google-dev'),
+        onPressed: _googleBusy ? null : _googleDev,
+        icon: const Icon(Icons.science_outlined),
+        label: Text(l.googleLocalTest),
+      );
+    } else if (google.supportsAuthenticate) {
+      button = OutlinedButton.icon(
+        key: const Key('google-sign-in'),
+        onPressed: _googleBusy ? null : () => _google(google.authenticate),
+        icon: const _GoogleMark(),
+        label: Text(l.continueWithGoogle),
+      );
+    } else {
+      button = Center(
+        child: google.button(
+          locale: Localizations.localeOf(context).languageCode,
         ),
-      ),
-    ],
-    if (_error != null) ...[
-      const SizedBox(height: 16),
-      Text(
-        _error!,
-        key: const Key('login-error'),
-        style: TextStyle(color: theme.colorScheme.error),
-      ),
-    ],
-    const SizedBox(height: 24),
-    FilledButton(
-      key: const Key('login-submit'),
-      onPressed: _busy ? null : (_codeSent ? _verify : _sendCode),
-      child: _busy
-          ? const SizedBox.square(
-              dimension: 20,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            )
-          : Text(
-              _codeSent ? context.l10n.verifyAndSignIn : context.l10n.sendCode,
+      );
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            const Expanded(child: Divider()),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Text(
+                l.orDivider,
+                style: const TextStyle(color: TaxcyColors.muted),
+              ),
             ),
+            const Expanded(child: Divider()),
+          ],
+        ),
+        const SizedBox(height: 12),
+        if (_googleBusy)
+          const Center(
+            child: SizedBox.square(
+              dimension: 24,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+          )
+        else
+          button,
+        if (_googleError != null) ...[
+          const SizedBox(height: 12),
+          Text(
+            _googleError!,
+            key: const Key('google-error'),
+            style: TextStyle(color: Theme.of(context).colorScheme.error),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+/// A plain "G" for the Google button (no brand artwork is bundled).
+class _GoogleMark extends StatelessWidget {
+  const _GoogleMark();
+
+  @override
+  Widget build(BuildContext context) => const Text(
+    'G',
+    style: TextStyle(
+      fontWeight: FontWeight.w700,
+      fontSize: 18,
+      color: TaxcyColors.blue700,
     ),
-    if (_codeSent)
-      TextButton(
-        onPressed: _busy
-            ? null
-            : () => setState(() {
-                _codeSent = false;
-                _code.clear();
-                _error = null;
-              }),
-        child: Text(context.l10n.useDifferentNumber),
-      ),
-  ];
+  );
 }
 
 /// Signed in, but this number has no driver, owner or manager role in the

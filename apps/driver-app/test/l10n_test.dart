@@ -184,7 +184,8 @@ void main() {
       await tester.pumpWidget(h.wrap(const TaxcyDriverApp()));
       await settle(tester);
       expect(find.text('मोबाइल नंबर'), findsOneWidget);
-      expect(find.text('कोड भेजें'), findsOneWidget);
+      expect(find.text('पासवर्ड'), findsOneWidget);
+      expect(find.text('लॉग इन करें'), findsOneWidget);
 
       await tester.tap(find.byKey(const Key('login-submit')));
       await tester.pump();
@@ -212,13 +213,13 @@ void main() {
       addTearDown(h.dispose);
       await tester.pumpWidget(h.wrap(const TaxcyDriverApp()));
       await settle(tester);
-      expect(find.text('Send code'), findsOneWidget);
+      expect(find.text('Log in'), findsOneWidget);
 
       await tester.tap(find.byKey(const Key('language-button')));
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('language-hi')));
       await tester.pumpAndSettle();
-      expect(find.text('कोड भेजें'), findsOneWidget);
+      expect(find.text('लॉग इन करें'), findsOneWidget);
       await tester.runAsync(() => Future<void>.delayed(Duration.zero));
       expect(h.prefs.getString('locale_v1'), 'hi');
     });

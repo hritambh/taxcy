@@ -6,6 +6,7 @@ import '../../app/providers.dart';
 import '../../app/theme.dart';
 import '../../core/repositories/trips_repository.dart';
 import '../../l10n/app_localizations.dart';
+import '../account/account_security_screen.dart';
 import '../common/errors.dart';
 import '../common/format.dart';
 import '../common/language_picker.dart';
@@ -83,6 +84,11 @@ class TripsScreen extends ConsumerWidget {
             onSelected: (value) => switch (value) {
               'owner' => ref.read(appModeProvider.notifier).set(AppMode.owner),
               'language' => showLanguagePicker(context, ref),
+              'security' => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => const AccountSecurityScreen(),
+                ),
+              ),
               'signout' => ref.read(authProvider.notifier).signOut(),
               _ => null,
             },
@@ -94,6 +100,11 @@ class TripsScreen extends ConsumerWidget {
                   child: Text(l.ownerMode),
                 ),
               PopupMenuItem(value: 'language', child: Text(l.language)),
+              PopupMenuItem(
+                key: const Key('driver-account-security'),
+                value: 'security',
+                child: Text(l.accountSecurity),
+              ),
               PopupMenuItem(value: 'signout', child: Text(l.signOut)),
             ],
           ),

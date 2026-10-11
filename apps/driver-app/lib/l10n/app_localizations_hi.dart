@@ -2314,4 +2314,179 @@ class AppLocalizationsHi extends AppLocalizations {
   String signedInAs({required String name, required String roles}) {
     return '$name · $roles';
   }
+
+  @override
+  String get password => 'पासवर्ड';
+
+  @override
+  String get logIn => 'लॉग इन करें';
+
+  @override
+  String get forgotPassword => 'पासवर्ड भूल गए?';
+
+  @override
+  String get useSmsCodeInstead => 'इसके बजाय SMS कोड से लॉग इन करें';
+
+  @override
+  String get usePasswordInstead => 'पासवर्ड से लॉग इन करें';
+
+  @override
+  String get newHereSignUp => 'Taxcy पर नए हैं? साइन अप करें';
+
+  @override
+  String get haveAccountLogIn => 'पहले से अकाउंट है? लॉग इन करें';
+
+  @override
+  String get backToLogIn => 'लॉग इन पर वापस जाएँ';
+
+  @override
+  String get signUpTitle => 'अपना अकाउंट बनाएँ';
+
+  @override
+  String get signUpIntro =>
+      'नंबर आपका ही है, यह जाँचने के लिए हम उस पर एक कोड भेजेंगे। ड्राइवर वही नंबर डालें जो फ़्लीट मालिक ने दर्ज किया है।';
+
+  @override
+  String get createAccount => 'अकाउंट बनाएँ';
+
+  @override
+  String get yourNameOptional => 'आपका नाम (ज़रूरी नहीं)';
+
+  @override
+  String get newPassword => 'नया पासवर्ड';
+
+  @override
+  String get confirmPassword => 'पासवर्ड दोबारा डालें';
+
+  @override
+  String get currentPassword => 'मौजूदा पासवर्ड';
+
+  @override
+  String get passwordHint => 'कम से कम 8 अक्षर';
+
+  @override
+  String get enterPassword => 'अपना पासवर्ड डालें';
+
+  @override
+  String get passwordTooShort => 'पासवर्ड में कम से कम 8 अक्षर रखें।';
+
+  @override
+  String get passwordTooLong => 'पासवर्ड 128 अक्षरों से लंबा न रखें।';
+
+  @override
+  String get passwordsDontMatch => 'दोनों पासवर्ड एक जैसे नहीं हैं।';
+
+  @override
+  String get showPassword => 'पासवर्ड दिखाएँ';
+
+  @override
+  String get hidePassword => 'पासवर्ड छिपाएँ';
+
+  @override
+  String get resetPasswordTitle => 'पासवर्ड रीसेट करें';
+
+  @override
+  String get resetPasswordIntro =>
+      'हम आपके मोबाइल नंबर पर एक कोड भेजेंगे। फिर नया पासवर्ड चुनें।';
+
+  @override
+  String get resetPassword => 'पासवर्ड रीसेट करें';
+
+  @override
+  String get saveAndLogIn => 'पासवर्ड सेव करके लॉग इन करें';
+
+  @override
+  String get resendCode => 'कोड फिर से भेजें';
+
+  @override
+  String resendCodeIn({required String seconds}) {
+    return '$seconds सेकंड बाद कोड फिर से भेजें';
+  }
+
+  @override
+  String get codeResent => 'नया कोड भेज दिया है।';
+
+  @override
+  String get orDivider => 'या';
+
+  @override
+  String get continueWithGoogle => 'Google से आगे बढ़ें';
+
+  @override
+  String get googleLocalTest => 'Google (लोकल टेस्ट)';
+
+  @override
+  String get googleLocalTestIntro =>
+      'इस सर्वर पर Google सेट नहीं है, इसलिए टेस्ट के लिए कोई भी ईमेल चल जाएगा।';
+
+  @override
+  String get email => 'ईमेल';
+
+  @override
+  String get enterEmail => 'ईमेल पता डालें';
+
+  @override
+  String get continueAction => 'आगे बढ़ें';
+
+  @override
+  String get googleUnavailable =>
+      'इस डिवाइस पर Google साइन इन नहीं चल रहा। पासवर्ड या SMS कोड से लॉग इन करें।';
+
+  @override
+  String get verifyPhoneTitle => 'अपना फ़ोन नंबर जाँचें';
+
+  @override
+  String verifyPhoneIntro({required String account}) {
+    return 'आप Google से $account के नाम से साइन इन कर रहे हैं। अपना मोबाइल नंबर भी जोड़ें: आपका फ़्लीट आपको इसी नंबर से पहचानता है।';
+  }
+
+  @override
+  String get startAgain => 'फिर से शुरू करें';
+
+  @override
+  String get accountSecurity => 'अकाउंट सुरक्षा';
+
+  @override
+  String get signInMethods => 'आप कैसे साइन इन करते हैं';
+
+  @override
+  String get smsCodeAlways =>
+      'इस नंबर पर आए SMS कोड से भी हमेशा लॉग इन कर सकते हैं।';
+
+  @override
+  String get passwordIsSet => 'सेट है';
+
+  @override
+  String get passwordNotSet => 'अभी सेट नहीं है';
+
+  @override
+  String googleLinkedTo({required String email}) {
+    return 'जुड़ा है: $email';
+  }
+
+  @override
+  String get googleLinked => 'जुड़ा है';
+
+  @override
+  String get googleNotLinked =>
+      'जुड़ा नहीं है। जोड़ने के लिए साइन आउट करें और \"Google से आगे बढ़ें\" चुनें।';
+
+  @override
+  String get setPassword => 'पासवर्ड बनाएँ';
+
+  @override
+  String get setPasswordIntro =>
+      'फिर आप मोबाइल नंबर और पासवर्ड से लॉग इन कर सकेंगे।';
+
+  @override
+  String get changePassword => 'पासवर्ड बदलें';
+
+  @override
+  String get savePassword => 'पासवर्ड सेव करें';
+
+  @override
+  String get passwordSaved => 'पासवर्ड सेव हो गया';
+
+  @override
+  String get currentPasswordWrong => 'मौजूदा पासवर्ड ग़लत है।';
 }

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../app/preferences.dart';
 import '../../app/providers.dart';
 import '../../app/theme.dart';
+import '../account/account_security_screen.dart';
 import '../common/format.dart';
 import '../common/language_picker.dart';
 import 'alerts_screen.dart';
@@ -200,6 +201,12 @@ class MoreScreen extends ConsumerWidget {
                   l.settings,
                   const SettingsScreen(),
                   key: const Key('more-settings'),
+                ),
+                item(
+                  Icons.lock_outline,
+                  l.accountSecurity,
+                  const AccountSecurityScreen(),
+                  key: const Key('more-account-security'),
                 ),
                 const Divider(),
                 ListTile(
