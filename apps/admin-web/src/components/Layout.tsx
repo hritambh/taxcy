@@ -11,6 +11,7 @@ import {
   Menu,
   Route as RouteIcon,
   Settings,
+  UserRound,
   Users,
   X,
   type LucideIcon,
@@ -145,6 +146,21 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
           {auth.activeMembership?.roles.map((role) => t(`enums.role.${role}`)).join(', ')}
         </p>
         <LanguageSwitcher className="mb-2 text-brand-100" />
+        <NavLink
+          to="/account"
+          onClick={onNavigate}
+          className={({ isActive }) =>
+            cn(
+              'mb-1 flex h-8 items-center gap-1.5 rounded-md px-2.5 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-white',
+              isActive
+                ? 'bg-white text-brand-800'
+                : 'text-brand-100 hover:bg-white/10 hover:text-white',
+            )
+          }
+        >
+          <UserRound className="size-4" aria-hidden />
+          {t('nav.myAccount')}
+        </NavLink>
         <Button
           variant="ghost"
           size="sm"

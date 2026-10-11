@@ -22,6 +22,8 @@ export type UpdateVehicleBody = Body<'/vehicles/{id}', 'patch'>;
 // Wire types (dates are ISO strings), derived from the API's OpenAPI document.
 export type Session = Post<'/auth/otp/verify'>;
 export type Membership = Session['memberships'][number];
+export type AuthConfig = Get<'/auth/config'>;
+export type Me = Get<'/me'>;
 export type Vehicle = Get<'/vehicles/{id}'>;
 export type VehicleModel = Get<'/vehicle-models'>[number];
 export type Driver = Get<'/drivers/{id}'>;

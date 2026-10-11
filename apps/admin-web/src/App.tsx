@@ -6,6 +6,7 @@ import { LoginPage } from './auth/LoginPage.js';
 import { CreateOrgPage, NotStaffPage } from './auth/OnboardingPages.js';
 import { Layout } from './components/Layout.js';
 import { EmptyState, Spinner } from './components/ui.js';
+import { AccountPage } from './pages/AccountPage.js';
 import { AlertsPage } from './pages/AlertsPage.js';
 import { DashboardPage } from './pages/DashboardPage.js';
 import { DocumentsPage } from './pages/DocumentsPage.js';
@@ -57,6 +58,7 @@ export function App() {
           <Route path="review" element={<ReviewPage />} />
           <Route path="settlements" element={<SettlementsPage />} />
           <Route path="settings" element={<SettingsPage />} />
+          <Route path="account" element={<AccountPage />} />
           <Route
             path="*"
             element={
