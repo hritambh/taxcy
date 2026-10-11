@@ -2,8 +2,6 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
 import { describe, expect, it, vi } from 'vitest';
-import { AuthContext, type AuthState } from '../auth/context.js';
-import { LoginPage } from '../auth/LoginPage.js';
 import type { Alert, SettlementSummary } from '../lib/api-types.js';
 import { AlertCard } from '../pages/AlertsPage.js';
 import { SettlementRow } from '../pages/SettlementsPage.js';
@@ -110,47 +108,5 @@ describe('SettlementRow', () => {
     expect(screen.getByText('You pay the driver ₹500')).toBeInTheDocument();
     expect(screen.getByText('Shortfall ₹300')).toBeInTheDocument();
     expect(screen.getByText('Settled')).toBeInTheDocument();
-  });
-});
-
-describe('LoginPage', () => {
-  function renderLogin(
-    requestOtp = vi.fn().mockResolvedValue({ expiresInSeconds: 300, resendAfterSeconds: 30 }),
-  ) {
-    const auth: AuthState = {
-      status: 'signed_out',
-      session: null,
-      activeMembership: null,
-      isStaff: false,
-      isOwner: false,
-      requestOtp,
-      verifyOtp: vi.fn(),
-      createOrg: vi.fn(),
-      switchOrg: vi.fn(),
-      logout: vi.fn(),
-    };
-    render(
-      <AuthContext.Provider value={auth}>
-        <LoginPage />
-      </AuthContext.Provider>,
-    );
-    return requestOtp;
-  }
-
-  it('rejects numbers that are not Indian mobiles without calling the API', async () => {
-    const requestOtp = renderLogin();
-    await userEvent.type(screen.getByLabelText('Mobile number'), '12345');
-    await userEvent.click(screen.getByRole('button', { name: 'Send code' }));
-    expect(screen.getByText('Enter a 10-digit Indian mobile number')).toBeInTheDocument();
-    expect(requestOtp).not.toHaveBeenCalled();
-  });
-
-  it('normalises the number, then asks for the code', async () => {
-    const requestOtp = renderLogin();
-    await userEvent.type(screen.getByLabelText('Mobile number'), '98123 45678');
-    await userEvent.click(screen.getByRole('button', { name: 'Send code' }));
-    expect(requestOtp).toHaveBeenCalledWith('+919812345678');
-    expect(await screen.findByLabelText('One-time code')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Verify and sign in' })).toBeDisabled();
   });
 });

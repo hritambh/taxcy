@@ -18,7 +18,13 @@ export const keys = {
   settlements: ['settlements'] as const,
   settings: ['settings'] as const,
   media: (id: string) => ['media', id] as const,
+  me: ['me'] as const,
 };
+
+/** The signed-in user (with hasPassword / googleLinked) and their memberships. */
+export function useMe() {
+  return useQuery({ queryKey: keys.me, queryFn: () => call(api.GET('/me')) });
+}
 
 export function useVehicles(status?: 'active' | 'inactive') {
   return useQuery({

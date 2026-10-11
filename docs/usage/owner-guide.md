@@ -6,9 +6,35 @@ The admin web is for **owners** and **managers**. Drivers use the [mobile app](d
 
 ## 1. Sign in
 
-1. Go to the admin web and enter your mobile number.
-2. Enter the 6-digit OTP you receive by SMS. In local development the OTP is printed in the API log.
-3. If you belong to more than one organization, choose one. You can switch later from the top-right menu.
+Your **mobile number** is your identity in Taxcy: invites and fleets go by it. The sign-in page offers three ways in.
+
+- **Mobile number + password** (the default). Enter your 10-digit number and your password. A wrong number and a wrong password give the same message, on purpose. After several wrong tries you have to wait a few minutes.
+- **SMS code.** Choose **Use an SMS code instead**, enter your number, then the 6-digit code we text you. **Resend code** becomes available after a short wait. In local development the code is printed in the API log.
+- **Continue with Google.** The first time, Google asks which account to use and then Taxcy asks you to **verify your phone**: enter your mobile number and the SMS code. From then on, Google signs you straight in. Finish within 10 minutes; if it takes longer, you're sent back to start again. A number can be linked to only one Google account, and a Google account to only one number. In local development (no Google client id configured) the button reads **Continue with Google (local test)** and asks for any email instead of opening Google; it never appears in production.
+
+The page shows only the ways that are switched on: without Google configured in production, the Google button is hidden.
+
+If you belong to more than one organization, you start in the first one; switch from the organization menu at the top of the sidebar.
+
+### Sign up
+
+New to Taxcy? Choose **Sign up**, enter your mobile number and the SMS code, then your name (optional) and a password (at least 8 characters, typed twice). You're signed in straight away. If you're not part of a fleet yet, you're asked to set up your business (a fleet, or an owner-driver). If you were invited as a manager, the invite is picked up automatically.
+
+If the number already has a password, sign-up says so: sign in, or reset the password instead. Someone who has only ever used SMS codes (for example an invited driver) can sign up to add a password to the same account.
+
+### Forgot your password
+
+On the sign-in page choose **Forgot password?**, enter your mobile number and the SMS code, and choose a new password. You're signed in, and **signed out on every other device**.
+
+### Account security (My account)
+
+**My account** (bottom of the sidebar) shows your name, mobile number, whether a **Google** account is linked and its **email**.
+
+- **Set password**: if you've only used SMS codes or Google so far, set a password to sign in without waiting for a code.
+- **Change password**: enter your current password and the new one twice. If you've forgotten the current one, sign out and use **Forgot password?**.
+- To link Google, sign out, choose **Continue with Google** and enter this mobile number when asked.
+
+Passwords are never stored in the browser; use your browser's or phone's password manager if you like (the forms are set up for it).
 
 ### Language
 

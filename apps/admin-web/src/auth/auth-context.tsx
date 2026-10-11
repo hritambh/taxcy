@@ -12,6 +12,13 @@ function requireRefreshToken(): string {
   return token;
 }
 
+/** The device a session is for (the API records devices). */
+const device = () => ({
+  deviceId: sessionStore.deviceId,
+  platform: 'web' as const,
+  appVersion: 'admin-web',
+});
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
   const [session, setSession] = useState<Session | null>(sessionStore.current);
@@ -55,21 +62,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       activeMembership,
       isStaff: roles.includes('owner') || roles.includes('manager'),
       isOwner: roles.includes('owner'),
+      loadAuthConfig: () => call(api.GET('/auth/config')),
       requestOtp: (phone) => call(api.POST('/auth/otp/request', { body: { phone } })),
       async verifyOtp(phone, code) {
+        adopt(await call(api.POST('/auth/otp/verify', { body: { phone, code, ...device() } })));
+      },
+      async passwordLogin(phone, password) {
         adopt(
-          await call(
-            api.POST('/auth/otp/verify', {
-              body: {
-                phone,
-                code,
-                deviceId: sessionStore.deviceId,
-                platform: 'web',
-                appVersion: 'admin-web',
-              },
-            }),
-          ),
+          await call(api.POST('/auth/password/login', { body: { phone, password, ...device() } })),
         );
+      },
+      async signup(input) {
+        adopt(await call(api.POST('/auth/signup', { body: { ...input, ...device() } })));
+      },
+      async resetPassword(input) {
+        adopt(await call(api.POST('/auth/password/reset', { body: { ...input, ...device() } })));
+      },
+      async googleSignIn(idToken) {
+        const result = await call(api.POST('/auth/google', { body: { idToken, ...device() } }));
+        if (result.status === 'phone_required') return result;
+        adopt(result.session);
+        return { status: 'signed_in' };
+      },
+      async googleLink(input) {
+        adopt(await call(api.POST('/auth/google/link', { body: { ...input, ...device() } })));
       },
       async createOrg(name, kind) {
         adopt(

@@ -2,7 +2,6 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
 import { describe, expect, it, vi } from 'vitest';
-import { AuthContext, type AuthState } from '../auth/context.js';
 import { LoginPage } from '../auth/LoginPage.js';
 import { InlineError } from '../components/ui.js';
 import type { Alert, SettlementLine } from '../lib/api-types.js';
@@ -11,6 +10,7 @@ import { fmtDate, fmtInr, fmtKm } from '../lib/format.js';
 import { reviewReason } from '../lib/review-text.js';
 import { settlementLineText } from '../lib/settlement-text.js';
 import { AlertCard } from '../pages/AlertsPage.js';
+import { renderWithAuth } from '../test/auth.js';
 import { detectLanguage, i18n, LANGUAGES } from './index.js';
 import { en } from './locales/en.js';
 import { hi } from './locales/hi.js';
@@ -105,33 +105,37 @@ describe('language choice', () => {
 });
 
 describe('language switcher', () => {
-  const auth: AuthState = {
-    status: 'signed_out',
-    session: null,
-    activeMembership: null,
-    isStaff: false,
-    isOwner: false,
-    requestOtp: vi.fn(),
-    verifyOtp: vi.fn(),
-    createOrg: vi.fn(),
-    switchOrg: vi.fn(),
-    logout: vi.fn(),
-  };
-
   it('switches the sign-in page to Hindi, sets <html lang> and remembers the choice', async () => {
-    render(
-      <AuthContext.Provider value={auth}>
-        <LoginPage />
-      </AuthContext.Provider>,
-    );
+    renderWithAuth(<LoginPage />);
     expect(screen.getByRole('heading', { name: 'Sign in' })).toBeInTheDocument();
     await userEvent.selectOptions(screen.getByLabelText('Language'), 'hi');
     expect(await screen.findByRole('heading', { name: 'साइन इन' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'कोड भेजें' })).toBeInTheDocument();
     expect(screen.getByLabelText('मोबाइल नंबर')).toBeInTheDocument();
+    expect(screen.getByLabelText('पासवर्ड')).toHaveAttribute('type', 'password');
+    expect(screen.getByRole('button', { name: 'पासवर्ड दिखाएँ' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'साइन इन करें' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'पासवर्ड भूल गए?' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'इसके बजाय SMS कोड से साइन इन करें' }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'साइन अप करें' })).toBeInTheDocument();
     expect(document.documentElement.lang).toBe('hi');
     expect(window.localStorage.getItem('taxcy.language')).toBe('hi');
     expect(document.title).toBe('साइन इन · Taxcy एडमिन');
+  });
+
+  it('words the SMS code step and its errors in Hindi', async () => {
+    await i18n.changeLanguage('hi');
+    renderWithAuth(<LoginPage />);
+    await userEvent.click(
+      screen.getByRole('button', { name: 'इसके बजाय SMS कोड से साइन इन करें' }),
+    );
+    await userEvent.type(screen.getByLabelText('मोबाइल नंबर'), '9812345678');
+    await userEvent.click(screen.getByRole('button', { name: 'कोड भेजें' }));
+    expect(await screen.findByText('30 सेकंड बाद कोड दोबारा भेज सकते हैं')).toBeInTheDocument();
+    expect(errorMessage(new ApiError(401, 'INVALID_CREDENTIALS', 'x'))).toBe(
+      'मोबाइल नंबर या पासवर्ड ग़लत है।',
+    );
   });
 });
 

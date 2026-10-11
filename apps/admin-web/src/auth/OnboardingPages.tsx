@@ -2,7 +2,7 @@ import { useState, type SubmitEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button, Field, InlineError, Input } from '../components/ui.js';
 import { cn } from '@taxcy/ui';
-import { AuthShell } from './LoginPage.js';
+import { AuthShell } from './AuthShell.js';
 import { useAuth } from './context.js';
 
 /** First sign-in with no organization yet: create a fleet or register as an owner-driver. */
