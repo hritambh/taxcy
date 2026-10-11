@@ -19,9 +19,33 @@ class TripView {
   final String? conflict;
 }
 
+/// Why the app refused an action before queuing it (shown in the user's language).
+enum RejectionReason {
+  endBeforeStart,
+  needDrop,
+  endBelowStart,
+  chargesActiveOnly,
+  paymentsAfterStart,
+  tripCancelled,
+  cancellationPending,
+  noPendingCancellation,
+  notAllowed,
+  wrongState,
+}
+
 class LocalRejection implements Exception {
-  LocalRejection(this.message);
+  LocalRejection(this.reason, this.message, {this.km, this.status});
+  final RejectionReason reason;
+
+  /// English, for logs and tests; the UI translates [reason].
   final String message;
+
+  /// The minimum km, for [RejectionReason.endBelowStart].
+  final int? km;
+
+  /// The trip's status, for [RejectionReason.wrongState].
+  final String? status;
+
   @override
   String toString() => message;
 }
@@ -69,7 +93,17 @@ class TripsRepository {
       command,
       const [TripActor.assignedDriver],
     );
-    if (decision is Rejected) throw LocalRejection(decision.message);
+    if (decision is Rejected) {
+      final reason = switch (decision.error) {
+        'TRIP_CANCELLED' => RejectionReason.tripCancelled,
+        'CANCELLATION_PENDING' => RejectionReason.cancellationPending,
+        'FORBIDDEN_ROLE' => RejectionReason.notAllowed,
+        _ when tripTransitions[command]!.from.contains(trip.status) =>
+          RejectionReason.noPendingCancellation,
+        _ => RejectionReason.wrongState,
+      };
+      throw LocalRejection(reason, decision.message, status: trip.status);
+    }
   }
 
   Future<OdometerReading> _odometer(CapturedPhoto photo, int km) async {
@@ -101,10 +135,16 @@ class TripsRepository {
     String? customerPhone,
   }) async {
     if (!scheduledEndAt.isAfter(scheduledStartAt)) {
-      throw LocalRejection('The trip must end after it starts');
+      throw LocalRejection(
+        RejectionReason.endBeforeStart,
+        'The trip must end after it starts',
+      );
     }
     if (tripType != 'local_rental' && (toText == null || toText.isEmpty)) {
-      throw LocalRejection('Enter where the trip goes');
+      throw LocalRejection(
+        RejectionReason.needDrop,
+        'Enter where the trip goes',
+      );
     }
     final id = _uuid.v4();
     final trip = Trip(
@@ -186,7 +226,11 @@ class TripsRepository {
     _assertAllowed(trip, 'end');
     final startKm = trip.startOdometer?.typedKm;
     if (startKm != null && km < startKm) {
-      throw LocalRejection('End reading must be at least $startKm km');
+      throw LocalRejection(
+        RejectionReason.endBelowStart,
+        'End reading must be at least $startKm km',
+        km: startKm,
+      );
     }
     await db.transaction(() async {
       final odometer = await _odometer(photo, km);
@@ -255,7 +299,10 @@ class TripsRepository {
     CapturedPhoto? receipt,
   }) async {
     if (!['assigned', 'started', 'ended'].contains(trip.status)) {
-      throw LocalRejection('Charges can only be added to an active trip');
+      throw LocalRejection(
+        RejectionReason.chargesActiveOnly,
+        'Charges can only be added to an active trip',
+      );
     }
     await db.transaction(() async {
       if (receipt != null) {
@@ -273,6 +320,7 @@ class TripsRepository {
   Future<void> addCollection(Trip trip, TripCollection collection) async {
     if (trip.startedAt == null) {
       throw LocalRejection(
+        RejectionReason.paymentsAfterStart,
         'Payments can be recorded once the trip has started',
       );
     }

@@ -38,10 +38,20 @@ extension JsonRead on JsonMap {
       _get<List<Object?>>(key).map((item) => asJsonMap(item, key)).toList();
   List<String> strings(String key) =>
       _get<List<Object?>>(key).map((item) => item as String).toList();
+  List<int> integers(String key) =>
+      _get<List<Object?>>(key).map((item) => (item! as num).toInt()).toList();
 }
 
 JsonMap asJsonMap(Object? value, [String context = 'value']) {
   if (value is Map<String, Object?>) return value;
   if (value is Map) return value.cast<String, Object?>();
   throw JsonShapeError('Expected $context to be an object, got $value');
+}
+
+/// A JSON array of objects.
+List<JsonMap> jsonList(Object? json) {
+  if (json is! List<Object?>) {
+    throw JsonShapeError('Expected a list, got $json');
+  }
+  return json.map(asJsonMap).toList();
 }

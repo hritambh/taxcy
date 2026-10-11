@@ -83,7 +83,7 @@ export const hi: Translation = {
     create: 'बनाएँ',
     staffOnly: 'यह कंसोल मालिकों और मैनेजरों के लिए है',
     driverHere:
-      'आप {{org}} में ड्राइवर हैं। अपनी ट्रिप और फ़्यूल के लिए फ़ोन पर Taxcy Driver ऐप इस्तेमाल करें।',
+      'आप {{org}} में ड्राइवर हैं। अपनी ट्रिप और फ़्यूल के लिए फ़ोन पर Taxcy ऐप इस्तेमाल करें।',
     thisOrganization: 'इस संस्था',
     switchTo: '{{org}} पर जाएँ',
   },
@@ -708,7 +708,7 @@ export const hi: Translation = {
       title: 'ड्राइवर',
       invite: 'ड्राइवर जोड़ें',
       inviteTitle: 'ड्राइवर को जोड़ें',
-      inviteHelp: 'ड्राइवर इसी नंबर से Taxcy Driver ऐप में साइन इन करेगा; पासवर्ड की ज़रूरत नहीं।',
+      inviteHelp: 'ड्राइवर इसी नंबर से Taxcy ऐप में साइन इन करेगा; पासवर्ड की ज़रूरत नहीं।',
       name: 'नाम',
       mobileNumber: 'मोबाइल नंबर',
       invalidMobile: '10 अंकों का भारतीय मोबाइल नंबर डालें',

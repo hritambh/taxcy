@@ -81,7 +81,7 @@ export const en = {
     create: 'Create',
     staffOnly: 'This console is for owners and managers',
     driverHere:
-      'You’re a driver at {{org}}. Use the Taxcy Driver app on your phone for your trips and fuel.',
+      'You’re a driver at {{org}}. Use the Taxcy app on your phone for your trips and fuel.',
     thisOrganization: 'this organization',
     switchTo: 'Switch to {{org}}',
   },
@@ -709,8 +709,7 @@ export const en = {
       title: 'Drivers',
       invite: 'Invite driver',
       inviteTitle: 'Invite a driver',
-      inviteHelp:
-        'The driver signs in to the Taxcy Driver app with this number; no password needed.',
+      inviteHelp: 'The driver signs in to the Taxcy app with this number; no password needed.',
       name: 'Name',
       mobileNumber: 'Mobile number',
       invalidMobile: 'Enter a 10-digit Indian mobile number',

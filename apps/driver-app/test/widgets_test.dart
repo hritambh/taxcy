@@ -1,61 +1,19 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:taxcy_driver/app/app.dart';
 import 'package:taxcy_driver/app/providers.dart';
 import 'package:taxcy_driver/core/api/models.dart';
-import 'package:taxcy_driver/core/auth/session_store.dart';
 import 'package:taxcy_driver/core/repositories/trips_repository.dart';
 import 'package:taxcy_driver/core/sync/sync_engine.dart';
 import 'package:taxcy_driver/features/common/widgets.dart';
 import 'package:taxcy_driver/features/fuel/fuel_fill_screen.dart';
 import 'package:taxcy_driver/features/trips/trip_forms.dart';
 import 'package:taxcy_driver/features/trips/trips_screen.dart';
+import 'package:taxcy_driver/l10n/app_localizations.dart';
 
 import 'support/fakes.dart';
-
-class Harness {
-  Harness({Session? session}) : sessions = InMemorySessionStore(session);
-  final db = memoryDb();
-  final api = FakeApi();
-  final InMemorySessionStore sessions;
-  late final engine = SyncEngine(
-    db: db,
-    api: api,
-    readPhoto: (_) async => Uint8List(0),
-    deviceId: sessions.deviceId,
-  );
-
-  Widget wrap(Widget child) => ProviderScope(
-    overrides: [
-      databaseProvider.overrideWithValue(db),
-      apiProvider.overrideWithValue(api),
-      sessionStoreProvider.overrideWithValue(sessions),
-      syncEngineProvider.overrideWithValue(engine),
-      backgroundWorkProvider.overrideWithValue(false),
-      photoStoreProvider.overrideWithValue(MemoryPhotoStore()),
-      photoCaptureProvider.overrideWithValue(
-        (context, kind) async => fakePhoto('captured-$kind', kind: kind),
-      ),
-    ],
-    child: child,
-  );
-
-  Future<void> dispose() => db.close();
-}
-
-/// Lets real async work (drift queries, stream emissions) run, then rebuilds.
-/// pumpAndSettle alone can't: drift completes outside the test's fake clock, and
-/// screens show a spinner (an endless animation) until it does.
-Future<void> settle(WidgetTester tester, {int rounds = 5}) async {
-  for (var i = 0; i < rounds; i++) {
-    await tester.runAsync(
-      () => Future<void>.delayed(const Duration(milliseconds: 20)),
-    );
-    await tester.pump(const Duration(milliseconds: 50));
-  }
-}
+import 'support/harness.dart';
 
 void main() {
   test('reports the platform it runs on at login', () {
@@ -66,7 +24,7 @@ void main() {
   });
 
   testWidgets('login: phone → code → signed in as a driver', (tester) async {
-    final h = Harness();
+    final h = await Harness.create();
     addTearDown(h.dispose);
     await tester.pumpWidget(h.wrap(const TaxcyDriverApp()));
     await settle(tester);
@@ -91,23 +49,22 @@ void main() {
     expect((await h.sessions.load())?.isDriver, isTrue);
   });
 
-  testWidgets(
-    'an owner without a driver role is told this app is for drivers',
-    (tester) async {
-      final h = Harness(
-        session: Session.fromJson(sessionJson(roles: ['owner'])),
-      );
-      addTearDown(h.dispose);
-      await tester.pumpWidget(h.wrap(const TaxcyDriverApp()));
-      await settle(tester);
-      expect(find.text('This app is for drivers'), findsOneWidget);
-    },
-  );
+  testWidgets('a member with no role in the fleet is told to ask the owner', (
+    tester,
+  ) async {
+    final h = await Harness.create(
+      session: Session.fromJson(sessionJson(roles: [])),
+    );
+    addTearDown(h.dispose);
+    await tester.pumpWidget(h.wrap(const TaxcyDriverApp()));
+    await settle(tester);
+    expect(find.text('Not part of a fleet yet'), findsOneWidget);
+  });
 
   testWidgets('trips are grouped: on the road, today, upcoming, recent', (
     tester,
   ) async {
-    final h = Harness();
+    final h = await Harness.create();
     addTearDown(h.dispose);
     final now = DateTime.now();
     final trips = [
@@ -128,9 +85,9 @@ void main() {
     final grouped = groupTrips([
       for (final t in trips) TripView(Trip.fromJson(t)),
     ]);
-    expect(grouped.keys, ['On the road', 'Today', 'Upcoming', 'Recent']);
+    expect(grouped.keys, TripGroup.values);
 
-    await tester.pumpWidget(h.wrap(const MaterialApp(home: TripsScreen())));
+    await tester.pumpWidget(h.screen(const TripsScreen()));
     await settle(tester);
     // "On the road" is both a section header and the started trip's status chip.
     expect(find.text('On the road'), findsNWidgets(2));
@@ -149,14 +106,12 @@ void main() {
     );
 
     testWidgets('a running trip fixes the vehicle', (tester) async {
-      final h = Harness();
+      final h = await Harness.create();
       addTearDown(h.dispose);
       h.api.vehicleList = const [vehicle];
       await h.engine.cacheTrip(Trip.fromJson(tripJson(status: 'started')));
 
-      await tester.pumpWidget(
-        h.wrap(const MaterialApp(home: FuelFillScreen())),
-      );
+      await tester.pumpWidget(h.screen(const FuelFillScreen()));
       await settle(tester);
       expect(find.byType(DropdownButtonFormField<String>), findsNothing);
       expect(find.text('MH12AB1234 · Innova Crysta'), findsOneWidget);
@@ -167,13 +122,11 @@ void main() {
     });
 
     testWidgets('with no trip, the driver is told why', (tester) async {
-      final h = Harness();
+      final h = await Harness.create();
       addTearDown(h.dispose);
       h.api.vehicleList = const [vehicle];
 
-      await tester.pumpWidget(
-        h.wrap(const MaterialApp(home: FuelFillScreen())),
-      );
+      await tester.pumpWidget(h.screen(const FuelFillScreen()));
       await settle(tester);
       expect(
         find.textContaining('No vehicle is assigned to you'),
@@ -186,7 +139,7 @@ void main() {
   testWidgets(
     'end trip lists the charges and fuel added during the trip; charges count towards the fare',
     (tester) async {
-      final h = Harness();
+      final h = await Harness.create();
       addTearDown(h.dispose);
       final trip = Trip.fromJson({
         ...tripJson(status: 'started'),
@@ -214,9 +167,7 @@ void main() {
         ],
       });
 
-      await tester.pumpWidget(
-        h.wrap(MaterialApp(home: EndTripScreen(trip: trip))),
-      );
+      await tester.pumpWidget(h.screen(EndTripScreen(trip: trip)));
       await settle(tester);
       expect(find.text('Toll'), findsOneWidget);
       expect(
@@ -236,15 +187,13 @@ void main() {
   testWidgets('end trip warns when the km go beyond the included km', (
     tester,
   ) async {
-    final h = Harness();
+    final h = await Harness.create();
     addTearDown(h.dispose);
     final trip = Trip.fromJson({
       ...tripJson(status: 'started'),
       'includedKm': 150,
     });
-    await tester.pumpWidget(
-      h.wrap(MaterialApp(home: EndTripScreen(trip: trip))),
-    );
+    await tester.pumpWidget(h.screen(EndTripScreen(trip: trip)));
     await settle(tester);
     expect(find.byKey(const Key('km-over-included')), findsNothing);
     // Started at 48,210 km: 48,400 is 190 km, 40 over.
@@ -261,16 +210,12 @@ void main() {
   testWidgets(
     'start trip needs an odometer photo and a reading, then queues offline',
     (tester) async {
-      final h = Harness();
+      final h = await Harness.create();
       addTearDown(h.dispose);
       final trip = Trip.fromJson(tripJson());
       await h.engine.cacheTrip(trip);
       await tester.pumpWidget(
-        h.wrap(
-          MaterialApp(
-            home: Builder(builder: (_) => StartTripScreen(trip: trip)),
-          ),
-        ),
+        h.screen(Builder(builder: (_) => StartTripScreen(trip: trip))),
       );
 
       await tester.tap(find.byKey(const Key('confirm-start')));
@@ -299,23 +244,28 @@ void main() {
         attention: 0,
         syncing: false,
       );
-      expect(SyncStatusBar.label(s()), 'Synced');
-      expect(SyncStatusBar.label(s(pending: 3)), '3 pending');
-      expect(SyncStatusBar.label(s(online: false)), 'Offline');
+      final en = lookupAppLocalizations(const Locale('en'));
+      expect(SyncStatusBar.label(en, s()), 'Synced');
+      expect(SyncStatusBar.label(en, s(pending: 3)), '3 pending');
+      expect(SyncStatusBar.label(en, s(online: false)), 'Offline');
       expect(
-        SyncStatusBar.label(s(online: false, pending: 2)),
+        SyncStatusBar.label(en, s(online: false, pending: 2)),
         'Offline · 2 saved on phone',
+      );
+      final hi = lookupAppLocalizations(const Locale('hi'));
+      expect(SyncStatusBar.label(hi, s()), 'सिंक हो गया');
+      expect(
+        SyncStatusBar.label(hi, s(online: false, pending: 2)),
+        'ऑफ़लाइन · 2 फ़ोन में सेव',
       );
     });
 
     testWidgets('shows pending writes and goes offline when sync fails', (
       tester,
     ) async {
-      final h = Harness();
+      final h = await Harness.create();
       addTearDown(h.dispose);
-      await tester.pumpWidget(
-        h.wrap(const MaterialApp(home: Scaffold(body: SyncStatusBar()))),
-      );
+      await tester.pumpWidget(h.screen(const Scaffold(body: SyncStatusBar())));
       await settle(tester);
       expect(find.text('Synced'), findsOneWidget);
 

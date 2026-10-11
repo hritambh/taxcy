@@ -7,6 +7,7 @@ import '../../app/providers.dart';
 import '../../core/api/models.dart';
 import '../../core/media/captured_photo.dart';
 import '../../core/repositories/trips_repository.dart';
+import '../common/errors.dart';
 import '../common/format.dart';
 import '../common/widgets.dart';
 
@@ -26,7 +27,7 @@ Future<void> _submit(
     await action();
     if (context.mounted) Navigator.of(context).pop();
   } on LocalRejection catch (error) {
-    onError(error.message);
+    if (context.mounted) onError(rejectionText(context.l10n, error));
   }
 }
 
@@ -66,61 +67,64 @@ class _StartTripScreenState extends ConsumerState<StartTripScreen> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Start trip')),
-    body: Form(
-      key: _form,
-      child: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          Text(
-            widget.trip.routeLabel,
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          const SizedBox(height: 16),
-          PhotoField(
-            key: const Key('odometer-photo'),
-            kind: 'odometer',
-            label: 'Odometer photo',
-            photo: _photo,
-            errorText: _photoMissing ? 'Take a photo of the odometer' : null,
-            onChanged: (p) => setState(() {
-              _photo = p;
-              _photoMissing = false;
-            }),
-          ),
-          const SizedBox(height: 16),
-          TextFormField(
-            key: const Key('odometer-km'),
-            controller: _km,
-            keyboardType: TextInputType.number,
-            inputFormatters: _kmFormatters,
-            decoration: const InputDecoration(
-              labelText: 'Odometer reading',
-              suffixText: 'km',
-              helperText: 'Type it exactly as shown',
-              border: OutlineInputBorder(),
+  Widget build(BuildContext context) {
+    final l = context.l10n;
+    return Scaffold(
+      appBar: AppBar(title: Text(l.startTrip)),
+      body: Form(
+        key: _form,
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            Text(
+              widget.trip.routeLabel,
+              style: Theme.of(context).textTheme.titleMedium,
             ),
-            validator: validateKm,
-          ),
-          if (_error != null)
-            Padding(
-              padding: const EdgeInsets.only(top: 12),
-              child: Text(
-                _error!,
-                style: TextStyle(color: Theme.of(context).colorScheme.error),
+            const SizedBox(height: 16),
+            PhotoField(
+              key: const Key('odometer-photo'),
+              kind: 'odometer',
+              label: l.odometerPhoto,
+              photo: _photo,
+              errorText: _photoMissing ? l.takeOdometerPhoto : null,
+              onChanged: (p) => setState(() {
+                _photo = p;
+                _photoMissing = false;
+              }),
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              key: const Key('odometer-km'),
+              controller: _km,
+              keyboardType: TextInputType.number,
+              inputFormatters: _kmFormatters,
+              decoration: InputDecoration(
+                labelText: l.odometerReading,
+                suffixText: l.unitKm,
+                helperText: l.typeExactly,
+                border: const OutlineInputBorder(),
               ),
+              validator: (v) => validateKm(l, v),
             ),
-          const SizedBox(height: 24),
-          FilledButton(
-            key: const Key('confirm-start'),
-            onPressed: _start,
-            child: const Text('Start trip'),
-          ),
-        ],
+            if (_error != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 12),
+                child: Text(
+                  _error!,
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                ),
+              ),
+            const SizedBox(height: 24),
+            FilledButton(
+              key: const Key('confirm-start'),
+              onPressed: _start,
+              child: Text(l.startTrip),
+            ),
+          ],
+        ),
       ),
-    ),
-  );
+    );
+  }
 }
 
 class _CollectionRow {
@@ -176,7 +180,7 @@ class _EndTripScreenState extends ConsumerState<EndTripScreen> {
       _charges.fold(0, (sum, c) => sum + (parseRupees(c.amount.text) ?? 0));
 
   /// "Fare ₹3,500 + extra fare ₹900 + expenses ₹200".
-  String get _fareBreakdown {
+  String _fareBreakdown(Fmt fmt) {
     var extra = 0;
     var expenses = 0;
     for (final (kind, paise) in [
@@ -189,10 +193,11 @@ class _EndTripScreenState extends ConsumerState<EndTripScreen> {
         expenses += paise;
       }
     }
+    final l = fmt.l;
     return [
-      'Fare ${formatInr(widget.trip.quotedFarePaise)}',
-      if (extra > 0) 'extra fare ${formatInr(extra)}',
-      if (expenses > 0) 'tolls & expenses ${formatInr(expenses)}',
+      l.fareBreakdownFare(amount: fmt.inr(widget.trip.quotedFarePaise)),
+      if (extra > 0) l.fareBreakdownExtra(amount: fmt.inr(extra)),
+      if (expenses > 0) l.fareBreakdownExpenses(amount: fmt.inr(expenses)),
     ].join(' + ');
   }
 
@@ -253,8 +258,10 @@ class _EndTripScreenState extends ConsumerState<EndTripScreen> {
   @override
   Widget build(BuildContext context) {
     final startKm = widget.trip.startOdometer?.typedKm;
+    final l = context.l10n;
+    final fmt = context.fmt;
     return Scaffold(
-      appBar: AppBar(title: const Text('End trip')),
+      appBar: AppBar(title: Text(l.endTrip)),
       body: Form(
         key: _form,
         child: ListView(
@@ -262,9 +269,9 @@ class _EndTripScreenState extends ConsumerState<EndTripScreen> {
           children: [
             PhotoField(
               kind: 'odometer',
-              label: 'Odometer photo',
+              label: l.odometerPhoto,
               photo: _photo,
-              errorText: _photoMissing ? 'Take a photo of the odometer' : null,
+              errorText: _photoMissing ? l.takeOdometerPhoto : null,
               onChanged: (p) => setState(() {
                 _photo = p;
                 _photoMissing = false;
@@ -277,12 +284,14 @@ class _EndTripScreenState extends ConsumerState<EndTripScreen> {
               keyboardType: TextInputType.number,
               inputFormatters: _kmFormatters,
               decoration: InputDecoration(
-                labelText: 'Odometer reading',
-                suffixText: 'km',
-                helperText: startKm == null ? null : 'Started at $startKm km',
+                labelText: l.odometerReading,
+                suffixText: l.unitKm,
+                helperText: startKm == null
+                    ? null
+                    : l.startedAtKm(km: fmt.number(startKm)),
                 border: const OutlineInputBorder(),
               ),
-              validator: (v) => validateKm(v, atLeast: startKm),
+              validator: (v) => validateKm(l, v, atLeast: startKm),
               onChanged: (_) => setState(() {}),
             ),
             if (_kmOver case final over?)
@@ -290,8 +299,10 @@ class _EndTripScreenState extends ConsumerState<EndTripScreen> {
                 key: const Key('km-over-included'),
                 padding: const EdgeInsets.only(top: 8),
                 child: Text(
-                  '$over km over the ${widget.trip.includedKm} km included in '
-                  'the fare. Add an extra km charge below.',
+                  l.kmOverIncluded(
+                    over: fmt.number(over),
+                    included: fmt.number(widget.trip.includedKm!),
+                  ),
                   style: TextStyle(
                     color: Theme.of(context).colorScheme.primary,
                   ),
@@ -299,7 +310,7 @@ class _EndTripScreenState extends ConsumerState<EndTripScreen> {
               ),
             const SizedBox(height: 24),
             Text(
-              'Charges you paid or added',
+              l.chargesYouPaidOrAdded,
               style: Theme.of(context).textTheme.titleSmall,
             ),
             for (final c in _addedCharges)
@@ -308,62 +319,81 @@ class _EndTripScreenState extends ConsumerState<EndTripScreen> {
                 dense: true,
                 contentPadding: EdgeInsets.zero,
                 leading: const Icon(Icons.check_circle_outline),
-                title: Text(chargeKindLabels[c.kind] ?? c.kind),
-                subtitle: Text('Added during the trip · ${chargeNote(c)}'),
-                trailing: Text(formatInr(c.amountPaise)),
+                title: Text(chargeKindLabel(l, c.kind)),
+                subtitle: Text(l.addedDuringTrip(note: chargeNote(l, c))),
+                trailing: Text(fmt.inr(c.amountPaise)),
               ),
+            // Two lines per charge, so it fits a small phone in any language.
             for (final (index, c) in _charges.indexed)
-              Row(
-                children: [
-                  DropdownButton<String>(
-                    value: c.kind,
-                    items: [
-                      for (final e in chargeKindLabels.entries)
-                        DropdownMenuItem(value: e.key, child: Text(e.value)),
-                    ],
-                    onChanged: (v) => setState(() => c.kind = v ?? c.kind),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: TextFormField(
-                      controller: c.amount,
-                      keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true,
-                      ),
-                      decoration: const InputDecoration(prefixText: '₹ '),
-                      validator: validateRupees,
-                      onChanged: (_) => setState(() {}),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: DropdownButton<String>(
+                            value: c.kind,
+                            isExpanded: true,
+                            items: [
+                              for (final kind in chargeKinds)
+                                DropdownMenuItem(
+                                  value: kind,
+                                  child: Text(chargeKindLabel(l, kind)),
+                                ),
+                            ],
+                            onChanged: (v) =>
+                                setState(() => c.kind = v ?? c.kind),
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close),
+                          onPressed: () =>
+                              setState(() => _charges.removeAt(index)),
+                        ),
+                      ],
                     ),
-                  ),
-                  if (isExtraFare(c.kind))
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 8),
-                      child: Text('Extra fare'),
-                    )
-                  else ...[
-                    Checkbox(
-                      value: c.paidByDriver,
-                      onChanged: (v) =>
-                          setState(() => c.paidByDriver = v ?? true),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextFormField(
+                            controller: c.amount,
+                            keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
+                            decoration: const InputDecoration(prefixText: '₹ '),
+                            validator: (v) => validateRupees(l, v),
+                            onChanged: (_) => setState(() {}),
+                          ),
+                        ),
+                        if (isExtraFare(c.kind))
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                            child: Text(l.extraFare),
+                          )
+                        else ...[
+                          Checkbox(
+                            value: c.paidByDriver,
+                            onChanged: (v) =>
+                                setState(() => c.paidByDriver = v ?? true),
+                          ),
+                          Text(l.iPaid),
+                        ],
+                      ],
                     ),
-                    const Text('I paid'),
                   ],
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => setState(() => _charges.removeAt(index)),
-                  ),
-                ],
+                ),
               ),
             TextButton.icon(
               onPressed: () => setState(() => _charges.add(_ChargeRow())),
               icon: const Icon(Icons.add),
-              label: const Text('Add toll, night charge, extra km…'),
+              label: Text(l.addChargeRow),
             ),
             const SizedBox(height: 16),
             if (widget.trip.fuelFills.isNotEmpty) ...[
               const SizedBox(height: 8),
               Text(
-                'Fuel filled on this trip',
+                l.fuelFilledOnTrip,
                 style: Theme.of(context).textTheme.titleSmall,
               ),
               for (final f in widget.trip.fuelFills)
@@ -372,68 +402,74 @@ class _EndTripScreenState extends ConsumerState<EndTripScreen> {
                   dense: true,
                   contentPadding: EdgeInsets.zero,
                   leading: const Icon(Icons.local_gas_station_outlined),
-                  title: Text(fuelFillLabel(f)),
-                  subtitle: Text(paidByLabels[f.paidBy] ?? f.paidBy),
-                  trailing: Text(formatInr(f.costPaise)),
+                  title: Text(fuelFillLabel(fmt, f)),
+                  subtitle: Text(paidByLabel(l, f.paidBy)),
+                  trailing: Text(fmt.inr(f.costPaise)),
                 ),
               if (_fuelPaidByDriver > 0)
-                Text(
-                  '${formatInr(_fuelPaidByDriver)} of fuel paid by you is '
-                  'paid back in your settlement; the customer doesn’t pay for it.',
-                ),
+                Text(l.fuelPaidByYouNote(amount: fmt.inr(_fuelPaidByDriver))),
               const SizedBox(height: 8),
             ],
             Text(
-              'Customer paid · expected ${formatInr(_expected)}',
+              l.customerPaidExpected(amount: fmt.inr(_expected)),
               style: Theme.of(context).textTheme.titleSmall,
             ),
             Text(
-              _fareBreakdown,
+              _fareBreakdown(fmt),
               key: const Key('fare-breakdown'),
               style: Theme.of(context).textTheme.bodySmall,
             ),
             if (_alreadyCollected > 0)
-              Text(
-                '${formatInr(_alreadyCollected)} already recorded during the trip',
-              ),
+              Text(l.alreadyRecorded(amount: fmt.inr(_alreadyCollected))),
             for (final (index, c) in _collections.indexed)
-              Row(
-                children: [
-                  SegmentedButton<String>(
-                    segments: const [
-                      ButtonSegment(value: 'cash', label: Text('Cash')),
-                      ButtonSegment(value: 'upi', label: Text('UPI')),
-                      ButtonSegment(value: 'card', label: Text('Card')),
-                    ],
-                    selected: {c.method},
-                    onSelectionChanged: (s) =>
-                        setState(() => c.method = s.first),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: TextFormField(
-                      key: Key('collection-$index'),
-                      controller: c.amount,
-                      keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true,
-                      ),
-                      decoration: const InputDecoration(prefixText: '₹ '),
-                      validator: (v) => validateRupees(v, allowZero: true),
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    SegmentedButton<String>(
+                      showSelectedIcon: false,
+                      segments: [
+                        for (final method in const ['cash', 'upi', 'card'])
+                          ButtonSegment(
+                            value: method,
+                            label: Text(methodLabel(l, method)),
+                          ),
+                      ],
+                      selected: {c.method},
+                      onSelectionChanged: (s) =>
+                          setState(() => c.method = s.first),
                     ),
-                  ),
-                  if (_collections.length > 1)
-                    IconButton(
-                      icon: const Icon(Icons.close),
-                      onPressed: () =>
-                          setState(() => _collections.removeAt(index)),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextFormField(
+                            key: Key('collection-$index'),
+                            controller: c.amount,
+                            keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
+                            decoration: const InputDecoration(prefixText: '₹ '),
+                            validator: (v) =>
+                                validateRupees(l, v, allowZero: true),
+                          ),
+                        ),
+                        if (_collections.length > 1)
+                          IconButton(
+                            icon: const Icon(Icons.close),
+                            onPressed: () =>
+                                setState(() => _collections.removeAt(index)),
+                          ),
+                      ],
                     ),
-                ],
+                  ],
+                ),
               ),
             TextButton.icon(
               onPressed: () =>
                   setState(() => _collections.add(_CollectionRow('upi'))),
               icon: const Icon(Icons.call_split),
-              label: const Text('Split payment'),
+              label: Text(l.splitPayment),
             ),
             if (_error != null)
               Text(
@@ -441,7 +477,7 @@ class _EndTripScreenState extends ConsumerState<EndTripScreen> {
                 style: TextStyle(color: Theme.of(context).colorScheme.error),
               ),
             const SizedBox(height: 24),
-            FilledButton(onPressed: _end, child: const Text('End trip')),
+            FilledButton(onPressed: _end, child: Text(l.endTrip)),
           ],
         ),
       ),
@@ -493,61 +529,62 @@ class _CancelRequestScreenState extends ConsumerState<CancelRequestScreen> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Request cancellation')),
-    body: Form(
-      key: _form,
-      child: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          const Text(
-            'Your owner will approve or reject this. The trip keeps running until then.',
-          ),
-          const SizedBox(height: 16),
-          TextFormField(
-            controller: _reason,
-            maxLines: 3,
-            decoration: const InputDecoration(
-              labelText: 'Reason',
-              hintText: 'e.g. Customer got off at Lonavala',
-              border: OutlineInputBorder(),
+  Widget build(BuildContext context) {
+    final l = context.l10n;
+    return Scaffold(
+      appBar: AppBar(title: Text(l.requestCancellation)),
+      body: Form(
+        key: _form,
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            Text(l.cancelRequestIntro),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _reason,
+              maxLines: 3,
+              decoration: InputDecoration(
+                labelText: l.reason,
+                hintText: l.reasonHint,
+                border: const OutlineInputBorder(),
+              ),
+              validator: (v) =>
+                  (v ?? '').trim().isEmpty ? l.reasonRequired : null,
             ),
-            validator: (v) =>
-                (v ?? '').trim().isEmpty ? 'Tell your owner why' : null,
-          ),
-          const SizedBox(height: 16),
-          PhotoField(
-            kind: 'odometer',
-            label: 'Odometer photo',
-            photo: _photo,
-            errorText: _photoMissing ? 'Take a photo of the odometer' : null,
-            onChanged: (p) => setState(() {
-              _photo = p;
-              _photoMissing = false;
-            }),
-          ),
-          const SizedBox(height: 16),
-          TextFormField(
-            controller: _km,
-            keyboardType: TextInputType.number,
-            inputFormatters: _kmFormatters,
-            decoration: const InputDecoration(
-              labelText: 'Odometer reading',
-              suffixText: 'km',
-              border: OutlineInputBorder(),
+            const SizedBox(height: 16),
+            PhotoField(
+              kind: 'odometer',
+              label: l.odometerPhoto,
+              photo: _photo,
+              errorText: _photoMissing ? l.takeOdometerPhoto : null,
+              onChanged: (p) => setState(() {
+                _photo = p;
+                _photoMissing = false;
+              }),
             ),
-            validator: (v) =>
-                validateKm(v, atLeast: widget.trip.startOdometer?.typedKm),
-          ),
-          if (_error != null)
-            Text(
-              _error!,
-              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _km,
+              keyboardType: TextInputType.number,
+              inputFormatters: _kmFormatters,
+              decoration: InputDecoration(
+                labelText: l.odometerReading,
+                suffixText: l.unitKm,
+                border: const OutlineInputBorder(),
+              ),
+              validator: (v) =>
+                  validateKm(l, v, atLeast: widget.trip.startOdometer?.typedKm),
             ),
-          const SizedBox(height: 24),
-          FilledButton(onPressed: _send, child: const Text('Send request')),
-        ],
+            if (_error != null)
+              Text(
+                _error!,
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
+            const SizedBox(height: 24),
+            FilledButton(onPressed: _send, child: Text(l.sendRequest)),
+          ],
+        ),
       ),
-    ),
-  );
+    );
+  }
 }

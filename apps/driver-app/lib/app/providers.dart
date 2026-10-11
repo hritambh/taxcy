@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/api/api.dart';
 import '../core/api/http_api.dart';
 import '../core/api/models.dart';
+import '../core/api/owner_api.dart';
 import '../core/auth/session_store.dart';
 import '../core/db/database.dart';
 import '../core/location/gps.dart';
@@ -37,12 +38,20 @@ final sessionStoreProvider = Provider<SessionStore>(
   (ref) => SecureSessionStore(),
 );
 
-final apiProvider = Provider<TaxcyApi>(
+final httpApiProvider = Provider<HttpTaxcyApi>(
   (ref) => HttpTaxcyApi(
     baseUrl: apiUrl,
     sessions: ref.watch(sessionStoreProvider),
     onSignedOut: () => ref.invalidate(authProvider),
   ),
+);
+
+/// The driver endpoints (sync engine, repositories); tests replace it with a fake.
+final apiProvider = Provider<TaxcyApi>((ref) => ref.watch(httpApiProvider));
+
+/// The owner/manager endpoints (owner mode); tests replace it with a fake.
+final ownerApiProvider = Provider<OwnerApi>(
+  (ref) => HttpOwnerApi(ref.watch(httpApiProvider)),
 );
 
 final syncEngineProvider = Provider<SyncEngine>((ref) {

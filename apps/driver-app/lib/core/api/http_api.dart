@@ -36,7 +36,7 @@ class HttpTaxcyApi implements TaxcyApi {
 
   @override
   Future<void> requestOtp(String phone) =>
-      _send('POST', '/auth/otp/request', body: {'phone': phone}, auth: false);
+      send('POST', '/auth/otp/request', body: {'phone': phone}, auth: false);
 
   @override
   Future<Session> verifyOtp({
@@ -45,7 +45,7 @@ class HttpTaxcyApi implements TaxcyApi {
     required String deviceId,
     required String platform,
   }) async {
-    final json = await _send(
+    final json = await send(
       'POST',
       '/auth/otp/verify',
       body: {
@@ -60,7 +60,7 @@ class HttpTaxcyApi implements TaxcyApi {
   }
 
   @override
-  Future<void> logout(String refreshToken) => _send(
+  Future<void> logout(String refreshToken) => send(
     'POST',
     '/auth/logout',
     body: {'refreshToken': refreshToken},
@@ -69,24 +69,24 @@ class HttpTaxcyApi implements TaxcyApi {
 
   @override
   Future<List<Trip>> myTrips({DateTime? since}) async {
-    final json = await _send(
+    final json = await send(
       'GET',
       '/me/trips',
       query: since == null ? null : {'since': since.toUtc().toIso8601String()},
     );
-    return _list(json).map(Trip.fromJson).toList();
+    return jsonList(json).map(Trip.fromJson).toList();
   }
 
   @override
   Future<List<Vehicle>> vehicles() async {
-    final json = await _send('GET', '/vehicles', query: {'status': 'active'});
-    return _list(json).map(Vehicle.fromJson).toList();
+    final json = await send('GET', '/vehicles', query: {'status': 'active'});
+    return jsonList(json).map(Vehicle.fromJson).toList();
   }
 
   @override
   Future<UploadTicket> registerMedia(JsonMap body) async =>
       UploadTicket.fromJson(
-        asJsonMap(await _send('POST', '/media', body: body)),
+        asJsonMap(await send('POST', '/media', body: body)),
       );
 
   @override
@@ -114,7 +114,7 @@ class HttpTaxcyApi implements TaxcyApi {
 
   @override
   Future<void> completeMedia(String mediaId) =>
-      _send('POST', '/media/$mediaId/complete');
+      send('POST', '/media/$mediaId/complete');
 
   @override
   Future<Trip> tripCommand(
@@ -124,7 +124,7 @@ class HttpTaxcyApi implements TaxcyApi {
     JsonMap body,
   ) async => Trip.fromJson(
     asJsonMap(
-      await _send(
+      await send(
         'POST',
         '/trips/$tripId/$command',
         body: body,
@@ -135,30 +135,28 @@ class HttpTaxcyApi implements TaxcyApi {
 
   @override
   Future<Trip> createTrip(JsonMap body) async =>
-      Trip.fromJson(asJsonMap(await _send('POST', '/trips', body: body)));
+      Trip.fromJson(asJsonMap(await send('POST', '/trips', body: body)));
 
   @override
   Future<Trip> addCharge(String tripId, JsonMap body) async => Trip.fromJson(
-    asJsonMap(await _send('POST', '/trips/$tripId/charges', body: body)),
+    asJsonMap(await send('POST', '/trips/$tripId/charges', body: body)),
   );
 
   @override
   Future<Trip> addCollection(String tripId, JsonMap body) async =>
       Trip.fromJson(
-        asJsonMap(
-          await _send('POST', '/trips/$tripId/collections', body: body),
-        ),
+        asJsonMap(await send('POST', '/trips/$tripId/collections', body: body)),
       );
 
   @override
   Future<void> recordFuelFill(JsonMap body) =>
-      _send('POST', '/fuel-fills', body: body);
+      send('POST', '/fuel-fills', body: body);
 
   @override
   Future<GpsBatchResult> uploadGps(String tripId, List<JsonMap> points) async =>
       GpsBatchResult.fromJson(
         asJsonMap(
-          await _send(
+          await send(
             'POST',
             '/trips/$tripId/gps-batches',
             body: {'points': points},
@@ -166,14 +164,9 @@ class HttpTaxcyApi implements TaxcyApi {
         ),
       );
 
-  List<JsonMap> _list(Object? json) {
-    if (json is! List<Object?>) {
-      throw JsonShapeError('Expected a list, got $json');
-    }
-    return json.map(asJsonMap).toList();
-  }
-
-  Future<Object?> _send(
+  /// One authorised request; returns the decoded JSON body (null when empty).
+  /// Shared with HttpOwnerApi so both use the same token refresh.
+  Future<Object?> send(
     String method,
     String path, {
     Object? body,

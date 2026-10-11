@@ -2,6 +2,7 @@ import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../location/gps.dart';
 import 'captured_photo.dart';
 import 'photo_store.dart';
@@ -33,7 +34,7 @@ class CameraCaptureScreen extends StatefulWidget {
     super.key,
   });
 
-  /// odometer or fuel_receipt.
+  /// odometer, fuel_receipt or document.
   final String kind;
   final PhotoStore store;
 
@@ -68,7 +69,13 @@ class _CameraCaptureScreenState extends State<CameraCaptureScreen> {
       if (!mounted) return;
       setState(() => _controller = controller);
     } on Object catch (error) {
-      if (mounted) setState(() => _error = 'Camera unavailable: $error');
+      if (mounted) {
+        setState(
+          () => _error = AppLocalizations.of(
+            context,
+          ).cameraUnavailable(error: '$error'),
+        );
+      }
     }
   }
 
@@ -106,7 +113,13 @@ class _CameraCaptureScreenState extends State<CameraCaptureScreen> {
         ),
       );
     } on Object catch (error) {
-      if (mounted) setState(() => _error = 'Could not take the photo: $error');
+      if (mounted) {
+        setState(
+          () => _error = AppLocalizations.of(
+            context,
+          ).couldNotTakePhoto(error: '$error'),
+        );
+      }
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -115,16 +128,15 @@ class _CameraCaptureScreenState extends State<CameraCaptureScreen> {
   @override
   Widget build(BuildContext context) {
     final controller = _controller;
-    final hint = widget.kind == 'odometer'
-        ? 'Fit the whole odometer in the frame'
-        : 'Fit the whole receipt in the frame';
+    final l = AppLocalizations.of(context);
+    final (title, hint) = switch (widget.kind) {
+      'odometer' => (l.odometerPhoto, l.fitOdometer),
+      'document' => (l.documentPhoto, l.fitDocument),
+      _ => (l.receiptPhoto, l.fitReceipt),
+    };
     return Scaffold(
       backgroundColor: Colors.black,
-      appBar: AppBar(
-        title: Text(
-          widget.kind == 'odometer' ? 'Odometer photo' : 'Receipt photo',
-        ),
-      ),
+      appBar: AppBar(title: Text(title)),
       body: _error != null
           ? Center(
               child: Text(_error!, style: const TextStyle(color: Colors.white)),

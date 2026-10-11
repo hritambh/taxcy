@@ -1,12 +1,18 @@
 # Driver guide (mobile app)
 
-> Describes the driver app as built in M1.8. Drivers use the Android or iOS app; the browser version (`bun run dev:driver-web`) is for demos and testing, and records the route only while its tab is open.
+> Describes the driver screens of the Taxcy app (built in M1.8; English and Hindi since M1.10). Owners and managers use the same app; see the [owner guide](owner-guide.md#owner-mode-in-the-app). Drivers use the Android or iOS app; the browser version (`bun run dev:driver-web`) is for demos and testing, and records the route only while its tab is open.
 
 ## Sign in
 
 1. Open Taxcy and enter the mobile number your fleet owner registered.
 2. Enter the OTP from the SMS.
 3. Allow **camera** and **location** access. Location is used only while a trip is running.
+
+### Language
+
+The app speaks **English** and **हिन्दी (Hindi)**. It starts in your phone's language (Hindi if your phone is set to Hindi, otherwise English). To change it, tap the **translate** icon on the sign-in screen, or open the **⋮** menu on **My trips** and choose **Language**. The choice is saved on the phone. Amounts are shown in ₹ with Indian grouping (₹1,23,456) and dates in the chosen language.
+
+If you are also the fleet owner (an owner-driver), the same **⋮** menu has **Owner mode**, which opens the fleet screens. Use **More → Driver mode** to come back. Your trips keep syncing and recording the route while you are in owner mode.
 
 ### One-time phone setup (important)
 

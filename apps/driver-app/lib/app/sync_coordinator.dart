@@ -4,6 +4,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../l10n/app_localizations.dart';
 import 'providers.dart';
 
 /// Keeps the outbox draining: on start, on connectivity changes, every 30 s, and
@@ -65,7 +66,14 @@ class _SyncCoordinatorState extends ConsumerState<SyncCoordinator>
         if (active.isEmpty) {
           unawaited(recorder.stop());
         } else {
-          unawaited(recorder.start(active.first.trip.id));
+          final l = AppLocalizations.of(context);
+          unawaited(
+            recorder.start(
+              active.first.trip.id,
+              notificationTitle: l.gpsNotificationTitle,
+              notificationText: l.gpsNotificationText,
+            ),
+          );
         }
       });
     }
