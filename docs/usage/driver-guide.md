@@ -4,9 +4,23 @@
 
 ## Sign in
 
-1. Open Taxcy and enter the mobile number your fleet owner registered.
-2. Enter the OTP from the SMS.
-3. Allow **camera** and **location** access. Location is used only while a trip is running.
+Always use the mobile number your fleet owner registered: that's how your trips find you.
+
+- **Mobile number + password** (the first screen). Enter your number and password and tap **Log in**.
+- **Use an SMS code instead**: enter your number, tap **Send code**, and enter the 6-digit code from the SMS. This always works, even without a password. **Resend code** becomes available after a short wait.
+- **New to Taxcy? Sign up**: enter your number and tap **Send code**, then enter the code, your name (optional) and a password twice (at least 8 characters). If the number already has a password, the app offers **Log in** or **Reset password** instead.
+- **Forgot password?**: enter your number, tap **Send code**, then enter the code and a new password. You are logged in, and signed out everywhere else.
+- **Continue with Google** (when your fleet's server has it switched on): pick your Google account. The first time, the app asks you to **verify your phone**: enter your number and the SMS code, and your Google account is linked to it. After that, Google logs you straight in. If the app says the number is linked to a different Google account, use your password or an SMS code. Without a connection the Google button is hidden; password and SMS code still work once you're online.
+
+The app never saves your password on the phone (your phone's password manager may offer to). The eye icon shows what you typed.
+
+Then allow **camera** and **location** access. Location is used only while a trip is running.
+
+### Account security
+
+Open the **⋮** menu on **My trips** and choose **Account security** (needs a connection). It shows your number, whether you have a password and whether a Google account is linked (with its email). **Set a password** to start logging in with one, or **Change password** (you need the current one; if you've forgotten it, sign out and use **Forgot password?**). To link Google, sign out and choose **Continue with Google**.
+
+Signing out removes your trips and photos from the phone as before; anything not yet uploaded is lost, so sign out only when the status bar shows **Synced**.
 
 ### Language
 
